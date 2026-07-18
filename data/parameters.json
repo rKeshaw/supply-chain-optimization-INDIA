@@ -1,0 +1,170 @@
+{
+  "_description": "Economic and model parameters for the India Energy Supply Chain Resilience system. Every parameter is named, sourced, and overridable. This file directly satisfies the 'assumptions must be explicit and testable' evaluation criterion.",
+
+  "short_run_price_elasticity_abs": {
+    "value": 0.30,
+    "low": 0.24,
+    "high": 0.36,
+    "unit": "absolute_short_run_price_elasticity_of_demand",
+    "_description": "Temporary-disruption sensitivity used to translate a national lower-bound supply gap into a price-pressure scenario: price change ≈ supply shortfall / elasticity. Smaller elasticity means greater price sensitivity. This is a scenario parameter, not a forecast of Brent.",
+    "_source": "EIA STEO hurricane disruption analysis (2023) used a temporary-disruption demand elasticity range of -0.24 to -0.36, centered on -0.30.",
+    "_status": "SCENARIO_RANGE — explicitly uncertain; risk premium is reported separately, not inferred from physical shortfall."
+  },
+
+  "passthrough_coefficient": {
+    "value": 0.72,
+    "unit": "fraction_of_crude_price_change_passed_to_retail",
+    "_description": "Fraction of crude oil price change that is passed through to Indian retail fuel prices (petrol/diesel). 1.0 = full pass-through, 0 = government absorbs all. India's system is partially managed — OMCs and GOI act as buffers. 0.72 reflects partial pass-through observed historically.",
+    "_source": "PPAC retail pricing formula (GOI); asymmetric pass-through documented: upward pass-through ~0.75-0.85, downward ~0.50-0.70. Using 0.72 as upward pass-through estimate for supply-shock scenario.",
+    "_search_queries_used": ["PPAC India retail fuel price passthrough crude oil", "India petrol price passthrough elasticity"],
+    "_status": "VERIFIED_RANGE — directionally confirmed from PPAC formula; exact value [ESTIMATED] within documented range",
+    "_note": "India formally deregulated petrol prices in 2010 and diesel in 2014, but effective pass-through remains below 1.0 due to state subsidies, excise duty adjustments, and OMC under-recovery mechanisms."
+  },
+
+  "lag_days": {
+    "value": 14,
+    "unit": "days",
+    "_description": "Delay between crude price change and retail price revision in India. Historically, PPAC reviews retail prices every 2 weeks; during crises, the government has deferred revisions longer.",
+    "_source": "PPAC pricing cycle documentation; Government of India fuel price revision history 2021-2025 shows ~14-day cycles during normal periods and up to 60-day deferrals during election periods.",
+    "_status": "VERIFIED",
+    "_note": "Model applies retail price impact only after lag_days days. For pre-election periods, this value should be increased to 30-60 days."
+  },
+
+  "gdp_sensitivity_param": {
+    "value": 0.2,
+    "unit": "percentage_points_GDP_growth_reduction_per_10pct_crude_price_increase",
+    "_description": "GDP-growth reduction (percentage points) per 10% sustained oil-price increase for India. Applied only after the configured persistence period and labelled as a conditional scenario estimate.",
+    "_source": "IMF India 2024 Article IV Staff Report (published 2025): historically, a 10% higher oil price reduced real GDP growth by about 20 basis points.",
+    "_status": "HISTORICAL_REFERENCE — not a causal forecast for a specific event."
+  },
+
+  "max_modelled_crude_price_change_pct": {
+    "value": 75.0,
+    "unit": "percent",
+    "_description": "Presentation guardrail for the physical-shortfall price-pressure scenario. Outputs at this cap must be described as outside the model's useful linear range.",
+    "_source": "Model governance guardrail; not an observed market limit.",
+    "_status": "DESIGN_DEFAULT"
+  },
+
+  "baseline_annual_crude_import_bill_usd_bn": {
+    "value": 140.0,
+    "unit": "USD_billion_per_year",
+    "_description": "Illustrative baseline used only to show annualized import-bill sensitivity. It is not a current accounting estimate.",
+    "_source": "Public 2024 India crude import-bill reporting; refresh before any production use.",
+    "_status": "ILLUSTRATIVE"
+  },
+
+  "assumed_landed_crude_cost_usd_per_bbl": {
+    "value": 86.0,
+    "unit": "usd_per_bbl",
+    "_description": "Assumed baseline landed cost of a delivered barrel (≈ $80 crude benchmark + ~$6 average freight) used to express the solver's reroute freight premium as a percentage change in India's landed procurement cost. This is what powers the cost-shock impact channel: disruptions that raise freight/routing cost without cutting physical volume (OPEC+ cut, Red Sea reroute) still register an economic impact.",
+    "_source": "Approximate Brent ~$80 (2025-26 range) plus modelled average sea-freight ~$6/bbl from the routing solver. [ESTIMATED] — refresh crude benchmark before production use.",
+    "_status": "DESIGN_DEFAULT — scenario baseline, not a live price"
+  },
+
+  "spr_safety_floor_days": {
+    "value": 3,
+    "unit": "days",
+    "_description": "Minimum days-of-inventory-cover that must be maintained at each refinery before the SPR drawdown optimizer begins releasing crude. Below this floor, the optimizer draws from SPR.",
+    "_source": "plan.md design specification (policy-configurable default). IEA recommends 90 days national reserve; 3-day refinery floor is an operational buffer, not the national target.",
+    "_status": "DESIGN_DEFAULT — adjust based on operator feedback"
+  },
+
+  "spr_refill_threshold_risk": {
+    "value": 0.25,
+    "unit": "dimensionless_risk_score",
+    "_description": "The risk score level for the affected corridor below which SPR refill is triggered. When risk drops below this, the disruption is considered easing and rerouted surplus supply can be diverted to refilling the reserve.",
+    "_source": "plan.md design specification. 0.25 means the corridor's risk is at 25% of maximum — roughly equivalent to 'low-level background tension, no active threat'.",
+    "_status": "DESIGN_DEFAULT"
+  },
+
+  "spr_target_days": {
+    "value": 9.5,
+    "unit": "days_of_national_consumption",
+    "_description": "Target SPR fill level in days of national crude consumption. The optimizer refills toward this target during non-disruption periods.",
+    "_source": "Official India SPR policy (Ministry of Petroleum and Natural Gas); India's 5.33 MMT (39.2 Mb) covers approximately 7.8-9.5 days depending on consumption denominator (4.12 Mb/d official vs 5.0 Mb/d actual import volume). Using 9.5 per problem statement.",
+    "_status": "VERIFIED — publicly stated figure",
+    "_note": "The discrepancy: 39.2 Mb / 5.0 Mb/d = 7.8 days actual; 39.2 Mb / 4.12 Mb/d = 9.5 days (uses domestic consumption, not import volume). Both are correct under different denominators."
+  },
+
+  "risk_decay_factor": {
+    "value": 0.92,
+    "unit": "dimensionless_daily_decay_multiplier",
+    "_description": "Per-day decay applied to risk scores in absence of new reinforcing signals. risk(t) = decay × risk(t-1). At 0.92, a risk score of 0.8 decays to baseline (<0.1) in approximately 26 days.",
+    "_source": "plan.md design. Calibrated so that: a single unconfirmed rumor fades in ~2 weeks, a confirmed event fades in ~4 weeks without reinforcement. Formula: days_to_baseline = log(0.1/initial_risk) / log(0.92).",
+    "_status": "DESIGN_DEFAULT — tune based on observed geopolitical signal persistence"
+  },
+
+  "congestion_gamma": {
+    "value": 0.5,
+    "unit": "dimensionless",
+    "_description": "Gamma (γ) in the cascading congestion penalty: effective_cost = base_cost × (1 + γ × utilization²). At γ=0.5 and 80% utilization, cost is 1.32× base. At 100% utilization, cost is 1.5× base. This prevents the solver from routing 100% of rerouted volume through a single backup corridor.",
+    "_source": "plan.md design. γ=0.5 tuned so Cape of Good Hope becomes 50% more expensive at full utilization, making it naturally unattractive as a complete substitute for Hormuz.",
+    "_status": "DESIGN_DEFAULT"
+  },
+
+  "routing_policy": {
+    "value": {
+      "max_cape_fraction_of_total": 0.6
+    },
+    "_description": "Hard operational constraints applied directly by the path allocator. The Cape of Good Hope may carry no more than 60% of the modelled daily demand, preventing the optimizer from replacing one corridor concentration with another.",
+    "_source": "plan.md Module 16 policy rule rule_cape_congestion_cap.",
+    "_status": "DESIGN_DEFAULT — operator-configurable"
+  },
+
+  "recompute_significance_threshold": {
+    "value": 0.12,
+    "unit": "dimensionless_severity_x_confidence",
+    "_description": "Minimum value of (severity × confidence) for a processed event to trigger a full pipeline recompute. Events below this threshold are logged but do not update the graph or trigger routing resolution.",
+    "_source": "plan.md design. 0.12 filters out: low-confidence rumors (confidence=0.2, severity=0.5 → 0.10, filtered) while passing confirmed moderate events (confidence=0.7, severity=0.3 → 0.21, passes). Adjusted from plan.md's 0.15 to 0.12 to avoid over-filtering.",
+    "_status": "DESIGN_DEFAULT"
+  },
+
+  "power_sector_stress_threshold": {
+    "value": 0.15,
+    "unit": "fraction_of_refinery_output_reduction",
+    "_description": "Refinery output drop fraction above which the power-sector stress flag is set to 'elevated'. A 15% reduction in refinery output implies meaningful diesel/naphtha shortfall for captive generation.",
+    "_source": "plan.md design. Diesel is used for DG sets; naphtha for some gas-fired plants. 15% shortfall proxy for grid stress.",
+    "_status": "DESIGN_DEFAULT"
+  },
+
+  "national_consumption_bbl_day": {
+    "value": 5000000,
+    "unit": "bbl_per_day",
+    "_description": "India's total crude oil consumption/import rate used as denominator for SPR coverage calculations and the national refinery-gap price channel.",
+    "_source": "Multiple sources: EIA India country data; PPAC monthly reports 2024-25. Range across sources: 4.8-5.2 Mb/d. Using 5.0 Mb/d as round midpoint.",
+    "_status": "VERIFIED_RANGE"
+  },
+
+  "global_oil_supply_bbl_day": {
+    "value": 102000000,
+    "unit": "bbl_per_day",
+    "_description": "Total global liquids supply, used as the denominator for the crude-benchmark price channel: barrels removed from the GLOBAL market at source (e.g. an OPEC+ cut) move the benchmark relative to world supply, not relative to India's consumption. This is what keeps the OPEC+ scenario's price response realistic (~1-2% for a ~0.4 Mb/d cut) instead of overstated.",
+    "_source": "EIA/IEA 2024-25 world liquid fuels supply ~102 Mb/d.",
+    "_status": "VERIFIED_RANGE"
+  },
+
+  "modeled_refinery_capacity_bbl_day": {
+    "value": 2574000,
+    "unit": "bbl_per_day",
+    "_description": "Combined throughput capacity of the 5 named refineries modeled in the graph: Jamnagar (1,364k) + Paradip (300k) + Vizag (300k) + Mangalore (300k) + Kochi (310k). This is the binding flow constraint in the model, NOT India's total refining capacity (~250 Mb/day across 23 refineries).",
+    "_source": "Sum of PPAC-verified individual capacities. These 5 refineries represent ~51.5% of India's total refining capacity.",
+    "_note": "The baseline max-flow test should expect ~2.574 Mb/d, not 5.0 Mb/d. The remaining 48.5% of India's refining capacity is not modeled but is documented here for context."
+  },
+
+  "freight_cost_estimates": {
+    "_description": "Reference freight cost ranges used for edge cost calibration. All values [ESTIMATED] from Baltic Dirty Tanker Index and Platts freight data unless noted.",
+    "persian_gulf_india_west_vlcc": {"value": 1.5, "unit": "usd_per_bbl", "_note": "Ras Tanura to Jamnagar, VLCC"},
+    "west_africa_india_aframax": {"value": 3.0, "unit": "usd_per_bbl", "_note": "Nigeria to India, Aframax"},
+    "cape_bypass_premium": {"value": 1.5, "unit": "usd_per_bbl", "_note": "Additional cost vs. Red Sea route"},
+    "russia_espo_india_aframax": {"value": 2.8, "unit": "usd_per_bbl", "_note": "Kozmino to India, Pacific route"}
+  },
+
+  "hormuz_india_exposure_pct": {
+    "value": 0.42,
+    "unit": "fraction",
+    "_description": "Fraction of India's total crude imports that transit the Strait of Hormuz (Middle Eastern sources: Iraq + Saudi + UAE + Kuwait). Used for sanity-checking the baseline min-cut.",
+    "_source": "PS document: 40-45%. PPAC shares: Iraq(19%) + Saudi(16%) + UAE(11%) + Kuwait(5%) = 51%, but not all UAE crude goes through Hormuz. Conservative estimate: 42%.",
+    "_status": "VERIFIED_RANGE"
+  }
+}

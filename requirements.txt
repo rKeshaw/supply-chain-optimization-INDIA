@@ -1,0 +1,14 @@
+networkx
+pydantic
+fastapi
+uvicorn
+httpx
+python-dotenv
+pytest
+pytest-asyncio
+aiohttp
+groq
+ortools
+searoute
+langgraph
+

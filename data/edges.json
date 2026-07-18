@@ -1,0 +1,4168 @@
+[
+  {
+    "_comment": "=== VIRTUAL EDGES: super_source \u2192 all source nodes (unconstrained) ==="
+  },
+  {
+    "id": "e_ss_russia_urals",
+    "from_id": "super_source",
+    "to_id": "src_russia_urals",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge \u2014 must never be the bottleneck. Capacity set to 10M bbl/day."
+  },
+  {
+    "id": "e_ss_russia_espo",
+    "from_id": "super_source",
+    "to_id": "src_russia_espo",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge \u2014 must never be the bottleneck. Capacity set to 10M bbl/day."
+  },
+  {
+    "id": "e_ss_iraq",
+    "from_id": "super_source",
+    "to_id": "src_iraq",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_ss_saudi",
+    "from_id": "super_source",
+    "to_id": "src_saudi",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_ss_uae",
+    "from_id": "super_source",
+    "to_id": "src_uae",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_ss_kuwait",
+    "from_id": "super_source",
+    "to_id": "src_kuwait",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_ss_nigeria",
+    "from_id": "super_source",
+    "to_id": "src_nigeria",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_ss_usa",
+    "from_id": "super_source",
+    "to_id": "src_usa",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "_comment": "=== INTERNAL REFINERY EDGES: refinery_in \u2192 refinery_out (capacity = processing limit) ==="
+  },
+  {
+    "id": "e_int_jamnagar",
+    "from_id": "ref_jamnagar_in",
+    "to_id": "ref_jamnagar_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 1364000,
+    "cost_per_bbl": 3.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Reliance Industries 68.2 MMTPA \u00d7 20,000 = 1,364,000 bbl/day. Refinery processing cost (not crude cost): ~$3/bbl [ESTIMATED] representative of complex refinery operating cost."
+  },
+  {
+    "id": "e_int_paradip",
+    "from_id": "ref_paradip_in",
+    "to_id": "ref_paradip_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 300000,
+    "cost_per_bbl": 3.5,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "PPAC: 15.0 MMTPA = 300,000 bbl/day."
+  },
+  {
+    "id": "e_int_vizag",
+    "from_id": "ref_vizag_in",
+    "to_id": "ref_vizag_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 300000,
+    "cost_per_bbl": 3.5,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "PPAC: 15.0 MMTPA = 300,000 bbl/day."
+  },
+  {
+    "id": "e_int_mangalore",
+    "from_id": "ref_mangalore_in",
+    "to_id": "ref_mangalore_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 300000,
+    "cost_per_bbl": 3.5,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "PPAC: 15.0 MMTPA = 300,000 bbl/day."
+  },
+  {
+    "id": "e_int_kochi",
+    "from_id": "ref_kochi_in",
+    "to_id": "ref_kochi_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 310000,
+    "cost_per_bbl": 3.5,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "PPAC: 15.5 MMTPA = 310,000 bbl/day."
+  },
+  {
+    "_comment": "=== VIRTUAL EDGES: refinery_out \u2192 super_sink (unconstrained) ==="
+  },
+  {
+    "id": "e_jamnagar_sk",
+    "from_id": "ref_jamnagar_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_paradip_sk",
+    "from_id": "ref_paradip_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_vizag_sk",
+    "from_id": "ref_vizag_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_mangalore_sk",
+    "from_id": "ref_mangalore_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_kochi_sk",
+    "from_id": "ref_kochi_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "_comment": "=== MIDDLE EAST SOURCES \u2192 STRAIT OF HORMUZ ==="
+  },
+  {
+    "id": "e_iraq_hormuz",
+    "from_id": "src_iraq",
+    "to_id": "chk_hormuz",
+    "mode": "sea",
+    "base_capacity_bbl_day": 950000,
+    "cost_per_bbl": 0.3,
+    "transit_time_days": 1,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "_source": "Basrah to Hormuz transit: ~1 day. Freight from Basrah terminal to Hormuz entrance is minimal \u2014 essentially a pipeline to offshore anchorage. Cost represents terminal fees [ESTIMATED].",
+    "path": [
+      [
+        48.793109,
+        29.805481
+      ],
+      [
+        50.1,
+        28.6
+      ],
+      [
+        51.221979,
+        27.181631
+      ],
+      [
+        53.3693,
+        26.5789
+      ],
+      [
+        54.399148,
+        26.194877
+      ],
+      [
+        55.064332,
+        26.151124
+      ],
+      [
+        55.345025,
+        26.132657
+      ],
+      [
+        56.343384,
+        26.441066
+      ],
+      [
+        56.547226,
+        26.511054
+      ]
+    ]
+  },
+  {
+    "id": "e_saudi_hormuz",
+    "from_id": "src_saudi",
+    "to_id": "chk_hormuz",
+    "mode": "sea",
+    "base_capacity_bbl_day": 800000,
+    "cost_per_bbl": 0.3,
+    "transit_time_days": 1,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "_source": "Ras Tanura/Ju'aymah terminals to Hormuz: ~1 day.",
+    "path": [
+      [
+        50.19104,
+        26.556593
+      ],
+      [
+        50.243413,
+        26.805152
+      ],
+      [
+        51.6,
+        26.3
+      ],
+      [
+        53.148966,
+        26.25488
+      ],
+      [
+        54.399148,
+        26.194877
+      ],
+      [
+        55.064332,
+        26.151124
+      ],
+      [
+        55.345025,
+        26.132657
+      ],
+      [
+        56.343384,
+        26.441066
+      ],
+      [
+        56.547226,
+        26.511054
+      ]
+    ]
+  },
+  {
+    "id": "e_uae_hormuz",
+    "from_id": "src_uae",
+    "to_id": "chk_hormuz",
+    "mode": "sea",
+    "base_capacity_bbl_day": 550000,
+    "cost_per_bbl": 0.3,
+    "transit_time_days": 1,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SWEET",
+    "_source": "Ruwais/Jebel Ali to Hormuz: ~1 day.",
+    "path": [
+      [
+        53.184814,
+        24.492148
+      ],
+      [
+        53.953193,
+        24.798804
+      ],
+      [
+        54.990692,
+        25.321684
+      ],
+      [
+        55.2,
+        25.6
+      ],
+      [
+        55.467372,
+        25.778718
+      ],
+      [
+        55.837469,
+        26.025658
+      ],
+      [
+        56.343384,
+        26.441066
+      ],
+      [
+        56.547226,
+        26.511054
+      ]
+    ]
+  },
+  {
+    "id": "e_kuwait_hormuz",
+    "from_id": "src_kuwait",
+    "to_id": "chk_hormuz",
+    "mode": "sea",
+    "base_capacity_bbl_day": 250000,
+    "cost_per_bbl": 0.3,
+    "transit_time_days": 1,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "_source": "Mina Abdulla/Shuaiba to Hormuz: ~1 day.",
+    "path": [
+      [
+        48.154587,
+        29.059473
+      ],
+      [
+        48.3,
+        29.1
+      ],
+      [
+        49.055127,
+        28.214613
+      ],
+      [
+        51.221979,
+        27.181631
+      ],
+      [
+        53.3693,
+        26.5789
+      ],
+      [
+        54.399148,
+        26.194877
+      ],
+      [
+        55.064332,
+        26.151124
+      ],
+      [
+        55.345025,
+        26.132657
+      ],
+      [
+        56.343384,
+        26.441066
+      ],
+      [
+        56.547226,
+        26.511054
+      ]
+    ]
+  },
+  {
+    "_comment": "=== HORMUZ \u2192 WEST COAST INDIAN REFINERIES (direct, via Arabian Sea) ==="
+  },
+  {
+    "id": "e_hormuz_jamnagar",
+    "from_id": "chk_hormuz",
+    "to_id": "ref_jamnagar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 1100000,
+    "cost_per_bbl": 1.5,
+    "transit_time_days": 6,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Hormuz to Jamnagar (Sikka terminal, Gujarat): ~6 days. Freight rate $1.50/bbl [ESTIMATED based on Baltic Dirty Tanker Index, VLCC Ras Tanura-West India route]. Capacity set to Jamnagar's intake + buffer; binding constraint is the internal refinery edge.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        63.3,
+        24.6
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ],
+      [
+        70.246582,
+        22.857195
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_mangalore",
+    "from_id": "chk_hormuz",
+    "to_id": "ref_mangalore_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 350000,
+    "cost_per_bbl": 1.7,
+    "transit_time_days": 8,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Hormuz to Mangalore (Karnataka, west coast): ~8 days. Slightly higher cost due to longer transit south.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        61.55539,
+        23.45698
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        65.725774,
+        22.570773
+      ],
+      [
+        67,
+        22.3
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        74.778442,
+        12.817158
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_kochi",
+    "from_id": "chk_hormuz",
+    "to_id": "ref_kochi_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 370000,
+    "cost_per_bbl": 1.8,
+    "transit_time_days": 9,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Hormuz to Kochi (Kerala, SPM facility): ~9 days.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        60.4,
+        22.7
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.5005,
+        20.0838
+      ],
+      [
+        64.952594,
+        19.426191
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        76.195679,
+        9.876864
+      ]
+    ]
+  },
+  {
+    "_comment": "=== HORMUZ \u2192 MALACCA (for east coast routing of Middle East crude) ==="
+  },
+  {
+    "id": "e_hormuz_malacca",
+    "from_id": "chk_hormuz",
+    "to_id": "chk_malacca",
+    "mode": "sea",
+    "base_capacity_bbl_day": 600000,
+    "cost_per_bbl": 1.2,
+    "transit_time_days": 7,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Hormuz to Malacca Strait (through Indian Ocean, around tip of Sri Lanka): ~7 days. Used when routing Gulf crude to east coast refineries (Paradip, Vizag). Cost lower than direct west-coast delivery as tankers avoid port congestion.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        60.4,
+        22.7
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.5005,
+        20.0838
+      ],
+      [
+        64.952594,
+        19.426191
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        102.247009,
+        2.159675
+      ]
+    ]
+  },
+  {
+    "_comment": "=== MALACCA \u2192 EAST COAST INDIAN REFINERIES ==="
+  },
+  {
+    "id": "e_malacca_paradip",
+    "from_id": "chk_malacca",
+    "to_id": "ref_paradip_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 320000,
+    "cost_per_bbl": 1.6,
+    "transit_time_days": 8,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Malacca to Paradip Port (Odisha): ~8 days across Bay of Bengal. Capacity slightly above refinery capacity to avoid artificial bottleneck here.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        93.638649,
+        14.549165
+      ],
+      [
+        89.727407,
+        18.84889
+      ],
+      [
+        88,
+        21
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_vizag",
+    "from_id": "chk_malacca",
+    "to_id": "ref_vizag_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 320000,
+    "cost_per_bbl": 1.55,
+    "transit_time_days": 7,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Malacca to Visakhapatnam Port (Andhra Pradesh): ~7 days. Slightly closer to Malacca than Paradip.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        92.334595,
+        10.136524
+      ],
+      [
+        88.973316,
+        13.264437
+      ],
+      [
+        87.079924,
+        14.742137
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        83.656463,
+        17.413983
+      ],
+      [
+        83.3898,
+        17.6221
+      ]
+    ]
+  },
+  {
+    "_comment": "=== RUSSIA ROUTES ==="
+  },
+  {
+    "id": "e_russia_malacca",
+    "from_id": "src_russia_espo",
+    "to_id": "chk_malacca",
+    "mode": "sea",
+    "base_capacity_bbl_day": 1100000,
+    "cost_per_bbl": 2.8,
+    "transit_time_days": 14,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "_source": "Russia ESPO: Kozmino (Pacific) to Malacca ~14 days. Path regenerated via searoute from the correct Pacific origin.",
+    "path": [
+      [
+        133.7,
+        42.7
+      ],
+      [
+        132,
+        42.3
+      ],
+      [
+        130.735565,
+        38.960326
+      ],
+      [
+        130.506264,
+        38.317111
+      ],
+      [
+        129.740295,
+        36.184442
+      ],
+      [
+        129.597473,
+        35.429344
+      ],
+      [
+        129.2,
+        35
+      ],
+      [
+        128.916321,
+        34.761923
+      ],
+      [
+        128.16925,
+        34.40691
+      ],
+      [
+        127.444583,
+        34.104419
+      ],
+      [
+        126.643151,
+        33.735423
+      ],
+      [
+        126.035156,
+        33.45436
+      ],
+      [
+        125.34383,
+        32.983736
+      ],
+      [
+        122.9,
+        31.3
+      ],
+      [
+        122.891141,
+        30.901897
+      ],
+      [
+        122.878907,
+        30.349364
+      ],
+      [
+        122.875214,
+        30.181935
+      ],
+      [
+        122.652515,
+        29.623632
+      ],
+      [
+        122.557297,
+        29.38397
+      ],
+      [
+        122.23938,
+        28.579698
+      ],
+      [
+        121.3,
+        27.8
+      ],
+      [
+        120.787503,
+        26.976762
+      ],
+      [
+        120.232569,
+        26.078521
+      ],
+      [
+        120,
+        25.7
+      ],
+      [
+        119.820497,
+        25.236972
+      ],
+      [
+        119.761963,
+        25.085599
+      ],
+      [
+        119.523707,
+        24.707707
+      ],
+      [
+        119.33882,
+        24.448861
+      ],
+      [
+        118.980046,
+        23.949944
+      ],
+      [
+        118.724128,
+        23.582665
+      ],
+      [
+        118.203464,
+        22.930938
+      ],
+      [
+        118.030487,
+        22.691517
+      ],
+      [
+        117.437994,
+        21.922538
+      ],
+      [
+        116.5017,
+        20.601113
+      ],
+      [
+        115.841059,
+        19.666279
+      ],
+      [
+        114.338334,
+        17.570129
+      ],
+      [
+        112.965,
+        15.7278
+      ],
+      [
+        111.478346,
+        12.523981
+      ],
+      [
+        111.0534,
+        11.6082
+      ],
+      [
+        110.80697,
+        11.263464
+      ],
+      [
+        110.027598,
+        10.173186
+      ],
+      [
+        108.7023,
+        8.3192
+      ],
+      [
+        104.482294,
+        1.341312
+      ],
+      [
+        104.145848,
+        1.249295
+      ],
+      [
+        103.861103,
+        1.171415
+      ],
+      [
+        103.6,
+        1.1
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        102.247009,
+        2.159675
+      ]
+    ]
+  },
+  {
+    "id": "e_russia_bab",
+    "from_id": "src_russia_urals",
+    "to_id": "chk_bab",
+    "mode": "sea",
+    "base_capacity_bbl_day": 750000,
+    "cost_per_bbl": 3.5,
+    "transit_time_days": 20,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "_source": "Russia Urals: Novorossiysk (Black Sea) via Med/Suez/Red Sea to Bab-el-Mandeb ~20 days. Path regenerated via searoute.",
+    "path": [
+      [
+        37.8295,
+        44.5897
+      ],
+      [
+        37.470601,
+        44.45157
+      ],
+      [
+        37.301242,
+        44.386389
+      ],
+      [
+        37.016592,
+        44.276835
+      ],
+      [
+        36.846449,
+        44.211352
+      ],
+      [
+        36.397403,
+        44.038527
+      ],
+      [
+        35.952304,
+        43.867221
+      ],
+      [
+        33.847733,
+        43.057232
+      ],
+      [
+        33.50474,
+        42.925224
+      ],
+      [
+        29.132431,
+        41.242447
+      ],
+      [
+        29.096026,
+        41.186306
+      ],
+      [
+        29.050519,
+        41.15205
+      ],
+      [
+        29.070542,
+        41.117776
+      ],
+      [
+        29.042328,
+        41.050547
+      ],
+      [
+        28.995,
+        41.027893
+      ],
+      [
+        28.977708,
+        40.971568
+      ],
+      [
+        28.501542,
+        40.82216
+      ],
+      [
+        28.449481,
+        40.805825
+      ],
+      [
+        27.277634,
+        40.60495
+      ],
+      [
+        26.768188,
+        40.440676
+      ],
+      [
+        26.2,
+        40.1
+      ],
+      [
+        26.143615,
+        39.992927
+      ],
+      [
+        26.097501,
+        39.784356
+      ],
+      [
+        25.953472,
+        39.494984
+      ],
+      [
+        25.825253,
+        39.237374
+      ],
+      [
+        25.830528,
+        39.136019
+      ],
+      [
+        26.022956,
+        38.889479
+      ],
+      [
+        26.157985,
+        38.716479
+      ],
+      [
+        26.308653,
+        38.523442
+      ],
+      [
+        26.269821,
+        38.437945
+      ],
+      [
+        26.184875,
+        38.339023
+      ],
+      [
+        26.172739,
+        38.253308
+      ],
+      [
+        26.366219,
+        37.813395
+      ],
+      [
+        26.430146,
+        37.266748
+      ],
+      [
+        26.635875,
+        37.008989
+      ],
+      [
+        27.002784,
+        36.547109
+      ],
+      [
+        27.030399,
+        36.498505
+      ],
+      [
+        27.2,
+        36.2
+      ],
+      [
+        27.548237,
+        35.88019
+      ],
+      [
+        28.180712,
+        35.299346
+      ],
+      [
+        28.881234,
+        34.656009
+      ],
+      [
+        28.964326,
+        34.5797
+      ],
+      [
+        29.595152,
+        34.000371
+      ],
+      [
+        29.703004,
+        33.901323
+      ],
+      [
+        30.699385,
+        32.986279
+      ],
+      [
+        30.765996,
+        32.925106
+      ],
+      [
+        32.1,
+        31.7
+      ],
+      [
+        32.359877,
+        31.336373
+      ],
+      [
+        32.310104,
+        31.102922
+      ],
+      [
+        32.382202,
+        30.318359
+      ],
+      [
+        32.557983,
+        30.213982
+      ],
+      [
+        32.6,
+        29.7
+      ],
+      [
+        33.233643,
+        28.444544
+      ],
+      [
+        34.5,
+        27
+      ],
+      [
+        37,
+        23.6
+      ],
+      [
+        37.786499,
+        22.210682
+      ],
+      [
+        38.572998,
+        20.807472
+      ],
+      [
+        41.000977,
+        17.098792
+      ],
+      [
+        42.341309,
+        14.509144
+      ],
+      [
+        42.541058,
+        13.676089
+      ],
+      [
+        43.3,
+        12.7
+      ],
+      [
+        43.746586,
+        12.40439
+      ]
+    ]
+  },
+  {
+    "_comment": "=== BAB-EL-MANDEB \u2192 SUEZ CANAL (serial connection for westbound routes) ==="
+  },
+  {
+    "id": "e_bab_suez",
+    "from_id": "chk_bab",
+    "to_id": "chk_suez",
+    "mode": "sea",
+    "base_capacity_bbl_day": 950000,
+    "cost_per_bbl": 0.6,
+    "transit_time_days": 2,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Bab-el-Mandeb to Suez Canal transit: ~2 days (Red Sea crossing). Canal fees approx. $0.60/bbl for oil tankers [ESTIMATED based on Suez Canal Authority published tariffs for Suezmax class].",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        43.3,
+        12.7
+      ],
+      [
+        42.541058,
+        13.676089
+      ],
+      [
+        42.341309,
+        14.509144
+      ],
+      [
+        41.000977,
+        17.098792
+      ],
+      [
+        38.572998,
+        20.807472
+      ],
+      [
+        37.786499,
+        22.210682
+      ],
+      [
+        37,
+        23.6
+      ],
+      [
+        34.5,
+        27
+      ],
+      [
+        33.233643,
+        28.444544
+      ],
+      [
+        32.6,
+        29.7
+      ],
+      [
+        32.557983,
+        30.213982
+      ],
+      [
+        32.382202,
+        30.318359
+      ]
+    ]
+  },
+  {
+    "_comment": "=== SUEZ \u2192 INDIAN REFINERIES (via Arabian Sea, southbound exit from canal) ==="
+  },
+  {
+    "id": "e_suez_jamnagar",
+    "from_id": "chk_suez",
+    "to_id": "ref_jamnagar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 500000,
+    "cost_per_bbl": 2.0,
+    "transit_time_days": 8,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Suez exit to Jamnagar via Arabian Sea: ~8 days. Higher cost than Hormuz route ($2.00 vs $1.50/bbl) reflecting Suez canal fees and longer transit. Capacity constrained: primarily Russia Urals + Nigeria SWEET for Jamnagar.",
+    "path": [
+      [
+        32.382202,
+        30.318359
+      ],
+      [
+        32.557983,
+        30.213982
+      ],
+      [
+        32.6,
+        29.7
+      ],
+      [
+        33.233643,
+        28.444544
+      ],
+      [
+        34.5,
+        27
+      ],
+      [
+        37,
+        23.6
+      ],
+      [
+        37.786499,
+        22.210682
+      ],
+      [
+        38.572998,
+        20.807472
+      ],
+      [
+        41.000977,
+        17.098792
+      ],
+      [
+        42.341309,
+        14.509144
+      ],
+      [
+        42.541058,
+        13.676089
+      ],
+      [
+        43.3,
+        12.7
+      ],
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        49.5581,
+        14.1436
+      ],
+      [
+        54.2,
+        16.2
+      ],
+      [
+        56.876033,
+        17.38386
+      ],
+      [
+        58.191833,
+        18.742507
+      ],
+      [
+        59,
+        20
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ],
+      [
+        70.246582,
+        22.857195
+      ]
+    ]
+  },
+  {
+    "id": "e_suez_mangalore",
+    "from_id": "chk_suez",
+    "to_id": "ref_mangalore_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 300000,
+    "cost_per_bbl": 2.2,
+    "transit_time_days": 10,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Suez to Mangalore: ~10 days. $2.20/bbl [ESTIMATED].",
+    "path": [
+      [
+        32.382202,
+        30.318359
+      ],
+      [
+        32.557983,
+        30.213982
+      ],
+      [
+        32.6,
+        29.7
+      ],
+      [
+        33.233643,
+        28.444544
+      ],
+      [
+        34.5,
+        27
+      ],
+      [
+        37,
+        23.6
+      ],
+      [
+        37.786499,
+        22.210682
+      ],
+      [
+        38.572998,
+        20.807472
+      ],
+      [
+        41.000977,
+        17.098792
+      ],
+      [
+        42.341309,
+        14.509144
+      ],
+      [
+        42.541058,
+        13.676089
+      ],
+      [
+        43.3,
+        12.7
+      ],
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        55.041504,
+        12.747516
+      ],
+      [
+        59.894005,
+        11.083455
+      ],
+      [
+        60.825733,
+        10.866984
+      ],
+      [
+        62.0601,
+        10.5802
+      ],
+      [
+        64.303249,
+        10.031585
+      ],
+      [
+        64.696861,
+        10.034474
+      ],
+      [
+        65.0002,
+        10.0367
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        70,
+        10
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        74.778442,
+        12.817158
+      ]
+    ]
+  },
+  {
+    "id": "e_suez_kochi",
+    "from_id": "chk_suez",
+    "to_id": "ref_kochi_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 250000,
+    "cost_per_bbl": 2.3,
+    "transit_time_days": 11,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Suez to Kochi: ~11 days. Southernmost west coast refinery, longest transit from Suez.",
+    "path": [
+      [
+        32.382202,
+        30.318359
+      ],
+      [
+        32.557983,
+        30.213982
+      ],
+      [
+        32.6,
+        29.7
+      ],
+      [
+        33.233643,
+        28.444544
+      ],
+      [
+        34.5,
+        27
+      ],
+      [
+        37,
+        23.6
+      ],
+      [
+        37.786499,
+        22.210682
+      ],
+      [
+        38.572998,
+        20.807472
+      ],
+      [
+        41.000977,
+        17.098792
+      ],
+      [
+        42.341309,
+        14.509144
+      ],
+      [
+        42.541058,
+        13.676089
+      ],
+      [
+        43.3,
+        12.7
+      ],
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        55.041504,
+        12.747516
+      ],
+      [
+        59.894005,
+        11.083455
+      ],
+      [
+        60.825733,
+        10.866984
+      ],
+      [
+        62.0601,
+        10.5802
+      ],
+      [
+        64.303249,
+        10.031585
+      ],
+      [
+        64.696861,
+        10.034474
+      ],
+      [
+        65.0002,
+        10.0367
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        70,
+        10
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        76.195679,
+        9.876864
+      ]
+    ]
+  },
+  {
+    "id": "e_suez_malacca",
+    "from_id": "chk_suez",
+    "to_id": "chk_malacca",
+    "mode": "sea",
+    "base_capacity_bbl_day": 200000,
+    "cost_per_bbl": 2.5,
+    "transit_time_days": 14,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Suez to Malacca (for routing Russia Urals to east coast refineries via Indian Ocean): ~14 days.",
+    "path": [
+      [
+        32.382202,
+        30.318359
+      ],
+      [
+        32.557983,
+        30.213982
+      ],
+      [
+        32.6,
+        29.7
+      ],
+      [
+        33.233643,
+        28.444544
+      ],
+      [
+        34.5,
+        27
+      ],
+      [
+        37,
+        23.6
+      ],
+      [
+        37.786499,
+        22.210682
+      ],
+      [
+        38.572998,
+        20.807472
+      ],
+      [
+        41.000977,
+        17.098792
+      ],
+      [
+        42.341309,
+        14.509144
+      ],
+      [
+        42.541058,
+        13.676089
+      ],
+      [
+        43.3,
+        12.7
+      ],
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        55.041504,
+        12.747516
+      ],
+      [
+        59.894005,
+        11.083455
+      ],
+      [
+        60.825733,
+        10.866984
+      ],
+      [
+        62.0601,
+        10.5802
+      ],
+      [
+        64.303249,
+        10.031585
+      ],
+      [
+        64.698862,
+        9.934828
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.7044,
+        9.6889
+      ],
+      [
+        68.858995,
+        8.881605
+      ],
+      [
+        69.3291,
+        8.7613
+      ],
+      [
+        69.671733,
+        8.6701
+      ],
+      [
+        69.999915,
+        8.582747
+      ],
+      [
+        70.817426,
+        8.365148
+      ],
+      [
+        75.966807,
+        6.966807
+      ],
+      [
+        78.019032,
+        6.387793
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        102.247009,
+        2.159675
+      ]
+    ]
+  },
+  {
+    "_comment": "=== NIGERIA ROUTES ==="
+  },
+  {
+    "id": "e_nigeria_bab",
+    "from_id": "src_nigeria",
+    "to_id": "chk_bab",
+    "mode": "sea",
+    "base_capacity_bbl_day": 200000,
+    "cost_per_bbl": 2.5,
+    "transit_time_days": 15,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SWEET",
+    "_source": "Nigeria (Bonny terminal) to Bab-el-Mandeb via Gulf of Guinea, around Horn of Africa or via Suez: ~15 days. Primary route before Houthi attacks. $2.50/bbl [ESTIMATED, West Africa-India Aframax rate].",
+    "path": [
+      [
+        7.095795,
+        4.390229
+      ],
+      [
+        7.102661,
+        4.154679
+      ],
+      [
+        5.696411,
+        4.034138
+      ],
+      [
+        2.5,
+        5
+      ],
+      [
+        1.889989,
+        4.825737
+      ],
+      [
+        0.581072,
+        4.451863
+      ],
+      [
+        -1,
+        4
+      ],
+      [
+        -4,
+        4
+      ],
+      [
+        -7.5,
+        3.5
+      ],
+      [
+        -11.5,
+        5.5
+      ],
+      [
+        -14.5,
+        8.5
+      ],
+      [
+        -17,
+        11
+      ],
+      [
+        -18,
+        15
+      ],
+      [
+        -18,
+        21
+      ],
+      [
+        -13.963623,
+        27.410786
+      ],
+      [
+        -12.194387,
+        29.156452
+      ],
+      [
+        -10.1,
+        31.8
+      ],
+      [
+        -8.751058,
+        33.623031
+      ],
+      [
+        -7.7875,
+        34.076471
+      ],
+      [
+        -7.1,
+        34.4
+      ],
+      [
+        -5.75,
+        35.95
+      ],
+      [
+        -5.354867,
+        35.968819
+      ],
+      [
+        -5.269383,
+        35.97289
+      ],
+      [
+        -4.7,
+        36
+      ],
+      [
+        -3.683043,
+        36.156455
+      ],
+      [
+        -3.264225,
+        36.220888
+      ],
+      [
+        -2.590675,
+        36.324512
+      ],
+      [
+        -2.244793,
+        36.377724
+      ],
+      [
+        -1.62439,
+        36.473171
+      ],
+      [
+        -0.366667,
+        36.666667
+      ],
+      [
+        3.1,
+        37.2
+      ],
+      [
+        7.5,
+        37.4
+      ],
+      [
+        10.373031,
+        37.482087
+      ],
+      [
+        11,
+        37.5
+      ],
+      [
+        11.172235,
+        37.454891
+      ],
+      [
+        11.827836,
+        37.283186
+      ],
+      [
+        12.086301,
+        37.215493
+      ],
+      [
+        12.110644,
+        37.209117
+      ],
+      [
+        13.263819,
+        36.907095
+      ],
+      [
+        15.2,
+        36.4
+      ],
+      [
+        16.726588,
+        36.086854
+      ],
+      [
+        17.902084,
+        35.845726
+      ],
+      [
+        21.407365,
+        35.126694
+      ],
+      [
+        23,
+        34.8
+      ],
+      [
+        24.926664,
+        34.187436
+      ],
+      [
+        25.478721,
+        34.011915
+      ],
+      [
+        26.306431,
+        33.748752
+      ],
+      [
+        27.927542,
+        33.219565
+      ],
+      [
+        28.212434,
+        33.115811
+      ],
+      [
+        28.905525,
+        32.863395
+      ],
+      [
+        30.408377,
+        32.316071
+      ],
+      [
+        32.1,
+        31.7
+      ],
+      [
+        32.359877,
+        31.336373
+      ],
+      [
+        32.310104,
+        31.102922
+      ],
+      [
+        32.382202,
+        30.318359
+      ],
+      [
+        32.557983,
+        30.213982
+      ],
+      [
+        32.6,
+        29.7
+      ],
+      [
+        33.233643,
+        28.444544
+      ],
+      [
+        34.5,
+        27
+      ],
+      [
+        37,
+        23.6
+      ],
+      [
+        37.786499,
+        22.210682
+      ],
+      [
+        38.572998,
+        20.807472
+      ],
+      [
+        41.000977,
+        17.098792
+      ],
+      [
+        42.341309,
+        14.509144
+      ],
+      [
+        42.541058,
+        13.676089
+      ],
+      [
+        43.3,
+        12.7
+      ],
+      [
+        43.746586,
+        12.40439
+      ]
+    ]
+  },
+  {
+    "id": "e_nigeria_cog",
+    "from_id": "src_nigeria",
+    "to_id": "chk_cog",
+    "mode": "sea",
+    "base_capacity_bbl_day": 200000,
+    "cost_per_bbl": 3.8,
+    "transit_time_days": 22,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SWEET",
+    "_source": "Nigeria to Cape of Good Hope: ~22 days (bypass route, actively used in 2024 due to Houthi attacks). $3.80/bbl [ESTIMATED, adds ~$1.30/bbl over primary route]. EIA 2024 data confirms this rerouting actually happened.",
+    "path": [
+      [
+        7.095795,
+        4.390229
+      ],
+      [
+        7.102661,
+        4.154679
+      ],
+      [
+        8.613281,
+        0.977736
+      ],
+      [
+        8.256226,
+        0.093384
+      ],
+      [
+        8.02002,
+        -1.032659
+      ],
+      [
+        11.140137,
+        -4.99245
+      ],
+      [
+        11.543725,
+        -5.95973
+      ],
+      [
+        12,
+        -9
+      ],
+      [
+        11,
+        -15.5
+      ],
+      [
+        11,
+        -19
+      ],
+      [
+        13.80944,
+        -22.909209
+      ],
+      [
+        14.534912,
+        -26.863281
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18.428192,
+        -33.862433
+      ]
+    ]
+  },
+  {
+    "_comment": "=== USA ROUTE ==="
+  },
+  {
+    "id": "e_usa_cog",
+    "from_id": "src_usa",
+    "to_id": "chk_cog",
+    "mode": "sea",
+    "base_capacity_bbl_day": 150000,
+    "cost_per_bbl": 4.5,
+    "transit_time_days": 28,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SWEET",
+    "_source": "US Gulf Coast (Houston) to Cape of Good Hope: ~28 days (VLCC Atlantic crossing). $4.50/bbl [ESTIMATED, long-haul VLCC rate]. US crude to India is a relatively recent and growing trade flow.",
+    "path": [
+      [
+        -93.8617,
+        28.8261
+      ],
+      [
+        -92.8863,
+        28.2242
+      ],
+      [
+        -92.561627,
+        27.899352
+      ],
+      [
+        -92.508888,
+        27.846584
+      ],
+      [
+        -91.814891,
+        27.89709
+      ],
+      [
+        -91.5578,
+        27.9158
+      ],
+      [
+        -90.380776,
+        27.998808
+      ],
+      [
+        -89.893027,
+        27.783021
+      ],
+      [
+        -89.766422,
+        27.727009
+      ],
+      [
+        -88.638654,
+        27.22807
+      ],
+      [
+        -88.194005,
+        27.029745
+      ],
+      [
+        -87.365118,
+        26.617905
+      ],
+      [
+        -86.86025,
+        26.367057
+      ],
+      [
+        -86.685611,
+        26.280286
+      ],
+      [
+        -85.868843,
+        25.874468
+      ],
+      [
+        -84.431568,
+        25.160345
+      ],
+      [
+        -82.7,
+        24.3
+      ],
+      [
+        -82.065666,
+        24.077126
+      ],
+      [
+        -79,
+        23
+      ],
+      [
+        -78.082771,
+        22.639414
+      ],
+      [
+        -77.165541,
+        22.277878
+      ],
+      [
+        -76.182771,
+        21.889469
+      ],
+      [
+        -75.2,
+        21.5
+      ],
+      [
+        -74.406809,
+        21.113541
+      ],
+      [
+        -74.085967,
+        21.001536
+      ],
+      [
+        -73.811646,
+        20.915266
+      ],
+      [
+        -72,
+        20.3
+      ],
+      [
+        -70.62947,
+        20.057079
+      ],
+      [
+        -68.9,
+        19.75
+      ],
+      [
+        -67.95,
+        18.5
+      ],
+      [
+        -67.255752,
+        17.883904
+      ],
+      [
+        -66.6,
+        17.3
+      ],
+      [
+        -66.274325,
+        17.05734
+      ],
+      [
+        -64.288542,
+        15.577737
+      ],
+      [
+        -61.586092,
+        13.564433
+      ],
+      [
+        -61.281976,
+        13.442203
+      ],
+      [
+        -59.945647,
+        13.087647
+      ],
+      [
+        -59.133295,
+        12.623116
+      ],
+      [
+        -58.451251,
+        12.233099
+      ],
+      [
+        -56.9106,
+        11.3521
+      ],
+      [
+        -55.547019,
+        10.55093
+      ],
+      [
+        -52.9962,
+        9.0522
+      ],
+      [
+        -50.90855,
+        7.800354
+      ],
+      [
+        -49.1234,
+        6.7299
+      ],
+      [
+        -44.76997,
+        4.078524
+      ],
+      [
+        -42.878362,
+        2.917574
+      ],
+      [
+        -42.4761,
+        2.5118
+      ],
+      [
+        -41.712631,
+        1.737317
+      ],
+      [
+        -41.320869,
+        1.339903
+      ],
+      [
+        -40,
+        -2e-05
+      ],
+      [
+        -38.152311,
+        -1.565083
+      ],
+      [
+        -34.860393,
+        -4.720374
+      ],
+      [
+        -33.8,
+        -5.25
+      ],
+      [
+        -31.063081,
+        -7.186164
+      ],
+      [
+        -29.999876,
+        -7.933805
+      ],
+      [
+        -28.772132,
+        -8.796464
+      ],
+      [
+        -27.018677,
+        -10.021884
+      ],
+      [
+        -22.806528,
+        -12.935362
+      ],
+      [
+        -19.999225,
+        -14.844666
+      ],
+      [
+        -16.822275,
+        -16.967419
+      ],
+      [
+        -12.088665,
+        -20.028905
+      ],
+      [
+        -10.796127,
+        -20.843889
+      ],
+      [
+        -9.999624,
+        -21.343395
+      ],
+      [
+        -7.024709,
+        -23.154038
+      ],
+      [
+        -4.412459,
+        -24.677177
+      ],
+      [
+        0.00081,
+        -27.123985
+      ],
+      [
+        2.015382,
+        -28.169477
+      ],
+      [
+        5.891411,
+        -30.076823
+      ],
+      [
+        8.741211,
+        -31.368532
+      ],
+      [
+        10.000809,
+        -31.926949
+      ],
+      [
+        14.0806,
+        -33.5827
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18.428192,
+        -33.862433
+      ]
+    ]
+  },
+  {
+    "_comment": "=== CAPE OF GOOD HOPE \u2192 INDIAN REFINERIES (bypass route, higher cost) ==="
+  },
+  {
+    "id": "e_cog_jamnagar",
+    "from_id": "chk_cog",
+    "to_id": "ref_jamnagar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 400000,
+    "cost_per_bbl": 3.0,
+    "transit_time_days": 12,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Cape of Good Hope to Jamnagar (Gujarat west coast): ~12 days further transit after rounding the cape. $3.00/bbl from Cape to Jamnagar [ESTIMATED]. Capacity 400,000: constrained by port and vessel scheduling availability, not the route per se. EIA confirmed 9.3 Mb/d globally rerouted via Cape in 2024; India's share estimated.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        32,
+        -30
+      ],
+      [
+        32.920532,
+        -28.449374
+      ],
+      [
+        34.437034,
+        -25.749552
+      ],
+      [
+        35.142957,
+        -24.861024
+      ],
+      [
+        36,
+        -24
+      ],
+      [
+        42.51709,
+        -16.678293
+      ],
+      [
+        46.9055,
+        -12.783871
+      ],
+      [
+        50,
+        -10
+      ],
+      [
+        52.7787,
+        -6.3666
+      ],
+      [
+        53.822013,
+        -4.977305
+      ],
+      [
+        54.576753,
+        -3.97228
+      ],
+      [
+        55.5186,
+        -2.7181
+      ],
+      [
+        57.544015,
+        -2e-05
+      ],
+      [
+        58.2421,
+        0.9368
+      ],
+      [
+        58.890657,
+        1.804845
+      ],
+      [
+        59.999803,
+        3.289356
+      ],
+      [
+        60.528485,
+        3.996958
+      ],
+      [
+        60.9712,
+        4.5895
+      ],
+      [
+        62.906023,
+        7.145333
+      ],
+      [
+        63.7282,
+        8.2314
+      ],
+      [
+        63.989529,
+        8.568554
+      ],
+      [
+        64.707692,
+        9.495093
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        66.5357,
+        11.8535
+      ],
+      [
+        67.182637,
+        12.660039
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.4177,
+        15.4465
+      ],
+      [
+        69.999382,
+        16.139592
+      ],
+      [
+        69.999749,
+        18.43269
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ],
+      [
+        70.246582,
+        22.857195
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_mangalore",
+    "from_id": "chk_cog",
+    "to_id": "ref_mangalore_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 250000,
+    "cost_per_bbl": 3.2,
+    "transit_time_days": 13,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Cape to Mangalore: ~13 days. $3.20/bbl. Capacity 250,000 [ESTIMATED].",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        32,
+        -30
+      ],
+      [
+        32.920532,
+        -28.449374
+      ],
+      [
+        34.437034,
+        -25.749552
+      ],
+      [
+        35.142957,
+        -24.861024
+      ],
+      [
+        36,
+        -24
+      ],
+      [
+        42.51709,
+        -16.678293
+      ],
+      [
+        46.9055,
+        -12.783871
+      ],
+      [
+        50,
+        -10
+      ],
+      [
+        52.6658,
+        -7.3078
+      ],
+      [
+        53.91782,
+        -6.020799
+      ],
+      [
+        55.3,
+        -4.6
+      ],
+      [
+        60,
+        -2e-05
+      ],
+      [
+        62.291959,
+        2.325
+      ],
+      [
+        62.4763,
+        2.512
+      ],
+      [
+        64.800833,
+        4.856544
+      ],
+      [
+        64.9621,
+        5.0192
+      ],
+      [
+        65.000148,
+        5.057143
+      ],
+      [
+        67.295615,
+        7.346286
+      ],
+      [
+        67.4667,
+        7.5169
+      ],
+      [
+        68.858995,
+        8.881605
+      ],
+      [
+        70,
+        10
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        74.778442,
+        12.817158
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_kochi",
+    "from_id": "chk_cog",
+    "to_id": "ref_kochi_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 200000,
+    "cost_per_bbl": 3.2,
+    "transit_time_days": 14,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Cape to Kochi: ~14 days. $3.20/bbl.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        32,
+        -30
+      ],
+      [
+        32.920532,
+        -28.449374
+      ],
+      [
+        34.437034,
+        -25.749552
+      ],
+      [
+        35.142957,
+        -24.861024
+      ],
+      [
+        36,
+        -24
+      ],
+      [
+        42.51709,
+        -16.678293
+      ],
+      [
+        46.9055,
+        -12.783871
+      ],
+      [
+        50,
+        -10
+      ],
+      [
+        52.6658,
+        -7.3078
+      ],
+      [
+        53.91782,
+        -6.020799
+      ],
+      [
+        55.3,
+        -4.6
+      ],
+      [
+        60,
+        -2e-05
+      ],
+      [
+        62.291959,
+        2.325
+      ],
+      [
+        62.4763,
+        2.512
+      ],
+      [
+        64.800833,
+        4.856544
+      ],
+      [
+        64.9621,
+        5.0192
+      ],
+      [
+        65.000148,
+        5.057143
+      ],
+      [
+        67.295615,
+        7.346286
+      ],
+      [
+        67.4667,
+        7.5169
+      ],
+      [
+        68.858995,
+        8.881605
+      ],
+      [
+        70,
+        10
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        76.195679,
+        9.876864
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_malacca",
+    "from_id": "chk_cog",
+    "to_id": "chk_malacca",
+    "mode": "sea",
+    "base_capacity_bbl_day": 200000,
+    "cost_per_bbl": 2.5,
+    "transit_time_days": 15,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Cape to Malacca Strait (for east coast refineries via Cape bypass): ~15 days across Indian Ocean.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        34.3579,
+        -31.8789
+      ],
+      [
+        40,
+        -30
+      ],
+      [
+        44.1176,
+        -28.2595
+      ],
+      [
+        48.1,
+        -26.4
+      ],
+      [
+        56.119753,
+        -21.767695
+      ],
+      [
+        58,
+        -20.7
+      ],
+      [
+        65.531132,
+        -15.683496
+      ],
+      [
+        70,
+        -12.726084
+      ],
+      [
+        71.547878,
+        -11.611559
+      ],
+      [
+        73.630427,
+        -10.016558
+      ],
+      [
+        74.86096,
+        -9.062149
+      ],
+      [
+        75.615874,
+        -8.45337
+      ],
+      [
+        80,
+        -4.954142
+      ],
+      [
+        82.695228,
+        -2.733196
+      ],
+      [
+        86.112347,
+        -1e-05
+      ],
+      [
+        88.040723,
+        1.4295
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        102.247009,
+        2.159675
+      ]
+    ]
+  },
+  {
+    "_comment": "=== SPR \u2192 REFINERY EMERGENCY RELEASE EDGES ==="
+  },
+  {
+    "id": "e_spr_vizag_refinery",
+    "from_id": "spr_vizag",
+    "to_id": "ref_vizag_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 85000,
+    "cost_per_bbl": 8.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "ISPRL Vizag to HPCL Vizag refinery: direct pipeline link (emergency release). Max flow = SPR max discharge 85,000 bbl/day [ESTIMATED]. High cost $8.00/bbl ensures solver only uses SPR when cheaper routes cannot meet demand \u2014 serves as last-resort cost signal, not an economic value."
+  },
+  {
+    "id": "e_spr_mangalore_refinery",
+    "from_id": "spr_mangalore",
+    "to_id": "ref_mangalore_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 95000,
+    "cost_per_bbl": 8.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "ISPRL Mangalore to MRPL Mangalore: pipeline link. 95,000 bbl/day [ESTIMATED]."
+  },
+  {
+    "id": "e_spr_padur_kochi",
+    "from_id": "spr_padur",
+    "to_id": "ref_kochi_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 160000,
+    "cost_per_bbl": 8.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "ISPRL Padur to BPCL Kochi: pipeline (Padur is ~200km north of Kochi, pipeline exists per MoPNG). 160,000 bbl/day [ESTIMATED]."
+  },
+  {
+    "id": "e_spr_padur_mangalore",
+    "from_id": "spr_padur",
+    "to_id": "ref_mangalore_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 80000,
+    "cost_per_bbl": 8.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "ISPRL Padur can also feed MRPL Mangalore (closer facility). Shared capacity with Kochi pipe; total Padur discharge capped at 160,000 bbl/day across both edges combined."
+  },
+  {
+    "id": "e_ss_oman",
+    "from_id": "super_source",
+    "to_id": "src_oman",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_oman_jamnagar",
+    "from_id": "src_oman",
+    "to_id": "ref_jamnagar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 120000,
+    "cost_per_bbl": 0.68,
+    "transit_time_days": 4,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "path": [
+      [
+        58.566943,
+        23.626782
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        61.55539,
+        23.45698
+      ],
+      [
+        63.3,
+        24.6
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ],
+      [
+        70.246582,
+        22.857195
+      ]
+    ],
+    "_source": "Direct Oman (Mina Al Fahal) -> Jamnagar (Reliance) \u2014 Inlet (no chokepoint transit). Distance 1335 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+  },
+  {
+    "id": "e_oman_mangalore",
+    "from_id": "src_oman",
+    "to_id": "ref_mangalore_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 120000,
+    "cost_per_bbl": 1.22,
+    "transit_time_days": 7,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "path": [
+      [
+        58.566943,
+        23.626782
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        61.55539,
+        23.45698
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        65.725774,
+        22.570773
+      ],
+      [
+        67,
+        22.3
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        74.778442,
+        12.817158
+      ]
+    ],
+    "_source": "Direct Oman (Mina Al Fahal) -> Mangalore (MRPL) \u2014 Inlet (no chokepoint transit). Distance 2383 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+  },
+  {
+    "id": "e_oman_kochi",
+    "from_id": "src_oman",
+    "to_id": "ref_kochi_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 120000,
+    "cost_per_bbl": 1.3,
+    "transit_time_days": 7,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "path": [
+      [
+        58.566943,
+        23.626782
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        60.4,
+        22.7
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.5005,
+        20.0838
+      ],
+      [
+        64.952594,
+        19.426191
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        76.195679,
+        9.876864
+      ]
+    ],
+    "_source": "Direct Oman (Mina Al Fahal) -> Kochi (BPCL) \u2014 Inlet (no chokepoint transit). Distance 2534 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+  },
+  {
+    "id": "e_ss_qatar",
+    "from_id": "super_source",
+    "to_id": "src_qatar",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_qatar_hormuz",
+    "from_id": "src_qatar",
+    "to_id": "chk_hormuz",
+    "mode": "sea",
+    "base_capacity_bbl_day": 90000,
+    "cost_per_bbl": 0.26,
+    "transit_time_days": 1,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "path": [
+      [
+        51.6,
+        26.3
+      ],
+      [
+        53.148966,
+        26.25488
+      ],
+      [
+        54.399148,
+        26.194877
+      ],
+      [
+        55.064332,
+        26.151124
+      ],
+      [
+        55.345025,
+        26.132657
+      ],
+      [
+        56.343384,
+        26.441066
+      ],
+      [
+        56.547226,
+        26.511054
+      ]
+    ],
+    "_source": "Qatar (Ras Laffan) -> Strait of Hormuz. Distance 501 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+  },
+  {
+    "id": "e_ss_kazakhstan",
+    "from_id": "super_source",
+    "to_id": "src_kazakhstan",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_kazakhstan_bab",
+    "from_id": "src_kazakhstan",
+    "to_id": "chk_bab",
+    "mode": "sea",
+    "base_capacity_bbl_day": 60000,
+    "cost_per_bbl": 2.41,
+    "transit_time_days": 14,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SWEET",
+    "path": [
+      [
+        37.470601,
+        44.45157
+      ],
+      [
+        37.301242,
+        44.386389
+      ],
+      [
+        37.016592,
+        44.276835
+      ],
+      [
+        36.846449,
+        44.211352
+      ],
+      [
+        36.397403,
+        44.038527
+      ],
+      [
+        35.952304,
+        43.867221
+      ],
+      [
+        33.847733,
+        43.057232
+      ],
+      [
+        33.50474,
+        42.925224
+      ],
+      [
+        29.132431,
+        41.242447
+      ],
+      [
+        29.096026,
+        41.186306
+      ],
+      [
+        29.050519,
+        41.15205
+      ],
+      [
+        29.070542,
+        41.117776
+      ],
+      [
+        29.042328,
+        41.050547
+      ],
+      [
+        28.995,
+        41.027893
+      ],
+      [
+        28.977708,
+        40.971568
+      ],
+      [
+        28.501542,
+        40.82216
+      ],
+      [
+        28.449481,
+        40.805825
+      ],
+      [
+        27.277634,
+        40.60495
+      ],
+      [
+        26.768188,
+        40.440676
+      ],
+      [
+        26.2,
+        40.1
+      ],
+      [
+        26.143615,
+        39.992927
+      ],
+      [
+        26.097501,
+        39.784356
+      ],
+      [
+        25.953472,
+        39.494984
+      ],
+      [
+        25.825253,
+        39.237374
+      ],
+      [
+        25.830528,
+        39.136019
+      ],
+      [
+        26.022956,
+        38.889479
+      ],
+      [
+        26.157985,
+        38.716479
+      ],
+      [
+        26.308653,
+        38.523442
+      ],
+      [
+        26.269821,
+        38.437945
+      ],
+      [
+        26.184875,
+        38.339023
+      ],
+      [
+        26.172739,
+        38.253308
+      ],
+      [
+        26.366219,
+        37.813395
+      ],
+      [
+        26.430146,
+        37.266748
+      ],
+      [
+        26.635875,
+        37.008989
+      ],
+      [
+        27.002784,
+        36.547109
+      ],
+      [
+        27.030399,
+        36.498505
+      ],
+      [
+        27.2,
+        36.2
+      ],
+      [
+        27.548237,
+        35.88019
+      ],
+      [
+        28.180712,
+        35.299346
+      ],
+      [
+        28.881234,
+        34.656009
+      ],
+      [
+        28.964326,
+        34.5797
+      ],
+      [
+        29.595152,
+        34.000371
+      ],
+      [
+        29.703004,
+        33.901323
+      ],
+      [
+        30.699385,
+        32.986279
+      ],
+      [
+        30.765996,
+        32.925106
+      ],
+      [
+        32.1,
+        31.7
+      ],
+      [
+        32.359877,
+        31.336373
+      ],
+      [
+        32.310104,
+        31.102922
+      ],
+      [
+        32.382202,
+        30.318359
+      ],
+      [
+        32.557983,
+        30.213982
+      ],
+      [
+        32.6,
+        29.7
+      ],
+      [
+        33.233643,
+        28.444544
+      ],
+      [
+        34.5,
+        27
+      ],
+      [
+        37,
+        23.6
+      ],
+      [
+        37.786499,
+        22.210682
+      ],
+      [
+        38.572998,
+        20.807472
+      ],
+      [
+        41.000977,
+        17.098792
+      ],
+      [
+        42.341309,
+        14.509144
+      ],
+      [
+        42.541058,
+        13.676089
+      ],
+      [
+        43.3,
+        12.7
+      ],
+      [
+        43.746586,
+        12.40439
+      ]
+    ],
+    "_source": "Kazakhstan (CPC Terminal, Novorossiysk) -> Bab-el-Mandeb / Red Sea. Distance 4706 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+  },
+  {
+    "id": "e_ss_venezuela",
+    "from_id": "super_source",
+    "to_id": "src_venezuela",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_venezuela_cog",
+    "from_id": "src_venezuela",
+    "to_id": "chk_cog",
+    "mode": "sea",
+    "base_capacity_bbl_day": 180000,
+    "cost_per_bbl": 5.34,
+    "transit_time_days": 30,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SOUR",
+    "path": [
+      [
+        -64.702263,
+        10.271006
+      ],
+      [
+        -64.812697,
+        11.316062
+      ],
+      [
+        -64.039307,
+        11.350797
+      ],
+      [
+        -61.817065,
+        10.845292
+      ],
+      [
+        -61,
+        11
+      ],
+      [
+        -56.4243,
+        8.2122
+      ],
+      [
+        -51.9,
+        5.4
+      ],
+      [
+        -48.44,
+        3.2798
+      ],
+      [
+        -46.399027,
+        2.021526
+      ],
+      [
+        -44.9917,
+        1.1539
+      ],
+      [
+        -43.123942,
+        -2e-05
+      ],
+      [
+        -42.984139,
+        -0.086392
+      ],
+      [
+        -42.781385,
+        -0.211655
+      ],
+      [
+        -41.5476,
+        -0.9739
+      ],
+      [
+        -38.1,
+        -3.1
+      ],
+      [
+        -34.860393,
+        -4.720374
+      ],
+      [
+        -33.8,
+        -5.25
+      ],
+      [
+        -31.063081,
+        -7.186164
+      ],
+      [
+        -29.999876,
+        -7.933805
+      ],
+      [
+        -28.772132,
+        -8.796464
+      ],
+      [
+        -27.018677,
+        -10.021884
+      ],
+      [
+        -22.806528,
+        -12.935362
+      ],
+      [
+        -19.999225,
+        -14.844666
+      ],
+      [
+        -16.822275,
+        -16.967419
+      ],
+      [
+        -12.088665,
+        -20.028905
+      ],
+      [
+        -10.796127,
+        -20.843889
+      ],
+      [
+        -9.999624,
+        -21.343395
+      ],
+      [
+        -7.024709,
+        -23.154038
+      ],
+      [
+        -4.412459,
+        -24.677177
+      ],
+      [
+        0.00081,
+        -27.123985
+      ],
+      [
+        2.015382,
+        -28.169477
+      ],
+      [
+        5.891411,
+        -30.076823
+      ],
+      [
+        8.741211,
+        -31.368532
+      ],
+      [
+        10.000809,
+        -31.926949
+      ],
+      [
+        14.0806,
+        -33.5827
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18.428192,
+        -33.862433
+      ]
+    ],
+    "_source": "Venezuela (Jos\u00e9 Terminal) -> Cape of Good Hope. Distance 10451 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+  },
+  {
+    "id": "e_ss_brazil",
+    "from_id": "super_source",
+    "to_id": "src_brazil",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_brazil_cog",
+    "from_id": "src_brazil",
+    "to_id": "chk_cog",
+    "mode": "sea",
+    "base_capacity_bbl_day": 170000,
+    "cost_per_bbl": 3.08,
+    "transit_time_days": 18,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SWEET",
+    "path": [
+      [
+        -41.3,
+        -23.5
+      ],
+      [
+        -39.757078,
+        -23.820415
+      ],
+      [
+        -39.682975,
+        -23.835804
+      ],
+      [
+        -35.226199,
+        -24.761333
+      ],
+      [
+        -34.612152,
+        -24.88885
+      ],
+      [
+        -29.998837,
+        -25.846887
+      ],
+      [
+        -26.395817,
+        -26.595118
+      ],
+      [
+        -22.817834,
+        -27.338149
+      ],
+      [
+        -19.999418,
+        -27.923443
+      ],
+      [
+        -18.197878,
+        -28.297565
+      ],
+      [
+        -10,
+        -30
+      ],
+      [
+        -1.410786,
+        -31.533788
+      ],
+      [
+        0.000756,
+        -31.785849
+      ],
+      [
+        1.96521,
+        -32.136645
+      ],
+      [
+        7.178416,
+        -33.067574
+      ],
+      [
+        10.001499,
+        -33.571696
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18.428192,
+        -33.862433
+      ]
+    ],
+    "_source": "Brazil (Porto do A\u00e7u) -> Cape of Good Hope. Distance 6020 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+  },
+  {
+    "id": "e_ss_angola",
+    "from_id": "super_source",
+    "to_id": "src_angola",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_angola_cog",
+    "from_id": "src_angola",
+    "to_id": "chk_cog",
+    "mode": "sea",
+    "base_capacity_bbl_day": 130000,
+    "cost_per_bbl": 1.58,
+    "transit_time_days": 9,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": "SWEET",
+    "path": [
+      [
+        13.07373,
+        -8.559294
+      ],
+      [
+        12,
+        -9
+      ],
+      [
+        11,
+        -15.5
+      ],
+      [
+        11,
+        -19
+      ],
+      [
+        13.80944,
+        -22.909209
+      ],
+      [
+        14.534912,
+        -26.863281
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18.428192,
+        -33.862433
+      ]
+    ],
+    "_source": "Angola (Luanda / Cabinda) -> Cape of Good Hope. Distance 3088 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+  }
+]

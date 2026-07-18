@@ -1,0 +1,749 @@
+[
+  {
+    "id": "super_source",
+    "type": "super_source",
+    "name": "Super Source (Virtual)",
+    "lat": 0.0,
+    "lon": 0.0,
+    "capacity_bbl_day": null,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "Virtual node for network flow computation",
+    "_note": "Connects to all source nodes with unconstrained capacity"
+  },
+  {
+    "id": "super_sink",
+    "type": "super_sink",
+    "name": "Super Sink (Virtual)",
+    "lat": 0.0,
+    "lon": 0.0,
+    "capacity_bbl_day": null,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "Virtual node for network flow computation",
+    "_note": "All refinery_out nodes connect to this"
+  },
+  {
+    "id": "src_russia_urals",
+    "type": "source",
+    "name": "Russia \u2014 Urals (Novorossiysk)",
+    "lat": 44.6,
+    "lon": 37.8,
+    "capacity_bbl_day": 750000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC/Reuters 2024-25: Urals grade (SOUR, ~31 API, ~1.5% S) exported from Black Sea (Novorossiysk) / Baltic (Primorsk). ~40% of Russia\u2192India = ~750 kb/d. Routes westbound via Suez/Bab.",
+    "_note": "Split from the former combined src_russia node so ESPO and Urals originate at their real, geographically distinct ports.",
+    "aliases": [
+      "primorsk"
+    ]
+  },
+  {
+    "id": "src_russia_espo",
+    "type": "source",
+    "name": "Russia \u2014 ESPO (Kozmino)",
+    "lat": 42.62,
+    "lon": 133.09,
+    "capacity_bbl_day": 1100000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC/Reuters 2024-25: ESPO grade (SOUR, ~35 API, ~0.5% S) exported from Kozmino on the Pacific coast. ~60% of Russia\u2192India = ~1.10 Mb/d. Routes via South China Sea / Malacca.",
+    "_note": "Split from the former combined src_russia node. Pacific origin fixes the previously wrong-way (via-Suez) ESPO route."
+  },
+  {
+    "id": "src_iran",
+    "type": "source",
+    "name": "Iran (Kharg Island)",
+    "lat": 29.24,
+    "lon": 50.32,
+    "capacity_bbl_day": 500000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "Hackathon baseline estimate.",
+    "_note": "Added to resolve missing src_iran alias.",
+    "aliases": [
+      "iranian",
+      "tehran"
+    ]
+  },
+  {
+    "id": "src_iraq",
+    "type": "source",
+    "name": "Iraq (Basrah Terminal)",
+    "lat": 29.68,
+    "lon": 48.81,
+    "capacity_bbl_day": 950000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC 2024-25: Iraq ~19% of India imports = ~950 kb/d. Grade: Basrah Heavy (SOUR, ~29 API, ~3.5% sulfur) and Basrah Light (SOUR, ~33 API, ~2.9% sulfur). All transit via Hormuz.",
+    "_note": "Exports primarily from Basrah/Fao terminals; all routed via Strait of Hormuz to India.",
+    "aliases": [
+      "iraqi",
+      "basra"
+    ]
+  },
+  {
+    "id": "src_saudi",
+    "type": "source",
+    "name": "Saudi Arabia (Ras Tanura)",
+    "lat": 26.64,
+    "lon": 50.16,
+    "capacity_bbl_day": 800000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC 2024-25: Saudi Arabia ~16% of India imports = ~800 kb/d. Grade: Arab Heavy (SOUR, ~27 API, ~2.8% sulfur) and Arab Light (SOUR, ~33 API, ~1.8% sulfur).",
+    "_note": "Term supply agreements with ARAMCO for Indian state refiners IOC/HPCL/BPCL. All transit via Hormuz.",
+    "aliases": [
+      "aramco"
+    ]
+  },
+  {
+    "id": "src_uae",
+    "type": "source",
+    "name": "UAE (Ruwais / Das Island)",
+    "lat": 24.18,
+    "lon": 52.61,
+    "capacity_bbl_day": 550000,
+    "grade_compatibility": [
+      "SWEET"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC 2024-25: UAE ~11% of India imports = ~550 kb/d. Grade: Murban (SWEET, ~40.5 API, ~0.6% sulfur) and Das Blend. Murban classified SWEET per API/sulfur threshold.",
+    "_note": "UAE's dominant export grade to India is Murban from Abu Dhabi. All transit via Hormuz (Abu Dhabi/Ruwais terminals).",
+    "aliases": [
+      "united arab emirates",
+      "abu dhabi",
+      "murban",
+      "adnoc"
+    ]
+  },
+  {
+    "id": "src_kuwait",
+    "type": "source",
+    "name": "Kuwait (Mina Al Ahmadi)",
+    "lat": 29.07,
+    "lon": 48.15,
+    "capacity_bbl_day": 250000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC 2024-25: Kuwait ~5% of India imports = ~250 kb/d. Grade: Kuwait Export Crude (SOUR, ~31 API, ~2.5% sulfur). All transit via Hormuz.",
+    "_note": "Kuwait Oil Company exports via Mina Abdulla and Shuaiba terminals; all via Hormuz.",
+    "aliases": [
+      "kuwaiti",
+      "kpc"
+    ]
+  },
+  {
+    "id": "src_nigeria",
+    "type": "source",
+    "name": "Nigeria (Bonny Terminal)",
+    "lat": 4.41,
+    "lon": 7.16,
+    "capacity_bbl_day": 200000,
+    "grade_compatibility": [
+      "SWEET"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC 2024-25: Nigeria ~4% of India imports = ~200 kb/d. Grade: Bonny Light (SWEET, ~35.4 API, ~0.14% sulfur). Key SWEET crude for complex refineries.",
+    "_note": "Bonny Light terminals in Niger Delta. Reaches India via Red Sea/Suez or Cape of Good Hope reroute.",
+    "aliases": [
+      "nigerian",
+      "bonny light"
+    ]
+  },
+  {
+    "id": "src_usa",
+    "type": "source",
+    "name": "USA (Gulf Coast Offshore)",
+    "lat": 28.5,
+    "lon": -94.0,
+    "capacity_bbl_day": 150000,
+    "grade_compatibility": [
+      "SWEET"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC 2024-25: USA ~3% of India imports = ~150 kb/d. Grade: WTI (SWEET, ~39.6 API, ~0.24% sulfur). Exports from Gulf Coast (Houston Ship Channel).",
+    "_note": "Reaches India via Atlantic/Cape of Good Hope route (~30 days). Increasingly important SWEET source for complex refineries.",
+    "aliases": [
+      "united states",
+      "us",
+      "wti",
+      "american"
+    ]
+  },
+  {
+    "id": "src_oman",
+    "type": "source",
+    "name": "Oman (Mina Al Fahal)",
+    "lat": 23.62,
+    "lon": 58.58,
+    "capacity_bbl_day": 120000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-18T00:00:00Z",
+    "_source": "PPAC/DGCI&S: India sources ~40 countries; Oman is a long-standing term supplier (Oman Blend, medium/sour, ~33 API ~1.1% S). Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude from the ~17.4% non-top-5 share of 4.84 Mb/d; PPAC's exact country-wise table did not extract via automated fetch]. Refresh with exact PPAC figures.",
+    "_note": "Mina Al Fahal is on the Gulf of Oman, EAST of the Strait of Hormuz narrows (~56.3-56.6E) \u2014 Omani crude does not transit Hormuz. Routed directly to west-coast refineries, deliberately bypassing chk_hormuz, unlike every other Gulf source in this model. This is the key de-biasing addition: a real Gulf-adjacent supplier immune to the chokepoint every other Gulf source shares."
+  },
+  {
+    "id": "src_qatar",
+    "type": "source",
+    "name": "Qatar (Ras Laffan)",
+    "lat": 25.91,
+    "lon": 51.58,
+    "capacity_bbl_day": 90000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-18T00:00:00Z",
+    "_source": "Qatar Marine crude, ~35 API, ~1.5% S \u2014 deep-Gulf term supplier via Ras Laffan. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude, see Oman note].",
+    "_note": "Ras Laffan is inside the Gulf; Qatari crude transits Hormuz like Saudi/Iraq/Kuwait."
+  },
+  {
+    "id": "src_kazakhstan",
+    "type": "source",
+    "name": "Kazakhstan (CPC Terminal, Novorossiysk)",
+    "lat": 44.68,
+    "lon": 37.52,
+    "capacity_bbl_day": 60000,
+    "grade_compatibility": [
+      "SWEET"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-18T00:00:00Z",
+    "_source": "CPC Blend (Tengiz/Kashagan), ~45 API, ~0.5-0.6% S \u2014 light, comparatively sweet grade despite sharing a Black Sea loading area with Russian Urals. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude, opportunistic/spot volumes to India].",
+    "_note": "Exported from the CPC Marine Terminal at Yuzhnaya Ozereyevka, ~9km from Novorossiysk \u2014 the same Black Sea loading area as src_russia_urals, but a distinct country and a materially lighter/sweeter grade. Demonstrates the grade constraint is independent of shared shipping geography, not just shared politics.",
+    "aliases": [
+      "cpc blend",
+      "cpc",
+      "tengiz"
+    ]
+  },
+  {
+    "id": "src_venezuela",
+    "type": "source",
+    "name": "Venezuela (Jos\u00e9 Terminal)",
+    "lat": 10.22,
+    "lon": -64.68,
+    "capacity_bbl_day": 180000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-18T00:00:00Z",
+    "_source": "Merey/Boscan heavy sour blends. Reuters/OilPrice (2026) name Venezuela among the fastest-growing diversification suppliers as Indian refiners reduced Russian intake. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude].",
+    "_note": "Routed via Cape of Good Hope \u2014 same southern-Atlantic logic as the existing USA route; no Panama/Suez shortcut advantage for VLCCs bound for India."
+  },
+  {
+    "id": "src_brazil",
+    "type": "source",
+    "name": "Brazil (Porto do A\u00e7u)",
+    "lat": -22.83,
+    "lon": -41.05,
+    "capacity_bbl_day": 170000,
+    "grade_compatibility": [
+      "SWEET"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-18T00:00:00Z",
+    "_source": "Lula/Tupi pre-salt crude, ~28-30 API, ~0.3-0.4% S (light, low-sulfur). Reuters/OilPrice (2026) name Brazil among the fastest-growing diversification suppliers. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude].",
+    "_note": "South Atlantic route via Cape of Good Hope is the natural path \u2014 no detour through the Northern Hemisphere chokepoints this model already covers."
+  },
+  {
+    "id": "src_angola",
+    "type": "source",
+    "name": "Angola (Luanda / Cabinda)",
+    "lat": -8.83,
+    "lon": 13.23,
+    "capacity_bbl_day": 130000,
+    "grade_compatibility": [
+      "SWEET"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-18T00:00:00Z",
+    "_source": "Girassol/Cabinda light-sweet crudes (~31-32 API, ~0.35-0.4% S). Named alongside Nigeria as a growing West-African diversification supplier. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude].",
+    "_note": "Routed via Cape of Good Hope only, matching Nigeria's real post-Houthi primary route (the pre-2024 Suez/Bab route is not modeled here to keep the addition tight)."
+  },
+  {
+    "id": "chk_hormuz",
+    "type": "chokepoint",
+    "name": "Strait of Hormuz",
+    "lat": 26.5,
+    "lon": 56.5,
+    "capacity_bbl_day": 2550000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "EIA World Oil Transit Chokepoints 2024: global flow 20.7 Mb/d. India-specific capacity set to sum of Iraq+Saudi+UAE+Kuwait exports to India = 2,550,000 bbl/day (all Middle Eastern sources transit here). Global figure used for context only.",
+    "_note": "Narrowest point is 21 nautical miles wide. Only 2-mile-wide shipping lanes in each direction. ~40-45% of India's crude imports transit here per EIA/PS.",
+    "aliases": [
+      "hormuz strait"
+    ]
+  },
+  {
+    "id": "chk_bab",
+    "type": "chokepoint",
+    "name": "Bab-el-Mandeb / Red Sea",
+    "lat": 12.5,
+    "lon": 43.5,
+    "capacity_bbl_day": 950000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "EIA 2024: global Bab-el-Mandeb flow dropped to 4.1 Mb/d (from 9.3 Mb/d in 2023) due to Houthi attacks. India-specific capacity = Russia Urals route (750k) + Nigeria via Suez (200k) = 950,000 bbl/day. The Houthi disruption is already partially modeled in the risk baseline.",
+    "_note": "Key risk corridor: Houthi attacks in 2024-2025 have already demonstrated real disruption. Risk score elevated in demo scenarios.",
+    "aliases": [
+      "bab al mandeb",
+      "gulf of aden"
+    ]
+  },
+  {
+    "id": "chk_suez",
+    "type": "chokepoint",
+    "name": "Suez Canal",
+    "lat": 30.5,
+    "lon": 32.3,
+    "capacity_bbl_day": 950000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "EIA 2024: Suez+SUMED combined 4.8 Mb/d globally. India capacity set equal to chk_bab (950k) as flows are serial on the Urals/West Africa route. Canal can accommodate up to Suezmax vessels.",
+    "_note": "Connected to chk_bab in series for westbound-to-India routes (Russia Urals, Nigeria). The 2021 Ever Given blockage demonstrated real disruption risk.",
+    "aliases": [
+      "sumed"
+    ]
+  },
+  {
+    "id": "chk_malacca",
+    "type": "chokepoint",
+    "name": "Strait of Malacca",
+    "lat": 2.5,
+    "lon": 102.0,
+    "capacity_bbl_day": 1700000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "EIA 2024: Malacca global flow 22.5 Mb/d. India-specific: Russia ESPO (1,100k) + ME crude to east coast via Indian Ocean (600k) = 1,700,000 bbl/day. Used by east-coast refineries (Paradip, Vizag) receiving ESPO and some Gulf crude.",
+    "_note": "India's east coast refineries receive ESPO crude (Russia) primarily through this strait. Lowest risk chokepoint in our network \u2014 no active threat actors as of 2026.",
+    "aliases": [
+      "malacca strait"
+    ]
+  },
+  {
+    "id": "chk_cog",
+    "type": "bypass",
+    "name": "Cape of Good Hope",
+    "lat": -34.4,
+    "lon": 18.5,
+    "capacity_bbl_day": 1000000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "EIA 2024: Cape of Good Hope reroute flows rose to 9.3 Mb/d in 2024 (from 6.2 Mb/d in 2023) due to Houthi-induced Red Sea diversion. India-specific bypass capacity estimated at 1,000,000 bbl/day \u2014 constrained by vessel scheduling lead time and port throughput, not the route itself. Labeled [ESTIMATED].",
+    "_note": "NOT a chokepoint \u2014 this is a BYPASS ROUTE. openness is always 1.0, risk_score always 0.0. Its higher cost comes from edge attributes (extra ~10-14 days, +$1.5-2/bbl freight). The EIA data shows this route is actively used today."
+  },
+  {
+    "id": "ref_jamnagar_in",
+    "type": "refinery_in",
+    "name": "Jamnagar (Reliance) \u2014 Inlet",
+    "lat": 22.46,
+    "lon": 70.07,
+    "capacity_bbl_day": 1364000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "Reliance Industries Annual Report 2024-25: 68.2 MMTPA combined capacity (33.0 MMTPA DTA + 35.2 MMTPA SEZ). Conversion: 1 MMTPA = 20,000 bbl/day. Grade: NCI 21.1, capable of 216+ crude grades including ultra-heavy SOUR. Classified SWEET+SOUR.",
+    "_note": "World's largest single-location refinery complex. Located on Gulf of Kutch, Gujarat. Receives crude via Single-Point Mooring (SPM) at Sikka terminal.",
+    "aliases": [
+      "sikka"
+    ]
+  },
+  {
+    "id": "ref_jamnagar_out",
+    "type": "refinery_out",
+    "name": "Jamnagar (Reliance) \u2014 Outlet",
+    "lat": 22.46,
+    "lon": 70.07,
+    "capacity_bbl_day": 1364000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 4092000,
+    "consumption_rate_bbl_day": 1364000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "Same as ref_jamnagar_in. Initial inventory set to 3 days \u00d7 consumption_rate = 3 \u00d7 1,364,000 = 4,092,000 bbl (operational buffer).",
+    "_note": "Outlet node for flow conservation. Inventory drain rate = consumption_rate_bbl_day."
+  },
+  {
+    "id": "ref_paradip_in",
+    "type": "refinery_in",
+    "name": "Paradip (IOCL) \u2014 Inlet",
+    "lat": 20.31,
+    "lon": 86.61,
+    "capacity_bbl_day": 300000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC Refinery Capacity 2024-25: Paradip 15.0 MMTPA = 300,000 bbl/day. Designed for high-sulfur (SOUR) crudes with advanced hydrocracker and coker units. Located at Paradip Port, Odisha.",
+    "_note": "East coast refinery. Receives primarily ESPO (Russia) and Middle East SOUR crudes via Bay of Bengal. Does NOT have significant SWEET crude processing capacity \u2014 classified SOUR only."
+  },
+  {
+    "id": "ref_paradip_out",
+    "type": "refinery_out",
+    "name": "Paradip (IOCL) \u2014 Outlet",
+    "lat": 20.31,
+    "lon": 86.61,
+    "capacity_bbl_day": 300000,
+    "grade_compatibility": [
+      "SOUR"
+    ],
+    "inventory_bbl": 900000,
+    "consumption_rate_bbl_day": 300000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "Same as ref_paradip_in. Initial inventory = 3 days \u00d7 300,000 = 900,000 bbl.",
+    "_note": "Outlet node."
+  },
+  {
+    "id": "ref_vizag_in",
+    "type": "refinery_in",
+    "name": "Visakh / Vizag (HPCL) \u2014 Inlet",
+    "lat": 17.69,
+    "lon": 83.22,
+    "capacity_bbl_day": 300000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC 2024-25: Vizag 15.0 MMTPA = 300,000 bbl/day. Post-modernization with LC-Max unit allows processing of heavy and bottom-of-barrel feedstocks, both SWEET and SOUR. Located at Visakhapatnam Port, Andhra Pradesh.",
+    "_note": "East coast refinery. Co-located with ISPRL Visakhapatnam SPR facility. Grade: SWEET+SOUR after modernization.",
+    "aliases": [
+      "visakhapatnam"
+    ]
+  },
+  {
+    "id": "ref_vizag_out",
+    "type": "refinery_out",
+    "name": "Visakh / Vizag (HPCL) \u2014 Outlet",
+    "lat": 17.69,
+    "lon": 83.22,
+    "capacity_bbl_day": 300000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 900000,
+    "consumption_rate_bbl_day": 300000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "Same as ref_vizag_in. Initial inventory = 3 \u00d7 300,000 = 900,000 bbl.",
+    "_note": "Outlet node."
+  },
+  {
+    "id": "ref_mangalore_in",
+    "type": "refinery_in",
+    "name": "Mangalore (MRPL) \u2014 Inlet",
+    "lat": 12.91,
+    "lon": 74.86,
+    "capacity_bbl_day": 300000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC 2024-25: MRPL 15.0 MMTPA = 300,000 bbl/day. Processes crudes from 18-46 API gravity range (broadest range of any Indian refinery per MRPL disclosures). SWEET+SOUR flexibility confirmed.",
+    "_note": "West coast refinery. Co-located with ISPRL Mangalore SPR. Receives crude via SPM buoy off Mangalore coast."
+  },
+  {
+    "id": "ref_mangalore_out",
+    "type": "refinery_out",
+    "name": "Mangalore (MRPL) \u2014 Outlet",
+    "lat": 12.91,
+    "lon": 74.86,
+    "capacity_bbl_day": 300000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 900000,
+    "consumption_rate_bbl_day": 300000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "Same as ref_mangalore_in. Initial inventory = 3 \u00d7 300,000 = 900,000 bbl.",
+    "_note": "Outlet node."
+  },
+  {
+    "id": "ref_kochi_in",
+    "type": "refinery_in",
+    "name": "Kochi (BPCL) \u2014 Inlet",
+    "lat": 9.94,
+    "lon": 76.27,
+    "capacity_bbl_day": 310000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "PPAC 2024-25: BPCL Kochi 15.5 MMTPA = 310,000 bbl/day. Equipped with SPM for VLCCs, diverse crude basket. SWEET+SOUR confirmed per BPCL disclosures.",
+    "_note": "West coast refinery, southernmost of the five. Receives crude via SPM in Arabian Sea. BPCL is expanding this refinery.",
+    "aliases": [
+      "cochin"
+    ]
+  },
+  {
+    "id": "ref_kochi_out",
+    "type": "refinery_out",
+    "name": "Kochi (BPCL) \u2014 Outlet",
+    "lat": 9.94,
+    "lon": 76.27,
+    "capacity_bbl_day": 310000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 930000,
+    "consumption_rate_bbl_day": 310000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "Same as ref_kochi_in. Initial inventory = 3 \u00d7 310,000 = 930,000 bbl.",
+    "_note": "Outlet node."
+  },
+  {
+    "id": "spr_vizag",
+    "type": "spr",
+    "name": "ISPRL Visakhapatnam",
+    "lat": 17.72,
+    "lon": 83.3,
+    "capacity_bbl_day": 85000,
+    "storage_capacity_bbl": 9800000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 7166667,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "ISPRL public disclosures: Visakhapatnam capacity 1.33 MMT = 9.78 Mb (conversion: 1 MMT crude \u2248 7.35 barrels). Rounded to 9.8 Mb; 73% fill assumed from MoPNG statements (~Q3 2025). Fill = 0.73 \u00d7 9,800,000 = 7,154,000 \u2248 7.17 Mb. Max discharge: [ESTIMATED] ~85,000 bbl/day based on facility design specs (no public figure available).",
+    "_note": "Underground rock cavern storage. Located adjacent to HPCL Vizag refinery \u2014 emergency pipeline connects directly."
+  },
+  {
+    "id": "spr_mangalore",
+    "type": "spr",
+    "name": "ISPRL Mangalore",
+    "lat": 12.87,
+    "lon": 74.88,
+    "capacity_bbl_day": 95000,
+    "storage_capacity_bbl": 11025000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 8077500,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "ISPRL: Mangalore capacity 1.50 MMT = 11.025 Mb. ~73% fill = 8.05 Mb \u2248 8.08 Mb. Max discharge [ESTIMATED]: ~95,000 bbl/day.",
+    "_note": "Underground cavern at Padur outskirts, operationally linked to MRPL Mangalore refinery."
+  },
+  {
+    "id": "spr_padur",
+    "type": "spr",
+    "name": "ISPRL Padur",
+    "lat": 13.22,
+    "lon": 74.74,
+    "capacity_bbl_day": 160000,
+    "storage_capacity_bbl": 18375000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 13481250,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-07-15T00:00:00Z",
+    "_source": "ISPRL: Padur capacity 2.50 MMT = 18.375 Mb. ~73% fill = 13.41 Mb \u2248 13.48 Mb. Max discharge [ESTIMATED]: ~160,000 bbl/day (largest facility).",
+    "_note": "Largest SPR facility. Located near Udupi district, Karnataka. Serves both Mangalore and Kochi refineries via pipeline."
+  }
+]

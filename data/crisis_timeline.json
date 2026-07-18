@@ -1,0 +1,206 @@
+[
+  {
+    "id": "evt_001",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/middle-east/",
+    "original_timestamp": "2025-01-13T09:00:00Z",
+    "replay_order": 1,
+    "headline": "US imposes sweeping new sanctions on Russian oil exports, targets tanker fleet and energy companies",
+    "body_excerpt": "The United States on Monday announced its most sweeping sanctions yet on Russian oil, targeting Gazprom Neft, Surgutneftegas and over 180 vessels that Washington says form a shadow fleet used to circumvent existing restrictions. The measures mark a significant escalation ahead of the U.S. presidential transition.",
+    "known_market_impact": "Brent crude +2.8% intraday; Indian rupee weakened 0.4% on import cost concerns",
+    "expected_extraction": {
+      "entity": "Russia",
+      "event_type": "sanction",
+      "affected_graph_element": "src_russia_espo",
+      "severity_range": [0.4, 0.75],
+      "confidence_range": [0.7, 1.0]
+    }
+  },
+  {
+    "id": "evt_002",
+    "source": "Bloomberg",
+    "url": "https://www.bloomberg.com/energy",
+    "original_timestamp": "2025-01-18T06:30:00Z",
+    "replay_order": 2,
+    "headline": "Houthi forces announce resumed attacks on Red Sea shipping, warn vessels sailing to Israel-linked ports",
+    "body_excerpt": "Yemen's Houthi movement said on Saturday it had resumed military operations against shipping in the Red Sea following a brief ceasefire, announcing it would target vessels with any link to Israeli interests. The declaration raised fresh concerns among shipping companies about the safety of the Bab-el-Mandeb Strait, through which roughly a quarter of global seaborne trade passes.",
+    "known_market_impact": "Red Sea-linked shipping stocks fell 3-4%; insurance war-risk premiums rose 0.5% of hull value",
+    "expected_extraction": {
+      "entity": "Red Sea",
+      "event_type": "capacity_reduction",
+      "affected_graph_element": "chk_bab",
+      "severity_range": [0.4, 0.7],
+      "confidence_range": [0.6, 0.9]
+    }
+  },
+  {
+    "id": "evt_003",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/middle-east/",
+    "original_timestamp": "2025-04-10T14:00:00Z",
+    "replay_order": 3,
+    "headline": "US warns Iran over nuclear programme, threatens secondary sanctions on Iranian oil buyers",
+    "body_excerpt": "The United States on Thursday issued a stark warning to Iran, threatening to impose secondary sanctions on any country or entity that continues to purchase Iranian crude oil if Tehran does not agree to new nuclear talks within 30 days. Senior U.S. officials said the measures could effectively close off Iranian oil export routes and crimp global supply.",
+    "known_market_impact": "Brent crude +3.5% on day",
+    "expected_extraction": {
+      "entity": "Iran",
+      "event_type": "sanction",
+      "affected_graph_element": "src_iran",
+      "severity_range": [0.45, 0.8],
+      "confidence_range": [0.7, 1.0]
+    }
+  },
+  {
+    "id": "evt_004",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/markets/commodities/",
+    "original_timestamp": "2025-04-14T08:30:00Z",
+    "replay_order": 4,
+    "headline": "Iran warns US military vessels in Gulf; IRGC conducts naval exercises near Strait of Hormuz",
+    "body_excerpt": "Iran's Islamic Revolutionary Guard Corps launched a series of naval exercises near the Strait of Hormuz on Monday, warning U.S. carrier strike groups operating in the region. Iranian officials said the exercises, which included fast-boat swarm drills, were a response to what they called 'provocative' American naval deployments. The Strait of Hormuz, through which about 20% of global oil supply flows, saw shipping insurance rates spike immediately following the announcement.",
+    "known_market_impact": "Brent crude rose over 8% in single session — the key event cited in the hackathon problem statement. WTI +7.9%. Indian refiners moved to spot market procurement.",
+    "expected_extraction": {
+      "entity": "Strait of Hormuz",
+      "event_type": "capacity_reduction",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [0.6, 0.9],
+      "confidence_range": [0.5, 0.8]
+    }
+  },
+  {
+    "id": "evt_005",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/middle-east/",
+    "original_timestamp": "2025-04-16T10:00:00Z",
+    "replay_order": 5,
+    "headline": "Iran threatens to close Strait of Hormuz if attacked; tanker diversions reported near Gulf",
+    "body_excerpt": "Iran threatened on Wednesday to close the Strait of Hormuz to international navigation if its territory or economic interests are attacked, repeating a longstanding warning that energy markets took more seriously this week given rising regional tensions. Several VLCCs were reported to have altered course away from the Gulf anchorage areas, according to maritime tracking data. Two major shipping firms said they were temporarily rerouting vessels around the Cape of Good Hope.",
+    "known_market_impact": "Brent crude held above 8% gain from prior session; Indian refiners confirmed emergency procurement enquiries to Nigerian and US suppliers",
+    "expected_extraction": {
+      "entity": "Strait of Hormuz",
+      "event_type": "closure",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [0.65, 0.95],
+      "confidence_range": [0.5, 0.8]
+    }
+  },
+  {
+    "id": "evt_006",
+    "source": "Financial Times",
+    "url": "https://www.ft.com/energy",
+    "original_timestamp": "2025-04-20T07:00:00Z",
+    "replay_order": 6,
+    "headline": "US-Iran diplomatic backchannel talks resume; Hormuz threat eases slightly",
+    "body_excerpt": "Officials from the United States and Iran have resumed indirect diplomatic talks through Omani intermediaries, raising cautious hopes that the standoff that sent oil markets spiralling last week could be de-escalated, people familiar with the discussions told the Financial Times. Iranian officials privately signalled they would not immediately act on the Hormuz closure threat while negotiations continue.",
+    "known_market_impact": "Brent crude fell 2.1% on the news — partial reversal of the spike. Risk scores should decay.",
+    "expected_extraction": {
+      "entity": "Strait of Hormuz",
+      "event_type": "reopening",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [0.0, 0.3],
+      "confidence_range": [0.3, 0.6]
+    }
+  },
+  {
+    "id": "evt_007",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/business/energy/",
+    "original_timestamp": "2025-11-30T12:00:00Z",
+    "replay_order": 7,
+    "headline": "OPEC+ agrees 500,000 bpd emergency production cut citing global demand concerns",
+    "body_excerpt": "OPEC+ members agreed on Sunday to an additional voluntary production cut of 500,000 barrels per day starting January 2026, as the group cited weaker-than-expected demand growth in China and elevated non-OPEC supply. Saudi Arabia said it would implement its share of the cut immediately. The decision adds to a cumulative reduction of over 5 million bpd since 2022.",
+    "known_market_impact": "Brent crude +4.2% following the announcement. Impact: reduction in supply from Saudi, Iraq, Kuwait, UAE source nodes.",
+    "expected_extraction": {
+      "entity": "OPEC",
+      "event_type": "capacity_reduction",
+      "affected_graph_element": "src_saudi",
+      "severity_range": [0.2, 0.5],
+      "confidence_range": [0.85, 1.0]
+    }
+  },
+  {
+    "id": "evt_008",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/middle-east/",
+    "original_timestamp": "2026-01-15T05:00:00Z",
+    "replay_order": 8,
+    "headline": "Houthi missile damages Saudi-chartered VLCC in Gulf of Aden; crew evacuated",
+    "body_excerpt": "A ballistic missile fired by Yemen's Houthi movement struck and severely damaged a Saudi Arabia-chartered Very Large Crude Carrier on Wednesday while the vessel was transiting the Gulf of Aden bound for Jamnagar refinery in India, maritime officials said. The crew of 26 was evacuated by a Royal Navy vessel. The attack marked one of the most serious strikes on a crude tanker since Houthi attacks resumed earlier this year.",
+    "known_market_impact": "War-risk insurance premiums spiked; Baltic Dirty Tanker Index rose 12%; multiple tankers diverted to Cape of Good Hope route",
+    "expected_extraction": {
+      "entity": "Bab-el-Mandeb",
+      "event_type": "capacity_reduction",
+      "affected_graph_element": "chk_bab",
+      "severity_range": [0.55, 0.85],
+      "confidence_range": [0.85, 1.0]
+    }
+  },
+  {
+    "id": "evt_009",
+    "source": "Platts",
+    "url": "https://www.spglobal.com/commodity-insights/",
+    "original_timestamp": "2026-02-05T08:00:00Z",
+    "replay_order": 9,
+    "headline": "Iraq Basrah crude export terminal declared force majeure following pipeline sabotage",
+    "body_excerpt": "Iraq's State Oil Marketing Organisation declared force majeure on Basrah crude oil exports after an explosives attack severed a key pipeline segment connecting southern oilfields to the Fao offshore loading terminal, industry sources said. Repairs are expected to take 7-10 days. Daily exports from Basrah — estimated at approximately 3.3 million barrels per day — have been halted.",
+    "known_market_impact": "Immediate halt to Iraq's Basrah exports — affects ~950,000 bbl/day flowing to India",
+    "expected_extraction": {
+      "entity": "Iraq",
+      "event_type": "capacity_reduction",
+      "affected_graph_element": "src_iraq",
+      "severity_range": [0.7, 1.0],
+      "confidence_range": [0.8, 1.0]
+    }
+  },
+  {
+    "id": "evt_010",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/middle-east/",
+    "original_timestamp": "2026-02-14T10:00:00Z",
+    "replay_order": 10,
+    "headline": "Iraq Basrah export terminal resumes operations after pipeline repairs completed",
+    "body_excerpt": "Iraq's State Oil Marketing Organisation said on Friday that full crude export operations had resumed at the Fao offshore loading terminal after engineers completed emergency repairs to the sabotaged pipeline section. First loadings resumed at 07:00 GMT. Iraq said it would prioritize fulfilling backlogged export contracts in coming weeks.",
+    "known_market_impact": "Brent crude fell 1.8% on reopening news; Iraq supply normalises",
+    "expected_extraction": {
+      "entity": "Iraq",
+      "event_type": "reopening",
+      "affected_graph_element": "src_iraq",
+      "severity_range": [0.0, 0.2],
+      "confidence_range": [0.85, 1.0]
+    }
+  },
+  {
+    "id": "evt_011",
+    "source": "Times of India",
+    "url": "https://timesofindia.indiatimes.com/",
+    "original_timestamp": "2026-03-10T09:00:00Z",
+    "replay_order": 11,
+    "headline": "India cricket team wins ICC World Cup Final against Australia in dramatic last-over finish",
+    "body_excerpt": "India won the ICC Cricket World Cup for the fourth time on Sunday, defeating Australia by three wickets in a dramatic last-over finish at the Narendra Modi Stadium in Ahmedabad. Captain Rohit Sharma said it was the proudest moment of his career. The victory was celebrated across the country.",
+    "known_market_impact": "None — unrelated to energy markets",
+    "expected_extraction": {
+      "entity": "India",
+      "event_type": "unrelated",
+      "affected_graph_element": null,
+      "severity_range": [0.0, 0.05],
+      "confidence_range": [0.0, 0.1]
+    }
+  },
+  {
+    "id": "evt_012",
+    "source": "Bloomberg",
+    "url": "https://www.bloomberg.com/technology",
+    "original_timestamp": "2026-04-01T14:00:00Z",
+    "replay_order": 12,
+    "headline": "Nvidia announces new AI chip architecture; tech stocks rally on strong quarterly results",
+    "body_excerpt": "Nvidia unveiled its next-generation Blackwell Ultra GPU architecture at its annual GTC conference, sending the company's shares up 8% in after-hours trading. The new chips are designed to accelerate AI training workloads by up to 40% over the prior generation. Major cloud providers Amazon, Microsoft and Google announced plans to deploy the new chips.",
+    "known_market_impact": "None — unrelated to energy supply chain",
+    "expected_extraction": {
+      "entity": "Nvidia",
+      "event_type": "unrelated",
+      "affected_graph_element": null,
+      "severity_range": [0.0, 0.05],
+      "confidence_range": [0.0, 0.1]
+    }
+  }
+]

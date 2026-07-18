@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>India Energy Supply Chain Resilience Digital Twin</title>
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/deck.gl@8.9.32/dist.min.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ----------------------------------------------------
+       Premium Dark Theme & Global Styles
+       ---------------------------------------------------- */
+    :root {
+      --bg-base: #0b0f19;
+      --bg-surface: rgba(17, 24, 39, 0.7);
+      --bg-surface-solid: #111827;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      
+      --accent-blue: #3b82f6;
+      --accent-blue-glow: rgba(59, 130, 246, 0.15);
+      --accent-emerald: #10b981;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.15);
+      --accent-amber: #f59e0b;
+      --accent-amber-glow: rgba(245, 158, 11, 0.15);
+      --accent-red: #ef4444;
+      --accent-red-glow: rgba(239, 68, 68, 0.15);
+      
+      --font-sans: 'Inter', sans-serif;
+      --glass-filter: blur(12px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      /* Single-screen control room: the app fills the viewport and never scrolls
+         the page itself — any overflow is handled inside individual panels. */
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+    }
+
+    /* ----------------------------------------------------
+       App Header / Navigation
+       ---------------------------------------------------- */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(11, 15, 25, 0.5);
+      backdrop-filter: var(--glass-filter);
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 2rem;
+      height: 2rem;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-emerald));
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .logo-icon svg {
+      width: 1.2rem;
+      height: 1.2rem;
+      fill: white;
+    }
+
+    .logo-text h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      text-transform: uppercase;
+      background: linear-gradient(to right, #ffffff, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-text span {
+      font-size: 0.75rem;
+      color: var(--accent-emerald);
+      font-weight: 500;
+      display: block;
+      margin-top: 1px;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--accent-emerald);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background-color: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 1.8s infinite;
+    }
+
+    .status-badge.neutral {
+      background: rgba(148, 163, 184, 0.1);
+      border-color: rgba(148, 163, 184, 0.2);
+      color: var(--text-secondary);
+    }
+    .status-badge.neutral .status-dot {
+      background-color: var(--text-muted);
+      box-shadow: none;
+      animation: none;
+    }
+
+    /* Origin badges in the signal feed — distinguishes live-sensed signals from
+       curated replay and manual submissions, so nothing is implied to be "live"
+       that isn't. */
+    .origin-tag {
+      font-family: monospace;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .origin-tag.replay { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+    .origin-tag.custom { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+    .origin-tag.live-sanctions,
+    .origin-tag.live-news,
+    .origin-tag.live-weather { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
+
+    /* ----------------------------------------------------
+       Grid Layout & Structure
+       ---------------------------------------------------- */
+    .dashboard-container {
+      flex: 1;
+      min-height: 0;               /* critical: lets grid children scroll internally */
+      display: grid;
+      grid-template-columns: 300px 1fr 420px;
+      gap: 0.85rem;
+      padding: 0.85rem;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* Column Panels */
+    .panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      backdrop-filter: var(--glass-filter);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;               /* allow the panel to shrink and scroll internally */
+      transition: border-color 0.2s;
+    }
+
+    .panel-header {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .panel-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-title svg {
+      width: 1rem;
+      height: 1rem;
+      color: var(--accent-blue);
+    }
+
+    .panel-content {
+      padding: 1rem;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    /* ----------------------------------------------------
+       Single-screen center column: map fills, metric strip pinned below it.
+       ---------------------------------------------------- */
+    .center-column {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.6rem;
+      flex-shrink: 0;
+    }
+    .metric-strip .metric-card { padding: 0.55rem 0.5rem; }
+    .metric-strip .metric-label { font-size: 0.6rem; margin-bottom: 0.15rem; }
+    .metric-strip .metric-value { font-size: 1.05rem; }
+
+    /* ----------------------------------------------------
+       Tabbed right panel
+       ---------------------------------------------------- */
+    .tab-bar {
+      display: flex;
+      gap: 0.15rem;
+      padding: 0.5rem 0.6rem 0;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0.5rem 0.7rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: var(--text-secondary); }
+    .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+    .tab-content { flex: 1; min-height: 0; overflow-y: auto; padding: 1rem; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Baseline route table */
+    .baseline-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+    .baseline-table th {
+      text-align: left; color: var(--text-muted); font-weight: 600;
+      text-transform: uppercase; font-size: 0.6rem; letter-spacing: 0.04em;
+      padding: 0.35rem 0.4rem; border-bottom: 1px solid var(--border-color);
+    }
+    .baseline-table td { padding: 0.4rem 0.4rem; border-bottom: 1px solid var(--border-color); color: var(--text-primary); }
+    .baseline-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .reason-block { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);
+      border-left: 3px solid var(--accent-emerald); border-radius: 8px; padding: 0.75rem 0.85rem;
+      margin-bottom: 0.85rem; font-size: 0.78rem; line-height: 1.5; color: var(--text-secondary); }
+    .reason-block b { color: var(--text-primary); }
+
+    /* ----------------------------------------------------
+       Timeline / Signal Feed Panel (Left)
+       ---------------------------------------------------- */
+    .control-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      color: white;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .timeline-progress {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .timeline-progress span:last-child {
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+
+    .signal-input-container {
+      margin-bottom: 1.25rem;
+    }
+
+    .signal-textarea {
+      width: 100%;
+      height: 80px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.6rem;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      resize: none;
+      margin-bottom: 0.5rem;
+    }
+
+    .signal-textarea:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .signal-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .feed-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.75rem;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .feed-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .feed-card.active {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .feed-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+      font-size: 0.7rem;
+    }
+
+    .feed-headline {
+      font-weight: 600;
+      line-height: 1.3;
+      margin-bottom: 0.25rem;
+    }
+
+    .feed-impact {
+      color: var(--accent-amber);
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* ----------------------------------------------------
+       Interactive Map / Network Visualization (Middle)
+       ---------------------------------------------------- */
+    .map-wrapper {
+      position: relative;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      flex: 1;           /* fill the center column; metric strip sits below */
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .map-wrapper::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.42;
+      background-image:
+        linear-gradient(rgba(59, 130, 246, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.055) 1px, transparent 1px),
+        radial-gradient(circle at 68% 72%, rgba(16, 185, 129, 0.13), transparent 32%),
+        radial-gradient(circle at 18% 42%, rgba(59, 130, 246, 0.14), transparent 36%);
+      background-size: 36px 36px, 36px 36px, auto, auto;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-radius: 12px;
+    }
+    /* Prevent DeckGL mapbox logo from overlapping controls */
+    .maplibregl-control-container { display: none; }
+
+    /* Node styles */
+    .node {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .node:hover {
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+    }
+
+    .node-label {
+      font-size: 9px;
+      font-weight: 600;
+      fill: var(--text-primary);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+      pointer-events: none;
+    }
+
+    /* Edge styles */
+    .link {
+      fill: none;
+      stroke-opacity: 0.6;
+      stroke-dasharray: none;
+      transition: all 0.2s;
+    }
+
+    .link.sea {
+      stroke: var(--accent-blue);
+      stroke-width: 2;
+    }
+
+    .link.pipeline {
+      stroke: var(--accent-emerald);
+      stroke-width: 2.5;
+    }
+
+    .link.disrupted {
+      stroke: var(--accent-red);
+      stroke-dasharray: 4,4;
+      stroke-width: 1.5;
+    }
+
+    .link.active-flow {
+      filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.55));
+    }
+
+    .flow-particles {
+      stroke: white;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 0, 15;
+      animation: dash 10s linear infinite;
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -100;
+      }
+    }
+
+    .map-controls {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 2;
+    }
+
+    .map-controls .drill-label {
+      color: var(--text-muted);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: right;
+      margin-top: 0.15rem;
+    }
+
+    .map-legend {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      background: rgba(11, 15, 25, 0.85);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* ----------------------------------------------------
+       Disruption Inspector — replaces the blocking confirm()
+       dialog with a proper panel that supports continuous
+       partial degradation (0-100% open), for both nodes and edges.
+       ---------------------------------------------------- */
+    .inspector-panel {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      width: 300px;
+      background: rgba(11, 15, 25, 0.92);
+      border: 1px solid var(--accent-blue);
+      box-shadow: 0 0 24px rgba(59, 130, 246, 0.25), var(--shadow, 0 4px 12px rgba(0,0,0,0.3));
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      z-index: 5;
+      display: none;
+    }
+
+    .inspector-panel.open { display: block; }
+
+    .inspector-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.15rem;
+    }
+
+    .inspector-subtitle {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.65rem;
+    }
+
+    .inspector-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .inspector-slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent-blue);
+    }
+
+    .inspector-openness-value {
+      font-family: monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      min-width: 3.2rem;
+      text-align: right;
+    }
+
+    .inspector-hint {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .inspector-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    /* ----------------------------------------------------
+       Resilience Metrics Panel (Right)
+       ---------------------------------------------------- */
+    .metrics-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.85rem;
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 0.675rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    .metric-value.green { color: var(--accent-emerald); }
+    .metric-value.amber { color: var(--accent-amber); }
+    .metric-value.red { color: var(--accent-red); }
+
+    .chart-container {
+      height: 150px;
+      margin-top: 1rem;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1rem;
+      position: relative;
+    }
+
+    /* Routing Recommendations */
+    .route-option {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.85rem;
+      margin-bottom: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .route-option:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .route-option.active {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.04);
+    }
+
+    .route-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 0.775rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Route Transformation diff items — color-coded by change type */
+    .change-item {
+      border-left: 3px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 0 6px 6px 0;
+      padding: 0.5rem 0.65rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.72rem;
+      line-height: 1.45;
+    }
+    .change-item.rerouted { border-left-color: var(--accent-amber); }
+    .change-item.new { border-left-color: var(--accent-emerald); }
+    .change-item.dropped { border-left-color: var(--accent-red); }
+    .change-item .change-tag {
+      font-family: monospace;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-right: 0.4rem;
+    }
+    .change-item.rerouted .change-tag { color: var(--accent-amber); }
+    .change-item.new .change-tag { color: var(--accent-emerald); }
+    .change-item.dropped .change-tag { color: var(--accent-red); }
+    .route-changes-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+    }
+
+    .route-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+
+    .route-meta span strong {
+      color: var(--text-primary);
+    }
+
+    /* ----------------------------------------------------
+       Explainer Brief Panel (Bottom Panel)
+       ---------------------------------------------------- */
+    .brief-panel {
+      grid-column: 1 / span 3;
+      margin-top: 1.25rem;
+      background: rgba(17, 24, 39, 0.85);
+    }
+
+    .brief-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .brief-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .brief-section h3 {
+      font-size: 0.775rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .brief-text {
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: var(--text-primary);
+    }
+
+    .brief-headline-bar {
+      grid-column: 1 / span 3;
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(0, 0, 0, 0.2) 100%);
+      border-left: 4px solid var(--accent-red);
+      padding: 0.75rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.875rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    /* ----------------------------------------------------
+       Animations & Helpers
+       ---------------------------------------------------- */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Latency logger element */
+    .latency-log {
+      margin-top: 1rem;
+      font-family: monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
+      padding-top: 0.5rem;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L2 22h20L12 2zm0 3.3l7.5 13.4H4.5L12 5.3zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <h1>Energy Resilience Digital Twin</h1>
+        <span>India Crude Supply Chain Defense & Anticipatory Sensing</span>
+      </div>
+    </div>
+    
+    <div class="system-status">
+      <div class="status-badge neutral" id="live-ws-badge">
+        <div class="status-dot"></div>
+        <span id="live-ws-label">Connecting…</span>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span>Anticipatory Engine Active</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-container">
+    
+    <!-- LEFT PANEL: Timeline / Signal Feed -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Sensing Pipeline / Timeline
+        </h2>
+      </div>
+      <div class="panel-content">
+        <div class="control-actions">
+          <button class="btn btn-primary" id="btn-replay" onclick="stepReplay()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Step Replay
+          </button>
+          <button class="btn btn-secondary" onclick="resetReplay()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18v3"/></svg>
+            Reset Twin
+          </button>
+        </div>
+        
+        <div class="timeline-progress">
+          <span>Replay Progress</span>
+          <span id="replay-step-label">0 / 12</span>
+        </div>
+
+        <div class="signal-input-container">
+          <textarea class="signal-textarea" id="custom-signal-text" placeholder="Submit custom news signal or rumor to trigger the Anticipatory Pipeline..."></textarea>
+          <button class="btn btn-primary" style="width: 100%;" onclick="submitCustomSignal()">Submit Custom Signal</button>
+        </div>
+
+        <h3 style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase;">Signal Feed</h3>
+        <div class="signal-feed" id="signal-feed-container">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: Map (always visible) + at-a-glance metric strip -->
+    <section class="center-column">
+      <div class="map-wrapper">
+        <div id="map"></div>
+        <div class="map-controls">
+          <div class="drill-label">Scenario library</div>
+          <!-- Populated dynamically from GET /api/scenarios/list, alphabetically —
+               no single geography is hardcoded or visually privileged. Any node or
+               edge on the map is independently disruptable via click-to-fail;
+               this list is a convenience for the named/backtestable library only. -->
+          <select id="scenario-select" class="btn btn-secondary" style="padding: 0.4rem 0.5rem; text-align: left;" onchange="if(this.value) applyNamedScenario(this.value); this.value='';">
+            <option value="" selected disabled>Apply a scenario…</option>
+          </select>
+          <button class="btn btn-secondary" style="padding: 0.4rem;" onclick="clearSelection()">Clear Selection</button>
+        </div>
+        <div class="map-legend">
+          <div class="legend-item">
+            <div class="legend-color" style="background-color: #2dd4bf; height: 3px; width: 12px; border-radius: 0; transform: rotate(90deg);"></div>
+            <span>Transit Gate (strait/canal — a passage, not a place)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background-color: var(--accent-blue);"></div>
+            <span>Sea Lane</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background-color: var(--accent-emerald);"></div>
+            <span>Pipeline</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background-color: var(--accent-red); height: 2px; border-radius: 0;"></div>
+            <span>Disrupted Corridor</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background-color: var(--accent-amber); height: 2px; border-radius: 0;"></div>
+            <span>New / Increased Route</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background-color: #94a3b8; height: 2px; border-radius: 0; opacity: 0.6;"></div>
+            <span>Abandoned Route</span>
+          </div>
+        </div>
+
+        <!-- Disruption Inspector: opens on any node/edge click. Continuous
+             0-100% openness slider replaces the old full-closure-only confirm(). -->
+        <div class="inspector-panel" id="inspector-panel">
+          <div class="inspector-title" id="inspector-title">—</div>
+          <div class="inspector-subtitle" id="inspector-subtitle">—</div>
+          <div class="inspector-slider-row">
+            <input type="range" id="inspector-slider" min="0" max="100" value="100"
+                   oninput="onInspectorSliderInput()">
+            <span class="inspector-openness-value" id="inspector-value">100% open</span>
+          </div>
+          <div class="inspector-hint">Drag to set partial capacity — 0% is a full closure, not the only option.</div>
+          <div class="inspector-actions">
+            <button class="btn btn-secondary" onclick="closeInspector()">Cancel</button>
+            <button class="btn btn-primary" onclick="applyInspectorDisruption()">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- At-a-glance metric strip — always visible below the map -->
+      <div class="metric-strip">
+        <div class="metric-card">
+          <div class="metric-label">Supply Shortfall</div>
+          <div class="metric-value red" id="metric-shortfall">0.0%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label" id="metric-price-label">Crude Benchmark</div>
+          <div class="metric-value amber" id="metric-price-spike">+0.0%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Landed Cost</div>
+          <div class="metric-value amber" id="metric-landed-cost">+0.0%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Annual Cost Impact</div>
+          <div class="metric-value amber" id="metric-cost-impact">$0.0B</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">HHI Concentration</div>
+          <div class="metric-value" id="metric-hhi">0.32</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">SPR Days</div>
+          <div class="metric-value green" id="metric-spr-cover">7.8d</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: tabbed detail — Routes / Twin / Brief / Baseline -->
+    <section class="panel">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="tab-routes" onclick="switchTab('tab-routes', this)">Routes</button>
+        <button class="tab-btn" data-tab="tab-twin" onclick="switchTab('tab-twin', this)">Twin</button>
+        <button class="tab-btn" data-tab="tab-brief" onclick="switchTab('tab-brief', this)">Brief</button>
+        <button class="tab-btn" data-tab="tab-baseline" onclick="switchTab('tab-baseline', this)">Baseline</button>
+      </div>
+      <div class="tab-content">
+
+        <!-- ROUTES tab: what changed + the Pareto routing solutions -->
+        <div class="tab-pane active" id="tab-routes">
+          <div id="route-changes-container" style="margin-bottom: 1rem;"></div>
+          <h3 style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.75rem; text-transform: uppercase;">Pareto Routing Solutions</h3>
+          <div id="routing-options-container"></div>
+          <div class="latency-log" id="latency-stats-log">Pipeline Latency Stats: idle.</div>
+        </div>
+
+        <!-- TWIN tab: 30-day fulfillment forecast -->
+        <div class="tab-pane" id="tab-twin">
+          <h3 style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.75rem; text-transform: uppercase;">Refinery Fulfillment Forecast (30-Day Twin)</h3>
+          <div style="height: 220px; position: relative;">
+            <canvas id="twin-chart" style="width: 100%; height: 100%;"></canvas>
+          </div>
+          <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
+            Projected % of refinery demand met each day. Disruption impact is delayed by transit-time
+            inertia (cargoes already at sea keep arriving), then the reserve buffers before the gap bites.
+          </p>
+        </div>
+
+        <!-- BRIEF tab: ministry executive decision brief -->
+        <div class="tab-pane" id="tab-brief">
+          <div class="brief-headline-bar" id="brief-headline">
+            [NORMAL STATUS] Supply chain operating under baseline conditions. No active disruption signals.
+          </div>
+          <div class="brief-section" style="margin-bottom: 1rem;">
+            <h3>1. Geopolitical Situation</h3>
+            <p class="brief-text" id="brief-situation">
+              Graph state normal. Continuous geopolitical monitoring underway. No corridor-splitting or flow degradation currently detected.
+            </p>
+          </div>
+          <div class="brief-section" style="margin-bottom: 1rem;">
+            <h3>2. Economic Cascade</h3>
+            <p class="brief-text" id="brief-impact">
+              The refineries are fully supplied. Economic figures are shown as conditional physical-shortfall scenarios, not a market-price forecast.
+            </p>
+          </div>
+          <div class="brief-section">
+            <h3>3. Tactical Recommendation</h3>
+            <p class="brief-text" id="brief-recommendation">
+              Maintain current routes. SPR reserves standing at ~73% fill across Visakhapatnam, Mangalore, and Padur caverns.
+            </p>
+          </div>
+        </div>
+
+        <!-- BASELINE tab: the initial, undisrupted optimal plan + reasoning -->
+        <div class="tab-pane" id="tab-baseline">
+          <div id="baseline-content" style="font-size: 0.8rem; color: var(--text-muted);">Loading baseline plan…</div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ----------------------------------------------------
+    // API Integration & Dashboard State
+    // ----------------------------------------------------
+    const API_URL = ""; 
+    let activeNodeId = null;
+    const APP_STATE = { currentScenario: {}, graph: null };
+
+    // Standard positions for rendering our 27 nodes on the SVG container (approximate geography)
+    // Coords are transformed to fit within a 600x480 box
+    const NODE_COORDS = {
+      // Virtual
+      "super_source": { x: 50, y: 150 },
+      "super_sink": { x: 550, y: 350 },
+      // Sources
+      "src_russia": { x: 340, y: 60 },
+      "src_iraq": { x: 100, y: 220 },
+      "src_saudi": { x: 90, y: 260 },
+      "src_uae": { x: 125, y: 275 },
+      "src_kuwait": { x: 95, y: 240 },
+      "src_nigeria": { x: 50, y: 360 },
+      "src_usa": { x: 50, y: 80 },
+      // Chokepoints
+      "chk_hormuz": { x: 160, y: 260 },
+      "chk_bab": { x: 140, y: 340 },
+      "chk_suez": { x: 160, y: 190 },
+      "chk_malacca": { x: 420, y: 380 },
+      "chk_cog": { x: 80, y: 440 },
+      // Refineries
+      "ref_jamnagar_in": { x: 260, y: 280 },
+      "ref_jamnagar_out": { x: 285, y: 280 },
+      "ref_paradip_in": { x: 380, y: 300 },
+      "ref_paradip_out": { x: 405, y: 300 },
+      "ref_vizag_in": { x: 350, y: 320 },
+      "ref_vizag_out": { x: 375, y: 320 },
+      "ref_mangalore_in": { x: 290, y: 340 },
+      "ref_mangalore_out": { x: 315, y: 340 },
+      "ref_kochi_in": { x: 285, y: 380 },
+      "ref_kochi_out": { x: 310, y: 380 },
+      // SPRs
+      "spr_vizag": { x: 360, y: 230 },
+      "spr_mangalore": { x: 250, y: 350 },
+      "spr_padur": { x: 250, y: 380 }
+    };
+
+    // Load baseline data on page load
+    window.addEventListener("DOMContentLoaded", () => {
+      refreshData();
+      loadScenarioList();
+      connectLiveSocket();
+      loadBaselineRoute();
+    });
+
+    // ----------------------------------------------------
+    // Tabbed right panel
+    // ----------------------------------------------------
+    function switchTab(tabId, btn) {
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.toggle("active", p.id === tabId));
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b === btn));
+      // The twin canvas can't size itself while its pane is display:none, so
+      // (re)render it only once the pane is actually visible.
+      if (tabId === "tab-twin") simulateTwin();
+    }
+
+    // ----------------------------------------------------
+    // Baseline tab — the initial, undisrupted optimal procurement plan.
+    // ----------------------------------------------------
+    async function loadBaselineRoute() {
+      try {
+        const res = await fetch(`${API_URL}/api/routes/baseline`);
+        const data = await res.json();
+        const r = data.reasoning;
+        const rows = data.allocations.map(a => `
+          <tr>
+            <td>${a.source}</td>
+            <td>${a.refinery}</td>
+            <td><span class="origin-tag ${a.grade === 'SWEET' ? 'custom' : 'replay'}" style="font-size:0.55rem;">${a.grade}</span></td>
+            <td>${a.transits.join(" → ")}</td>
+            <td class="num">${(a.volume_bbl_day/1e3).toFixed(0)}k</td>
+            <td class="num">$${a.cost_per_bbl.toFixed(2)}</td>
+            <td class="num">${a.transit_time_days}d</td>
+          </tr>`).join("");
+        const tops = r.top_sources.map(t => `${t.source} (${t.share_pct}%)`).join(", ");
+        document.getElementById("baseline-content").innerHTML = `
+          <div class="reason-block">
+            <b>Why this is the optimal plan.</b> ${r.why_optimal}
+          </div>
+          <div class="reason-block" style="border-left-color: var(--accent-blue);">
+            <b>Largest suppliers:</b> ${tops}.<br>
+            <b>Concentration (HHI):</b> ${r.concentration_hhi} — ${r.concentration_note}
+          </div>
+          <div class="reason-block" style="border-left-color: var(--accent-amber);">
+            <b>Alternative routes.</b> ${r.options}
+          </div>
+          <h3 style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); margin: 0.9rem 0 0.5rem; text-transform: uppercase;">Optimal source → refinery allocation</h3>
+          <table class="baseline-table">
+            <thead><tr><th>Source</th><th>Refinery</th><th>Grade</th><th>Via</th><th class="num">Vol</th><th class="num">$/bbl</th><th class="num">Days</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      } catch (err) {
+        console.error("Failed to load baseline route:", err);
+        document.getElementById("baseline-content").innerText = "Baseline route unavailable.";
+      }
+    }
+
+    // ----------------------------------------------------
+    // Live push channel — the Command Center reacts to signals processed by
+    // ANY source (another browser tab's click, the background live-sensing
+    // loop, a manual /api/live/poll-now) without needing to poll for them.
+    // ----------------------------------------------------
+    let liveSocket = null;
+
+    function connectLiveSocket() {
+      const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const url = `${proto}//${window.location.host}/ws/live`;
+      liveSocket = new WebSocket(url);
+
+      liveSocket.onopen = () => setLiveWsBadge(true);
+      liveSocket.onclose = () => {
+        setLiveWsBadge(false);
+        setTimeout(connectLiveSocket, 3000); // simple reconnect
+      };
+      liveSocket.onerror = () => liveSocket.close();
+      liveSocket.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+          console.log("live push:", msg);
+          if (msg.recompute_triggered !== false) refreshData();
+        } catch (err) {
+          console.error("Malformed live push message:", err);
+        }
+      };
+    }
+
+    function setLiveWsBadge(connected) {
+      const badge = document.getElementById("live-ws-badge");
+      const label = document.getElementById("live-ws-label");
+      if (connected) {
+        badge.className = "status-badge";
+        label.innerText = "Live Push Connected";
+      } else {
+        badge.className = "status-badge neutral";
+        label.innerText = "Live Push Reconnecting…";
+      }
+    }
+
+    // Populate the scenario dropdown from the backend's named-scenario library,
+    // sorted alphabetically by name — deliberately not in problem-statement or
+    // any other order that would visually privilege one geography over another.
+    async function loadScenarioList() {
+      try {
+        const res = await fetch(`${API_URL}/api/scenarios/list`);
+        const data = await res.json();
+        const select = document.getElementById("scenario-select");
+        const scenarios = (data.scenarios || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+        for (const s of scenarios) {
+          const opt = document.createElement("option");
+          opt.value = s.id;
+          opt.textContent = s.name;
+          opt.title = s.description;
+          select.appendChild(opt);
+        }
+      } catch (err) {
+        console.error("Failed to load scenario list:", err);
+      }
+    }
+
+    async function refreshData() {
+      try {
+        const [graphRes, repStatusRes, vulnRes, sprRes, liveStatusRes] = await Promise.all([
+          fetch(`${API_URL}/api/graph/state`),
+          fetch(`${API_URL}/api/replay/status`),
+          fetch(`${API_URL}/api/graph/vulnerability`),
+          fetch(`${API_URL}/api/spr/status`),
+          fetch(`${API_URL}/api/live/status`)
+        ]);
+
+        const graph = await graphRes.json();
+        const repStatus = await repStatusRes.json();
+        const vuln = await vulnRes.json();
+        const spr = await sprRes.json();
+        const liveStatus = await liveStatusRes.json();
+
+        updateTimelineStatus(repStatus, liveStatus);
+        renderGraph(graph);
+        updateMetrics(vuln, spr);
+
+        // Re-simulate digital twin forecast
+        simulateTwin();
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
+    }
+
+    // Origin -> {tag class, human label}. A signal never implies it's "live"
+    // unless it genuinely came from a live adapter — replay and manual
+    // submissions are labeled just as plainly.
+    const ORIGIN_LABELS = {
+      replay: { cls: "replay", text: "REPLAY" },
+      custom: { cls: "custom", text: "CUSTOM" },
+      live_sanctions: { cls: "live-sanctions", text: "LIVE · SANCTIONS" },
+      live_news: { cls: "live-news", text: "LIVE · NEWS" },
+      live_weather: { cls: "live-weather", text: "LIVE · WEATHER" },
+    };
+
+    function updateTimelineStatus(status, liveStatus) {
+      document.getElementById("replay-step-label").innerText = `${status.current_index} / ${status.total_events}`;
+
+      // Merge the curated-replay log and the live-sensing log into one
+      // chronological feed, each entry honestly labeled with where it came
+      // from — this is what makes "live vs replay" visible to a viewer,
+      // not just true somewhere in the backend.
+      const replayEntries = status.replay_log.map(log => ({
+        origin: "replay",
+        headline: log.headline,
+        latency_ms: log.result_summary.latency_ms,
+        active: log.replay_step === status.current_index,
+        sortKey: log.replay_step,
+      }));
+      const liveEntries = ((liveStatus && liveStatus.live_signal_log) || []).map(log => ({
+        origin: log.origin,
+        headline: log.label,
+        latency_ms: log.latency_ms,
+        active: false,
+        sortKey: Date.parse(log.processed_at) / 1000,
+      }));
+      const merged = replayEntries.concat(liveEntries).sort((a, b) => b.sortKey - a.sortKey);
+
+      const feed = document.getElementById("signal-feed-container");
+      feed.innerHTML = "";
+      merged.forEach(entry => {
+        const originMeta = ORIGIN_LABELS[entry.origin] || { cls: "replay", text: entry.origin.toUpperCase() };
+        const card = document.createElement("div");
+        card.className = `feed-card ${entry.active ? "active" : ""}`;
+        card.innerHTML = `
+          <div class="feed-meta">
+            <span class="origin-tag ${originMeta.cls}">${originMeta.text}</span>
+            <span>Latency: ${entry.latency_ms ? entry.latency_ms.toFixed(0) + "ms" : "N/A"}</span>
+          </div>
+          <div class="feed-headline">${entry.headline}</div>
+        `;
+        feed.appendChild(card);
+      });
+    }
+
+    function updateMetrics(vuln, spr) {
+      // HHI
+      document.getElementById("metric-hhi").innerText = vuln.hhi.hhi_value;
+      if (vuln.hhi.hhi_value > 0.25) {
+        document.getElementById("metric-hhi").className = "metric-value red";
+      } else if (vuln.hhi.hhi_value > 0.15) {
+        document.getElementById("metric-hhi").className = "metric-value amber";
+      } else {
+        document.getElementById("metric-hhi").className = "metric-value green";
+      }
+
+      // SPR status
+      document.getElementById("metric-spr-cover").innerText = `${spr.total_days_remaining.toFixed(1)} Days`;
+      if (spr.status === "HEALTHY") {
+        document.getElementById("metric-spr-cover").className = "metric-value green";
+      } else if (spr.status === "WARNING") {
+        document.getElementById("metric-spr-cover").className = "metric-value amber";
+      } else {
+        document.getElementById("metric-spr-cover").className = "metric-value red";
+      }
+    }
+
+    // ----------------------------------------------------
+    // Deck.GL Geospatial Rendering
+    // ----------------------------------------------------
+    let deckgl = null;
+
+    // Below this bbl/day, an edge is considered "not meaningfully used" — both
+    // for hiding never-used closed corridors and for the before/after route diff.
+    const ROUTE_CHANGE_FLOW_THRESHOLD = 5000;
+
+    // Chokepoints and bypass routes are TRANSIT RESOURCES ships pass through, not
+    // places they stop at — the solver already treats them that way (a shared
+    // capacity constraint spanning every voyage that crosses it). This computes a
+    // short "gate" line segment across the real shipping lane at that point,
+    // oriented perpendicular to the actual direction of travel there (derived
+    // from the real searoute paths of the edges touching it), so the map reads
+    // the same way the model does: a gate across a passage, not a pin at a place.
+    const GATE_HALF_LENGTH_DEG = 0.55;
+
+    function computeGateSegments(graph) {
+      const gateNodes = graph.nodes.filter(n => n.type === "chokepoint" || n.type === "bypass");
+      // Use ALL edges with a path (not just the currently-active edgesData) so a
+      // fully closed gate still renders at the correct orientation.
+      const edgesWithPath = graph.edges.filter(e => e.path && e.path.length > 1);
+
+      return gateNodes.map(n => {
+        const vectors = [];
+        for (const e of edgesWithPath) {
+          if (e.from_id === n.id) {
+            const p0 = e.path[0], p1 = e.path[Math.min(3, e.path.length - 1)];
+            vectors.push([p1[0] - p0[0], p1[1] - p0[1]]);
+          } else if (e.to_id === n.id) {
+            const pN = e.path[e.path.length - 1], pNm = e.path[Math.max(0, e.path.length - 4)];
+            vectors.push([pN[0] - pNm[0], pN[1] - pNm[1]]);
+          }
+        }
+        let dx = 0, dy = 0;
+        for (const [vx, vy] of vectors) {
+          const len = Math.hypot(vx, vy) || 1;
+          dx += vx / len; dy += vy / len;
+        }
+        if (vectors.length === 0 || (dx === 0 && dy === 0)) { dx = 1; dy = 0; }
+        const len = Math.hypot(dx, dy) || 1;
+        dx /= len; dy /= len;
+        const px = -dy, py = dx; // perpendicular to the lane direction
+        return {
+          ...n,
+          gatePath: [
+            [n.lon - px * GATE_HALF_LENGTH_DEG, n.lat - py * GATE_HALF_LENGTH_DEG],
+            [n.lon + px * GATE_HALF_LENGTH_DEG, n.lat + py * GATE_HALF_LENGTH_DEG],
+          ],
+        };
+      });
+    }
+
+    function renderGraph(graph) {
+      // Snapshot the graph as it stood immediately before this update — this is
+      // what makes the before->after route-transformation diff possible. Nothing
+      // else mutates APP_STATE.graph between renders, so this is always the
+      // correct "before" state at the moment a new one arrives.
+      const previousGraph = APP_STATE.graph;
+      APP_STATE.graph = graph;
+
+      const prevFlowById = new Map(
+        (previousGraph?.edges || []).map(e => [e.id, e.flow_bbl_day || 0])
+      );
+
+      // Chokepoint/bypass nodes are rendered as gate segments (below), not dots —
+      // excluded here so a strait doesn't ALSO show up as a place-pin.
+      const nodesData = graph.nodes.filter(n =>
+        n.id !== "super_source" && n.id !== "super_sink" && n.lat && n.lon &&
+        n.type !== "chokepoint" && n.type !== "bypass"
+      );
+      const gateSegments = computeGateSegments(graph);
+
+      const edgesData = graph.edges.filter(e => {
+        if (e.from_id === "super_source" || e.to_id === "super_sink") return false;
+        const src = graph.nodes.find(n => n.id === e.from_id);
+        const tgt = graph.nodes.find(n => n.id === e.to_id);
+        if (!src || !tgt || !src.lat || !tgt.lat) return false;
+
+        const effectiveOpenness = e.effective_openness ?? e.openness ?? 1.0;
+        const prevFlow = prevFlowById.get(e.id) ?? 0;
+        const newFlow = e.flow_bbl_day || 0;
+
+        // Hide corridors that are closed AND were never carrying meaningful flow —
+        // but keep a closed corridor visible if it WAS carrying flow before, so it
+        // can render as the "abandoned route" ghost rather than silently vanishing.
+        const wasActivelyUsed = prevFlow >= ROUTE_CHANGE_FLOW_THRESHOLD;
+        if (effectiveOpenness <= 0.01 && !wasActivelyUsed) return false;
+
+        // Classify the before->after change for this segment.
+        if (prevFlow >= ROUTE_CHANGE_FLOW_THRESHOLD && newFlow < ROUTE_CHANGE_FLOW_THRESHOLD) {
+          e.changeStatus = "abandoned";
+        } else if (newFlow >= ROUTE_CHANGE_FLOW_THRESHOLD &&
+                   (prevFlow < ROUTE_CHANGE_FLOW_THRESHOLD || newFlow > prevFlow * 1.5)) {
+          e.changeStatus = "rerouted_onto";
+        } else {
+          e.changeStatus = "stable";
+        }
+        e._prevFlow = prevFlow;
+
+        e.src = src;
+        e.tgt = tgt;
+        return true;
+      });
+
+      // Scatterplot Layer for Nodes
+      const nodeLayer = new deck.ScatterplotLayer({
+        id: 'nodes-layer',
+        data: nodesData,
+        pickable: true,
+        opacity: 0.9,
+        stroked: true,
+        filled: true,
+        radiusScale: 1000,
+        radiusMinPixels: 4,
+        radiusMaxPixels: 15,
+        lineWidthMinPixels: 2,
+        getPosition: d => [d.lon, d.lat],
+        getRadius: d => {
+          if (d.type.startsWith("refinery")) return 60;
+          return 50;
+        },
+        getFillColor: d => {
+          if (d.type === "spr") return [16, 185, 129];
+          if (d.type.startsWith("refinery")) return [139, 92, 246]; // Purple
+          if (d.openness < 0.2) return [239, 68, 68];
+          if (d.openness < 0.8) return [245, 158, 11];
+          return [59, 130, 246];
+        },
+        getLineColor: d => [255, 255, 255, 100],
+        onClick: (info) => {
+          if (info.object) clickNode(info.object.id);
+        }
+      });
+
+      // Path Layer for Edges (Flow on a flat plane, curving around landmasses if path provided)
+      const pathLayer = new deck.PathLayer({
+        id: 'paths-layer',
+        data: edgesData,
+        pickable: true,
+        widthScale: 2000,
+        widthMinPixels: 2,
+        getPath: d => {
+          if (d.path && d.path.length > 0) return d.path;
+          return [[d.src.lon, d.src.lat], [d.tgt.lon, d.tgt.lat]];
+        },
+        getColor: d => {
+          // Before->after diff takes priority over the normal risk/mode coloring:
+          // a route that just went dark reads as a fading ghost, not a normal
+          // closed-corridor red, so it's visually distinct from "always risky".
+          if (d.changeStatus === "abandoned") return [148, 163, 184, 130];   // slate ghost
+          if (d.changeStatus === "rerouted_onto") return [245, 158, 11, 235]; // amber highlight
+          if ((d.effective_openness ?? 1) < 0.8) return [239, 68, 68, 200];
+          if (d.mode === 'pipeline') return [16, 185, 129, 200];
+          return [59, 130, 246, 200];
+        },
+        getWidth: d => {
+          if (d.changeStatus === "abandoned") {
+            // Sized by what it USED to carry, so its former importance still reads.
+            const ratio = (d._prevFlow || 0) / Math.max(d.base_capacity_bbl_day || 1, 1);
+            return Math.max(1, ratio * 28);
+          }
+          const flow = d.flow_bbl_day || 0;
+          const flowRatio = flow / Math.max(d.base_capacity_bbl_day || 1, 1);
+          const boost = d.changeStatus === "rerouted_onto" ? 1.35 : 1.0; // new route pops visually
+          return Math.max(1, flowRatio * 40 * boost); // PathLayer uses meters (scaled by widthScale), so we multiply more
+        },
+        onClick: (info) => {
+          if (info.object) clickEdge(info.object.id);
+        }
+      });
+
+      // Gate segments: chokepoints/bypass routes drawn as a line across the real
+      // shipping lane, colored by risk — a strait "closing" reads as a gate
+      // shutting, not a place going red.
+      const gateLayer = new deck.PathLayer({
+        id: 'gates-layer',
+        data: gateSegments,
+        pickable: true,
+        widthMinPixels: 4,
+        widthScale: 1,
+        getPath: d => d.gatePath,
+        getWidth: 4,
+        getColor: d => {
+          if (d.openness < 0.2) return [239, 68, 68, 235];
+          if (d.openness < 0.8) return [245, 158, 11, 235];
+          return [45, 212, 191, 210]; // teal — deliberately distinct from the blue
+                                      // sea-lane color, so a gate never reads as
+                                      // just another route segment
+        },
+        onClick: (info) => { if (info.object) clickNode(info.object.id); }
+      });
+
+      // Small anchor point at each gate's center — keeps click/hover reliable
+      // (a thin line is a hard target) without reintroducing a "place" pin; it is
+      // deliberately smaller and more transparent than a real location node.
+      const gateAnchorLayer = new deck.ScatterplotLayer({
+        id: 'gate-anchors-layer',
+        data: gateSegments,
+        pickable: true,
+        opacity: 0.5,
+        filled: true,
+        stroked: false,
+        radiusMinPixels: 5,
+        radiusMaxPixels: 7,
+        getPosition: d => [d.lon, d.lat],
+        getFillColor: d => {
+          if (d.openness < 0.2) return [239, 68, 68];
+          if (d.openness < 0.8) return [245, 158, 11];
+          return [45, 212, 191];
+        },
+        onClick: (info) => { if (info.object) clickNode(info.object.id); }
+      });
+
+      const allLayers = [pathLayer, gateLayer, gateAnchorLayer, nodeLayer];
+
+      if (!deckgl) {
+        deckgl = new deck.DeckGL({
+          container: 'map',
+          mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+          initialViewState: {
+            longitude: 37.8,
+            latitude: 44.6,
+            zoom: 4.0,
+            pitch: 0,
+            bearing: 0
+          },
+          controller: true,
+          layers: allLayers,
+          getTooltip: ({object}) => {
+             if (!object) return null;
+             if (object.name) {
+               return `${object.name}\nRisk: ${(object.risk_score*100).toFixed(0)}%\nAvailable: ${(object.openness*100).toFixed(0)}%`;
+             }
+             if (object.id) {
+               return `${object.id}\nFlow: ${(object.flow_bbl_day/1000).toFixed(0)}k bpd\nAvailable: ${( (object.effective_openness ?? 1)*100).toFixed(0)}%`;
+             }
+             return null;
+          }
+        });
+      } else {
+        deckgl.setProps({
+          layers: allLayers
+        });
+      }
+    }
+
+    // ----------------------------------------------------
+    // Action Handlers
+    // ----------------------------------------------------
+    // Disruption Inspector state — tracks whichever node/edge was last clicked,
+    // so the Apply button knows what to disrupt and by how much.
+    const INSPECTOR = { targetId: null, targetKind: null, targetName: null };
+
+    function clickNode(nodeId) {
+      activeNodeId = nodeId;
+      const node = (APP_STATE.graph?.nodes || []).find(n => n.id === nodeId);
+      openInspector(nodeId, "node", node?.name || nodeId, node?.openness ?? 1.0);
+    }
+
+    function clickEdge(edgeId) {
+      const edge = (APP_STATE.graph?.edges || []).find(e => e.id === edgeId);
+      const label = edge ? `${edge.from_id} → ${edge.to_id}` : edgeId;
+      openInspector(edgeId, "edge", label, edge?.openness ?? 1.0);
+    }
+
+    function openInspector(targetId, kind, name, currentOpenness) {
+      INSPECTOR.targetId = targetId;
+      INSPECTOR.targetKind = kind;
+      INSPECTOR.targetName = name;
+
+      document.getElementById("inspector-title").innerText = name;
+      document.getElementById("inspector-subtitle").innerText =
+        kind === "node" ? `Node · ${targetId}` : `Route segment · ${targetId}`;
+      const pct = Math.round((currentOpenness ?? 1.0) * 100);
+      const slider = document.getElementById("inspector-slider");
+      slider.value = pct;
+      updateInspectorValueLabel(pct);
+      document.getElementById("inspector-panel").classList.add("open");
+    }
+
+    function closeInspector() {
+      document.getElementById("inspector-panel").classList.remove("open");
+      INSPECTOR.targetId = null;
+    }
+
+    function onInspectorSliderInput() {
+      updateInspectorValueLabel(parseInt(document.getElementById("inspector-slider").value, 10));
+    }
+
+    function updateInspectorValueLabel(pct) {
+      const label = pct === 0 ? "0% (closed)" : pct === 100 ? "100% open" : `${pct}% open`;
+      document.getElementById("inspector-value").innerText = label;
+    }
+
+    async function applyInspectorDisruption() {
+      if (!INSPECTOR.targetId) return;
+      const pct = parseInt(document.getElementById("inspector-slider").value, 10);
+      const openness = pct / 100;
+      try {
+        const res = await fetch(`${API_URL}/api/scenario/apply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ custom: { [INSPECTOR.targetId]: openness } })
+        });
+        updateDashboardFromDisruption(await res.json());
+      } catch (err) {
+        console.error("Disruption run failed:", err);
+      } finally {
+        closeInspector();
+      }
+    }
+
+    async function applyNamedScenario(scenarioId) {
+      try {
+        const res = await fetch(`${API_URL}/api/scenario/apply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scenario_id: scenarioId })
+        });
+        updateDashboardFromDisruption(await res.json());
+      } catch (err) {
+        console.error("Named scenario failed:", err);
+      }
+    }
+
+    function clearSelection() {
+      activeNodeId = null;
+      resetReplay();
+    }
+
+    async function stepReplay() {
+      try {
+        const res = await fetch(`${API_URL}/api/replay/run`, { method: "POST" });
+        const data = await res.json();
+        
+        if (data.status === "complete") {
+          alert("Timeline complete! Resetting...");
+          resetReplay();
+          return;
+        }
+
+        updateTimelineStatus(await (await fetch(`${API_URL}/api/replay/status`)).json());
+        
+        if (data.pipeline_result && data.pipeline_result.recompute_triggered) {
+          updateDashboardFromPipeline(data.pipeline_result);
+        } else {
+          // just refresh graph/metrics
+          refreshData();
+        }
+      } catch (err) {
+        console.error("Replay step error:", err);
+      }
+    }
+
+    async function resetReplay() {
+      try {
+        await fetch(`${API_URL}/api/replay/reset`, { method: "POST" });
+        APP_STATE.currentScenario = {};
+        // Reset is a clean slate, not a "change" to diff against — clear the
+        // before/after tracking so the next render doesn't ghost/highlight the
+        // entire map as if everything just reverted.
+        APP_STATE.graph = null;
+        APP_STATE.lastCostAllocations = [];
+        document.getElementById("route-changes-container").innerHTML = "";
+        refreshData();
+
+        // Reset Brief
+        document.getElementById("brief-headline").className = "brief-headline-bar";
+        document.getElementById("brief-headline").innerText = "[NORMAL STATUS] Supply chain operating under baseline conditions. No active disruption signals.";
+        document.getElementById("brief-situation").innerText = "Graph state normal. Continuous geopolitical monitoring underway. No corridor-splitting or flow degradation currently detected.";
+        document.getElementById("brief-impact").innerText = "The modelled refineries are fully supplied. Economic outputs are conditional physical-shortfall scenarios and explicitly exclude unobserved market risk premium.";
+        document.getElementById("brief-recommendation").innerText = "Maintain current routes. SPR reserves standing at ~73% fill across Visakhapatnam, Mangalore, and Padur caverns.";
+        
+        // Clear latency log
+        document.getElementById("latency-stats-log").innerText = "Pipeline Latency Stats: idle.";
+      } catch (err) {
+        console.error("Reset error:", err);
+      }
+    }
+
+    async function submitCustomSignal() {
+      const txt = document.getElementById("custom-signal-text").value.trim();
+      if (!txt) return;
+
+      try {
+        const res = await fetch(`${API_URL}/api/signal`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: txt })
+        });
+        const data = await res.json();
+        
+        if (data.recompute_triggered) {
+          updateDashboardFromPipeline(data);
+        } else {
+          alert(`Signal parsed but below significance threshold (strength: ${data.signal_strength ? data.signal_strength.toFixed(3) : 0}). No graph update.`);
+        }
+        
+        document.getElementById("custom-signal-text").value = "";
+      } catch (err) {
+        console.error("Custom signal failed:", err);
+      }
+    }
+
+    // ----------------------------------------------------
+    // Update Dashboard Views
+    // ----------------------------------------------------
+    // Render the economic impact cards from a cascade object. Handles BOTH the
+    // volume channel (crude benchmark from a physical shortfall) AND the cost
+    // channel (reroute freight premium + import bill), so a cost-only shock — an
+    // OPEC+ cut or Red Sea reroute that raises cost without cutting volume — still
+    // shows a real impact instead of reading "0".
+    function renderEconomicImpact(cascade, shortfallPct) {
+      if (!cascade) return;
+      const setVal = (id, txt, cls) => {
+        const el = document.getElementById(id);
+        el.innerText = txt;
+        if (cls) el.className = `metric-value ${cls}`;
+      };
+      const shortfall = (shortfallPct !== undefined && shortfallPct !== null)
+        ? shortfallPct : (cascade.shortfall_pct || 0);
+      setVal("metric-shortfall", `${shortfall.toFixed(1)}%`, shortfall > 0 ? "red" : "green");
+
+      const crude = cascade.crude_price_change_pct || 0;
+      const driver = cascade.crude_price_driver === "global_market_loss" ? "Crude (global cut)" : "Crude (India gap)";
+      document.getElementById("metric-price-label").innerText = crude > 0 ? driver : "Crude Benchmark";
+      setVal("metric-price-spike", `+${crude.toFixed(1)}%`, crude > 5 ? "red" : (crude > 0 ? "amber" : "green"));
+
+      const landed = cascade.landed_cost_change_pct || 0;
+      setVal("metric-landed-cost", `+${landed.toFixed(2)}%`, landed > 0 ? "amber" : "green");
+
+      const cost = cascade.total_import_cost_increase_usd_bn || 0;
+      setVal("metric-cost-impact", `$${cost.toFixed(1)}B`, cost > 20 ? "red" : (cost > 0 ? "amber" : "green"));
+    }
+
+    // ----------------------------------------------------
+    // Route Transformation diff — what changed, in words.
+    // Complements the map's ghost/highlight edge coloring with an explicit
+    // before -> after readout per source-refinery pair (the map shows WHERE;
+    // this shows WHAT it now costs and how long it takes).
+    // ----------------------------------------------------
+    function extractCostAllocations(routing) {
+      return (routing && routing.pareto_routes && routing.pareto_routes.cost_optimal &&
+        routing.pareto_routes.cost_optimal.path_allocations) || [];
+    }
+
+    function labelNode(id) {
+      const n = (APP_STATE.graph?.nodes || []).find(x => x.id === id);
+      return n ? n.name : id;
+    }
+
+    function transitLabel(path) {
+      const nodes = APP_STATE.graph?.nodes || [];
+      const names = (path || [])
+        .map(id => nodes.find(n => n.id === id))
+        .filter(n => n && (n.type === "chokepoint" || n.type === "bypass"))
+        .map(n => n.name);
+      return names.length ? names.join(" → ") : "direct route";
+    }
+
+    function computeRouteChanges(prevAllocs, newAllocs) {
+      const key = a => `${a.source_id}→${a.refinery_out}`;
+      const bestByKey = allocs => {
+        const map = new Map();
+        for (const a of allocs) {
+          const k = key(a);
+          const existing = map.get(k);
+          if (!existing || a.volume_bbl_day > existing.volume_bbl_day) map.set(k, a);
+        }
+        return map;
+      };
+      const prevMap = bestByKey(prevAllocs || []);
+      const newMap = bestByKey(newAllocs || []);
+
+      const changes = [];
+      for (const k of new Set([...prevMap.keys(), ...newMap.keys()])) {
+        const before = prevMap.get(k);
+        const after = newMap.get(k);
+        if (before && !after) {
+          changes.push({ type: "dropped", before, volume: before.volume_bbl_day });
+        } else if (!before && after) {
+          changes.push({ type: "new", after, volume: after.volume_bbl_day });
+        } else if (before && after) {
+          const pathChanged = JSON.stringify(before.path) !== JSON.stringify(after.path);
+          const timeDelta = Math.abs((after.transit_time_days || 0) - (before.transit_time_days || 0));
+          const costDelta = Math.abs((after.cost_per_bbl || 0) - (before.cost_per_bbl || 0));
+          if (pathChanged && (timeDelta > 0.5 || costDelta > 0.15)) {
+            changes.push({ type: "rerouted", before, after, volume: after.volume_bbl_day });
+          }
+        }
+      }
+      changes.sort((a, b) => (b.volume || 0) - (a.volume || 0));
+      return changes.slice(0, 5);
+    }
+
+    function renderRouteChanges(changes) {
+      const container = document.getElementById("route-changes-container");
+      if (!changes.length) { container.innerHTML = ""; return; }
+
+      const rows = changes.map(c => {
+        if (c.type === "new") {
+          return `<div class="change-item new"><span class="change-tag">New</span>` +
+            `${labelNode(c.after.source_id)} → ${labelNode(c.after.refinery_out)}: ` +
+            `<strong>${(c.volume / 1e3).toFixed(0)}k bpd</strong> via ${transitLabel(c.after.path)} ` +
+            `(${(c.after.transit_time_days || 0).toFixed(0)}d, $${(c.after.cost_per_bbl || 0).toFixed(2)}/bbl)</div>`;
+        }
+        if (c.type === "dropped") {
+          return `<div class="change-item dropped"><span class="change-tag">Dropped</span>` +
+            `${labelNode(c.before.source_id)} → ${labelNode(c.before.refinery_out)}: no longer sourced ` +
+            `(was ${(c.volume / 1e3).toFixed(0)}k bpd via ${transitLabel(c.before.path)})</div>`;
+        }
+        return `<div class="change-item rerouted"><span class="change-tag">Rerouted</span>` +
+          `${labelNode(c.after.source_id)} → ${labelNode(c.after.refinery_out)} ` +
+          `(${(c.volume / 1e3).toFixed(0)}k bpd): was via ${transitLabel(c.before.path)} ` +
+          `(${(c.before.transit_time_days || 0).toFixed(0)}d, $${(c.before.cost_per_bbl || 0).toFixed(2)}/bbl) ` +
+          `→ now via ${transitLabel(c.after.path)} ` +
+          `(${(c.after.transit_time_days || 0).toFixed(0)}d, $${(c.after.cost_per_bbl || 0).toFixed(2)}/bbl)</div>`;
+      }).join("");
+
+      container.innerHTML = `<div class="route-changes-title">Route Transformation</div>${rows}`;
+    }
+
+    function updateDashboardFromPipeline(res) {
+      const prevAllocations = APP_STATE.lastCostAllocations || [];
+      APP_STATE.currentScenario = {};
+      // Update Graph SVG
+      renderGraph(res.graph_state);
+
+      // Update Metrics (volume + cost channels)
+      renderEconomicImpact(res.cascade, res.cascade.shortfall_pct);
+
+      // Update Latency Logger panel
+      const lat = res.latency;
+      document.getElementById("latency-stats-log").innerHTML = `
+        Signal Parse: ${lat.signal_ts.split('T')[1].substring(0,8)}<br>
+        Graph Sync: &nbsp;${lat.graph_update_ts.split('T')[1].substring(0,8)}<br>
+        Brief Emit: &nbsp;${lat.brief_emitted_ts.split('T')[1].substring(0,8)}<br>
+        <strong>Pipeline Latency: ${lat.total_pipeline_ms.toFixed(0)} ms</strong>
+      `;
+
+      // Update Explainer Brief (Bottom Panel)
+      const brief = res.brief;
+      const hb = document.getElementById("brief-headline");
+      hb.innerText = brief.headline;
+      if (res.event.confidence < 0.5) {
+        hb.className = "brief-headline-bar";
+        hb.style.borderLeftColor = "var(--accent-amber)";
+        hb.style.background = "linear-gradient(90deg, rgba(245, 158, 11, 0.15) 0%, rgba(0, 0, 0, 0.2) 100%)";
+      } else {
+        hb.className = "brief-headline-bar";
+        hb.style.borderLeftColor = "var(--accent-red)";
+        hb.style.background = "linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(0, 0, 0, 0.2) 100%)";
+      }
+      
+      document.getElementById("brief-situation").innerText = brief.situation;
+      document.getElementById("brief-impact").innerText = brief.impact;
+      document.getElementById("brief-recommendation").innerText = brief.recommendation;
+
+      // Update Pareto Options list
+      updateParetoOptions(res.routing);
+      const newAllocations = extractCostAllocations(res.routing);
+      renderRouteChanges(computeRouteChanges(prevAllocations, newAllocations));
+      APP_STATE.lastCostAllocations = newAllocations;
+      simulateTwin();
+    }
+
+    function updateDashboardFromDisruption(res) {
+      const prevAllocations = APP_STATE.lastCostAllocations || [];
+      APP_STATE.currentScenario = res.scenario_dict || {};
+      renderGraph(res.graph_state);
+      // Volume shortfall comes from the flow delta; cost channel from the cascade.
+      renderEconomicImpact(res.economic_cascade, res.flow_loss_pct);
+      updateParetoOptions(res.routing);
+      const newAllocations = extractCostAllocations(res.routing);
+      renderRouteChanges(computeRouteChanges(prevAllocations, newAllocations));
+      APP_STATE.lastCostAllocations = newAllocations;
+      simulateTwin();
+    }
+
+    function updateParetoOptions(routing) {
+      const container = document.getElementById("routing-options-container");
+      container.innerHTML = "";
+
+      const keys = ["cost_optimal", "time_optimal", "risk_optimal"];
+      const labels = {
+        "cost_optimal": "Cost-Optimal Route",
+        "time_optimal": "Time-Optimal (Fastest) Route",
+        "risk_optimal": "Risk-Averse (Avoids threat) Route"
+      };
+
+      keys.forEach((key, idx) => {
+        if (!routing.pareto_routes[key]) return;
+        const opt = routing.pareto_routes[key];
+        const comp = routing.pareto_comparison[key] || {};
+
+        // Surface any strategic-reserve emergency draw the solver used for this route.
+        const allocations = opt.path_allocations || [];
+        const sprDraw = allocations
+          .filter(a => a.is_spr)
+          .reduce((sum, a) => sum + (a.volume_bbl_day || 0), 0);
+        const sprLine = sprDraw > 0
+          ? `<div style="margin-top:0.4rem;font-size:0.7rem;color:var(--accent-emerald);display:flex;align-items:center;gap:0.3rem;">
+               ⛽ SPR emergency draw: <strong>${(sprDraw/1e3).toFixed(0)}k bpd</strong></div>`
+          : "";
+
+        const card = document.createElement("div");
+        card.className = `route-option ${idx === 0 ? 'active' : ''}`;
+        card.innerHTML = `
+          <div class="route-header">
+            <span>${labels[key]}</span>
+            <span style="${opt.feasible ? 'color: var(--accent-emerald)' : 'color: var(--accent-red)'}">
+              ${opt.feasible ? 'Feasible' : 'Gap Exists'}
+            </span>
+          </div>
+          <div class="route-meta">
+            <span>Delivery: <strong>${((comp.volume_delivered || 0)/1e3).toFixed(0)}k bpd</strong></span>
+            <span>Freight: <strong>$${(comp.avg_cost_per_bbl || 0).toFixed(2)}/bbl</strong></span>
+            <span>Transit: <strong>${(comp.avg_transit_days || 0).toFixed(1)} d</strong></span>
+          </div>
+          ${sprLine}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ----------------------------------------------------
+    // Chart Canvas Rendering (30-day forecast twin)
+    // ----------------------------------------------------
+    async function simulateTwin() {
+      try {
+        const scenario = APP_STATE.currentScenario || {};
+        const res = await fetch(`${API_URL}/api/twin/simulate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ custom_scenario: scenario, use_current_graph: true, horizon_days: 30 })
+        });
+        const data = await res.json();
+        
+        renderTwinChart(data.snapshots);
+      } catch (err) {
+        console.error("Twin simulation forecast chart failed:", err);
+      }
+    }
+
+    function renderTwinChart(snapshots) {
+      const canvas = document.getElementById("twin-chart");
+      // Skip while the Twin tab is hidden (offsetParent === null) — the canvas has
+      // no dimensions then; switchTab() re-renders it when the tab becomes visible.
+      if (!canvas || canvas.offsetParent === null) { APP_STATE.lastTwinSnapshots = snapshots; return; }
+      APP_STATE.lastTwinSnapshots = snapshots;
+      const ctx = canvas.getContext("2d");
+      
+      // Standardize canvas resolution for retina displays
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Extract points
+      const points = snapshots.map(s => s.fulfillment_pct_overall);
+      const days = snapshots.length;
+
+      // Draw grid
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.lineWidth = 1;
+      
+      // Horizontal grid lines (fulfillment 0%, 50%, 100%)
+      const gridLevels = [0, 50, 100];
+      gridLevels.forEach(level => {
+        const y = height - (level / 100) * (height - 30) - 15;
+        ctx.beginPath();
+        ctx.moveTo(25, y);
+        ctx.lineTo(width - 15, y);
+        ctx.stroke();
+
+        ctx.fillStyle = "var(--text-muted)";
+        ctx.font = "9px Inter";
+        ctx.fillText(`${level}%`, 2, y + 3);
+      });
+
+      // Plot line
+      ctx.beginPath();
+      ctx.strokeStyle = "var(--accent-blue)";
+      ctx.lineWidth = 2.5;
+
+      const getX = (i) => 30 + (i / Math.max(days - 1, 1)) * (width - 55);
+      const getY = (val) => height - (val / 100) * (height - 30) - 15;
+
+      snapshots.forEach((s, idx) => {
+        const x = getX(idx);
+        const y = getY(s.fulfillment_pct_overall);
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Plot area fill gradient
+      ctx.lineTo(getX(days - 1), getY(0));
+      ctx.lineTo(getX(0), getY(0));
+      const grad = ctx.createLinearGradient(0, 0, 0, height);
+      grad.addColorStop(0, "rgba(59, 130, 246, 0.25)");
+      grad.addColorStop(1, "rgba(59, 130, 246, 0.0)");
+      ctx.fillStyle = grad;
+      ctx.closePath();
+      ctx.fill();
+
+      // Render day markers on X axis
+      ctx.fillStyle = "var(--text-muted)";
+      ctx.font = "9px Inter";
+      [0, 10, 20, 30].forEach(day => {
+        const x = getX(day === 30 ? 29 : day);
+        ctx.fillText(`D${day}`, x - 8, height - 2);
+      });
+    }
+  </script>
+
+</body>
+</html>
