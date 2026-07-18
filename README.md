@@ -50,7 +50,6 @@ The agent pipeline is orchestrated with **LangGraph** as a stateful workflow, in
 | `api/` | FastAPI application (REST + `/ws/live` push channel) and provider settings |
 | `frontend/` | Single-page geospatial command center |
 | `data/` | Network model (`nodes.json`, `edges.json`), `parameters.json`, and the curated `crisis_timeline.json` replay |
-| `tests/` | Correctness and consistency suite, including independent optimality verification |
 
 ---
 
@@ -113,16 +112,6 @@ LIVE_INGESTION_ENABLED=true
 - **Provable routing.** The recommended plan is verified against an independent, separately-implemented arc-based min-cost-flow optimum. See `tests/test_routing_optimality.py`.
 - **Explicit, testable assumptions.** Every economic parameter in `data/parameters.json` is named, sourced, and status-tagged (`VERIFIED` / `ESTIMATED` / `DESIGN_DEFAULT`). The explainer agent may only restate numbers produced by the model — it cannot invent figures.
 - **Honest scope.** The model covers five named refineries (~51% of national capacity). National figures are reported as lower-bound exposure, never extrapolated forecasts, and market risk premia are kept distinct from modelled physical shortfall.
-
----
-
-## Tests
-
-```bash
-pytest -q
-```
-
-The suite covers the graph engine, routing optimality, flow consistency, digital twin, agents, and the API surface.
 
 ---
 
