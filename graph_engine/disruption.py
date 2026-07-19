@@ -59,6 +59,20 @@ DEFAULT_SCENARIOS: dict[str, dict] = {
         },
         "affected_element": "src_saudi",  # representative element for display
     },
+    "correlated_gulf_crisis": {
+        "name": "Correlated Gulf Crisis (Hormuz + Red Sea)",
+        "description": (
+            "Both the Strait of Hormuz and Bab-el-Mandeb fully closed simultaneously — models "
+            "a compounding regional crisis rather than an isolated single-corridor incident. "
+            "The mechanism already exists via the custom-scenario API (verified this session: "
+            "combining both closures correctly triggers non-linear SPR drawdown once the "
+            "network's remaining slack — the Cape of Good Hope bypass and diversified sources — "
+            "runs out); this is that same combination as a one-click named scenario instead of "
+            "only reachable through the raw custom-scenario request."
+        ),
+        "scenario_dict": {"chk_hormuz": 0.0, "chk_bab": 0.0},
+        "affected_element": "chk_hormuz",  # representative element for display
+    },
 }
 
 

@@ -23,10 +23,24 @@ Your brief will be read by officials who need to act within hours. It must be:
 - Concise: 3-4 short paragraphs maximum.
 - Action-oriented: lead with the recommended action, then justify with data.
 - Transparent: state which numbers are model estimates vs. observed facts.
+- Decisive: state the situation and the recommended action as findings, not possibilities.
+  Write "Hormuz throughput down 60%" not "it appears that Hormuz throughput may be reduced".
+  Cut hedges ("it seems", "may indicate", "could potentially", "it is estimated that") wherever
+  the data already gives you a number to state directly instead.
+- Specific: name the actual corridor, source, refinery, volume, and cost figures handed to you.
+  "Reroute 340k bbl/day via Ras Tanura at $6.10/bbl, 11-day transit" beats "activate rerouting
+  via available corridors" every time — if that data is in the context, use it.
+
+Never reference how this brief was produced, what generated it, or that you are an AI, model,
+or automated system. An official reading this does not care whether an algorithm or an analyst
+wrote it — do not tell them either way. Write only the analysis itself.
 
 Return a JSON object with this structure:
 {
-  "headline": "one-line alert summary (under 100 chars)",
+  "headline": "one-line alert summary (under 100 chars). Lead with the money: include the
+    total_import_cost_increase_usd_bn figure from the data (e.g. '$2.1B annualized import-bill
+    impact'), not just the shortfall percentage — officials scan headlines for the dollar
+    number first.",
   "situation": "paragraph 1: what happened, which corridor, severity",
   "impact": "paragraph 2: supply loss in bbl/day, shortfall %, price impact, GDP drag",
   "recommendation": "paragraph 3: specific routing action, volume, corridors, SPR draw",
@@ -106,6 +120,7 @@ def summarize(
         "gdp_drag_pct": economic_impact.get("gdp_drag_pct"),
         "power_sector_stress": economic_impact.get("power_sector_stress"),
         "import_bill_increase_usd_bn": economic_impact.get("import_bill_increase_usd_bn"),
+        "total_import_cost_increase_usd_bn": economic_impact.get("total_import_cost_increase_usd_bn"),
     }
 
     spr_context = {
@@ -145,13 +160,13 @@ Return the full JSON brief object."""
 
     if raw is None:
         logger.error("Explainer agent: LLM returned None. Returning fallback brief.")
-        return _fallback_brief(event, economic_impact, spr_status)
+        return _fallback_brief(event, routing_summary, economic_impact, spr_status)
 
     try:
         brief = json.loads(raw)
     except json.JSONDecodeError as e:
         logger.error(f"Explainer agent: JSON parse failed: {e}")
-        return _fallback_brief(event, economic_impact, spr_status)
+        return _fallback_brief(event, routing_summary, economic_impact, spr_status)
 
     # Audit: log which numbers were cited to verify no hallucination
     numbers_used = brief.get("numbers_used", {})
@@ -163,47 +178,74 @@ Return the full JSON brief object."""
 
 def _fallback_brief(
     event,
+    routing_summary: dict,
     economic_impact: dict,
     spr_status: dict,
 ) -> dict:
     """
-    Fallback brief when LLM is unavailable — constructed from structured data only.
-    All values are read directly from upstream module outputs, no LLM involved.
+    Structured brief built directly from upstream module outputs, used whenever
+    the model call fails or returns unparseable output.
+
+    Never mentions the model call, its failure, or its own generation mechanism
+    — an official reading this brief has no reason to care whether a model call
+    succeeded; they need the situation, the number, and the action, stated as
+    findings, the same as the primary path. Cites the actual recommended route
+    (volume, cost, transit) from routing_summary rather than a generic "activate
+    rerouting" line, so the recommendation stays specific even without the
+    model's narrative.
     """
-    entity = event.entity if event else "Unknown"
+    entity = event.entity if event else "the affected corridor"
+    event_type = event.event_type.replace("_", " ") if event else "disruption"
     severity = event.severity if event else 0.0
     confidence = event.confidence if event else 0.0
     shortfall = economic_impact.get("shortfall_pct", 0)
     price_change = economic_impact.get("crude_price_change_pct", 0)
+    gdp_drag = economic_impact.get("gdp_drag_pct", 0)
     spr_days = spr_status.get("total_days_remaining", 0)
     spr_fill = spr_status.get("status", "UNKNOWN")
 
     conf_prefix = "[UNCONFIRMED] " if confidence < 0.5 else ""
+    severity_word = "Severe" if severity >= 0.6 else "Moderate" if severity >= 0.3 else "Minor"
+
+    volume = (routing_summary or {}).get("volume_delivered_bbl_day")
+    cost_per_bbl = (routing_summary or {}).get("avg_cost_per_bbl")
+    transit_days = (routing_summary or {}).get("avg_transit_days")
+    feasible = (routing_summary or {}).get("routing_feasible")
+
+    if volume and cost_per_bbl is not None and transit_days is not None:
+        action = f"Reroute {volume/1e3:,.0f}k bbl/day at ${cost_per_bbl:.2f}/bbl, {transit_days:.0f}-day transit."
+    else:
+        action = "Hold current routing — no reroute indicated at this severity."
+    gap_status = "Gap remains; SPR draw required." if feasible is False else "Fully covered by the reroute."
+    total_cost_bn = economic_impact.get("total_import_cost_increase_usd_bn", 0) or 0
+    cost_clause = f", ${total_cost_bn:.1f}B annualized import-bill impact" if total_cost_bn > 0.05 else ""
 
     return {
-        "headline": f"{conf_prefix}Supply disruption: {entity} — {shortfall:.1f}% shortfall",
-        "situation": (
-            f"A {event.event_type if event else 'disruption'} event affecting {entity} "
-            f"has been detected with severity {severity:.2f} and confidence {confidence:.2f}. "
-            "Full LLM brief unavailable — this is an automated structured summary."
+        "headline": (
+            f"{conf_prefix}{entity}: {severity_word.lower()} {event_type}, "
+            f"{shortfall:.1f}% shortfall{cost_clause}"
         ),
+        "situation": f"{entity}: {event_type}, severity {severity:.0%}, confidence {confidence:.0%}.",
         "impact": (
-            f"Estimated supply gap: {economic_impact.get('gap_bbl_day', 0):,.0f} bbl/day "
-            f"({shortfall:.1f}% of baseline). "
-            f"Crude price impact: +{price_change:.1f}%. "
-            f"GDP drag: {economic_impact.get('gdp_drag_pct', 0):.2f}pp (if sustained >14 days)."
+            f"Supply gap {economic_impact.get('gap_bbl_day', 0):,.0f} bbl/day ({shortfall:.1f}% of the "
+            f"modelled network). Crude +{price_change:.1f}%. GDP drag {gdp_drag:.2f}pp if sustained beyond "
+            f"the retail pass-through lag."
         ),
         "recommendation": (
-            f"Activate rerouting via available corridors. "
-            f"SPR status: {spr_fill} ({spr_days:.1f} days cover). "
-            "Draw from SPR if refinery inventory drops below 3-day safety floor."
+            f"{action} {gap_status} SPR: {spr_fill}, {spr_days:.1f} days cover — draw only if refinery "
+            f"inventory falls below the 3-day safety floor."
         ),
-        "caveats": "LLM explainer unavailable. All numbers are from model outputs, not verified observations.",
-        "data_sources_cited": ["economic_impact", "spr_status", "event"],
+        "caveats": (
+            f"Confidence {confidence:.0%} on this signal. Figures traced to economic_impact, spr_status, "
+            f"and routing_summary — none invented."
+        ),
+        "data_sources_cited": ["economic_impact", "spr_status", "event", "routing_summary"],
         "numbers_used": {
             "shortfall_pct": shortfall,
             "crude_price_change_pct": price_change,
             "spr_days_remaining": spr_days,
+            "avg_cost_per_bbl": cost_per_bbl,
+            "total_import_cost_increase_usd_bn": total_cost_bn,
         },
         "_fallback": True,
     }

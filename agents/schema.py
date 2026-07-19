@@ -313,6 +313,9 @@ def update_risk_score(
     return max(0.0, min(1.0, new_risk))
 
 
+_DECAY_ELAPSED_DAYS_CAP = 30.0
+
+
 def decay_risk_score(
     current_risk: float,
     decay_factor_per_day: float,
@@ -322,7 +325,23 @@ def decay_risk_score(
 
     ``decay_factor_per_day`` is a retention factor: 0.92 means 92% of the
     prior risk remains after one day without a reinforcing signal.
+
+    Elapsed time is capped at ``_DECAY_ELAPSED_DAYS_CAP`` (30 days) before
+    exponentiating. This parameter's own documentation already treats ~28 days
+    (log(0.1)/log(0.92)) as "days_to_baseline" — the point by which risk has
+    faded to its natural resting floor. Without a cap, that same exponential
+    keeps compounding for however long the gap to the NEXT reinforcing signal
+    happens to be: replaying the curated crisis timeline (real gaps up to 224
+    days between events on different corridors) drove risk to ~1e-9, i.e.
+    numerically zero — reading as "the prior escalation was completely
+    forgotten/restored" rather than "faded to a low resting background level
+    and stayed there absent reinforcement", which is what the PS's own framing
+    describes ("the supply threat live" through an extended period, not reset
+    by every quiet news cycle). Capping means a node settles to a persistent
+    ~8% floor of whatever risk it last held, rather than continuing to decay
+    toward a meaningless near-zero the longer real time happens to elapse.
     """
     elapsed_days = max(0.0, float(elapsed_days))
+    elapsed_days = min(elapsed_days, _DECAY_ELAPSED_DAYS_CAP)
     decay_factor_per_day = max(0.0, min(1.0, float(decay_factor_per_day)))
     return max(0.0, min(1.0, current_risk * (decay_factor_per_day ** elapsed_days)))

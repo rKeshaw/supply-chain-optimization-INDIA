@@ -77,6 +77,15 @@ def fetch_recent_articles(query: str, max_records: int = 5) -> Optional[list[dic
         req = urllib.request.Request(url, headers={"User-Agent": "EnergyResilience/1.0"})
         with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT_S) as response:
             body = response.read().decode("utf-8", errors="replace")
+            if not body.strip():
+                # GDELT's DOC API returns an empty body (not {"articles": []})
+                # for a zero-result query — a normal, expected outcome, not a
+                # fetch failure. json.loads("") raises "Expecting value: line 1
+                # column 1 (char 0)", which previously got logged identically
+                # to a genuine failure (a 429, a timeout) and read as "this is
+                # broken" when it just meant "nothing matched this keyword".
+                logger.debug(f"GDELT returned no results for query {query!r} (empty body).")
+                return []
             data = json.loads(body)
             return data.get("articles", [])
     except Exception as e:

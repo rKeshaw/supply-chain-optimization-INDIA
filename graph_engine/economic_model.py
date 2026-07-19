@@ -80,6 +80,8 @@ def compute_cascade(
     price_cap = params.get("max_modelled_crude_price_change_pct", {}).get("value", 75.0)
     import_bill_baseline = params.get("baseline_annual_crude_import_bill_usd_bn", {}).get("value", 140.0)
     landed_cost_baseline = params.get("assumed_landed_crude_cost_usd_per_bbl", {}).get("value", 86.0)
+    petrol_baseline_inr = params.get("baseline_petrol_price_delhi_inr_per_liter", {}).get("value", 102.12)
+    diesel_baseline_inr = params.get("baseline_diesel_price_delhi_inr_per_liter", {}).get("value", 95.20)
 
     global_supply = params.get("global_oil_supply_bbl_day", {}).get("value", 102_000_000)
 
@@ -123,12 +125,31 @@ def compute_cascade(
     # 3. Retail fuel price change (after lag). Retail revisions reflect BOTH the
     # crude benchmark move (volume channel) and the higher landed freight cost
     # (cost channel); both pass through on the same administered pricing cycle.
+    # Formula: retail_Δ = (crude_Δ + landed_cost_Δ) × passthrough_coefficient
+    projected_retail_price_change_pct = (crude_price_change_pct + landed_cost_change_pct) * passthrough
     if days_elapsed >= lag_days:
-        retail_price_change_pct = (crude_price_change_pct + landed_cost_change_pct) * passthrough
-        # Formula: retail_Δ = (crude_Δ + landed_cost_Δ) × passthrough_coefficient
+        retail_price_change_pct = projected_retail_price_change_pct
     else:
-        # Within lag period, retail price is not yet revised
+        # Within lag period, the ADMINISTERED price hasn't been revised yet —
+        # retail_price_change_pct stays 0 to reflect that specific fact.
         retail_price_change_pct = 0.0
+
+    # 3b. Absolute expected pump prices. Deliberately built on
+    # projected_retail_price_change_pct, NOT the lag-gated retail_price_change_pct
+    # above: every caller in this codebase passes days_elapsed=0 (scenario apply,
+    # the live/replay pipeline both hardcode it — only the 30-day digital twin
+    # increments it), so retail_price_change_pct is always exactly 0% the
+    # instant a disruption is applied. A pump-price metric built on that would
+    # never move no matter how severe the disruption — which is exactly
+    # backwards from what this metric exists to show: "given what just got
+    # disrupted, what should I expect the price to become" once it's actually
+    # revised, not "what is the literal administered price on day zero, before
+    # any revision has had a chance to happen." A real Delhi baseline
+    # (parameters.json), not a new pricing model — both fuels share ONE
+    # retail_price_change_pct since passthrough_coefficient isn't separately
+    # calibrated for petrol vs. diesel (see the diesel baseline's own caveat).
+    expected_petrol_price_inr = petrol_baseline_inr * (1.0 + projected_retail_price_change_pct / 100.0)
+    expected_diesel_price_inr = diesel_baseline_inr * (1.0 + projected_retail_price_change_pct / 100.0)
 
     # 4. GDP drag (only if sustained beyond lag — same threshold for simplicity)
     # Formula: GDP_drag_pct = (crude_price_change_pct / 10) × gdp_sensitivity_param
@@ -184,6 +205,17 @@ def compute_cascade(
         "retail_lag_days_remaining": max(0, lag_days - days_elapsed),
         "retail_formula": "crude_price_change_pct × passthrough_coefficient",
 
+        # Absolute pump prices — built on projected_retail_price_change_pct
+        # (unlag-gated), NOT the lag-gated retail_price_change_pct above. See
+        # the projected_retail_price_change_pct comment for why.
+        "projected_retail_price_change_pct": round(projected_retail_price_change_pct, 2),
+        "petrol_price_inr_per_liter": round(expected_petrol_price_inr, 2),
+        "diesel_price_inr_per_liter": round(expected_diesel_price_inr, 2),
+        "petrol_baseline_inr_per_liter": petrol_baseline_inr,
+        "diesel_baseline_inr_per_liter": diesel_baseline_inr,
+        "pump_price_formula": "baseline_price_inr_per_liter × (1 + projected_retail_price_change_pct / 100)",
+        "pump_price_scope": "Delhi reference city (PPAC/media standard); state VAT makes actual retail prices vary — not a national figure. Reflects the expected price once the disruption's severity is fully reflected, not the current-instant administered price (which stays at the pre-disruption level until PPAC's next revision cycle).",
+
         # GDP
         "gdp_drag_pct": round(gdp_drag_pct, 3),
         "gdp_formula": "(crude_price_change_pct / 10) × gdp_sensitivity_param",
@@ -220,6 +252,8 @@ def compute_cascade(
             "gdp_sensitivity_param": gdp_sensitivity,
             "power_sector_stress_threshold": power_threshold,
             "max_modelled_crude_price_change_pct": price_cap,
+            "baseline_petrol_price_delhi_inr_per_liter": petrol_baseline_inr,
+            "baseline_diesel_price_delhi_inr_per_liter": diesel_baseline_inr,
         },
     }
 

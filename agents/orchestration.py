@@ -35,6 +35,7 @@ class PipelineState(TypedDict):
     timestamp_override: Optional[datetime]
     significance_threshold: Optional[float]
     event_override: Optional[Event]
+    decay_as_of: Optional[datetime]
     
     # Timestamps for latency tracking
     t_start: datetime
@@ -95,8 +96,19 @@ def extract_signal_node(state: PipelineState) -> dict:
         
     signal_strength = event.severity * event.confidence
     if event.event_type == "unrelated" or signal_strength < threshold:
+        # Distinct reasons for two genuinely different situations: "unrelated"
+        # means the content has nothing to do with energy supply chains at all
+        # (a cricket score, a chip-maker's earnings — the live news adapter's
+        # keyword search can surface these as false-positive matches, and the
+        # curated replay timeline deliberately includes two as test cases for
+        # this classification). "below_threshold" means it WAS a real supply
+        # chain signal, just not severe/confident enough to act on. Both used
+        # to collapse into the same "below_threshold" label, so the frontend
+        # had no way to tell "correctly filtered as irrelevant" apart from "a
+        # minor but real signal" — see the Signal Feed's ORIGIN_LABELS/filtering.
+        reason = "unrelated" if event.event_type == "unrelated" else "below_threshold"
         logger.info(
-            f"process_signal: event '{event.id}' below threshold "
+            f"process_signal: event '{event.id}' {reason} "
             f"({signal_strength:.3f} < {threshold}). Logged, not recomputed."
         )
         return {
@@ -107,7 +119,7 @@ def extract_signal_node(state: PipelineState) -> dict:
             "event": event.model_dump(mode="json"),
             "signal_strength": signal_strength,
             "recompute_triggered": False,
-            "reason": "below_threshold",
+            "reason": reason,
             "latency_ms": _elapsed_ms(t_start),
         }
         
@@ -136,7 +148,10 @@ def update_graph_node(state: PipelineState) -> dict:
     """
     event_obj = Event(**state["event"])
 
-    G_updated = apply_event_to_graph(state["G_current"], event_obj, state["params"])
+    G_updated = apply_event_to_graph(
+        state["G_current"], event_obj, state["params"],
+        decay_as_of=state.get("decay_as_of"),
+    )
     t_graph_updated = datetime.now(timezone.utc)
     
     return {
@@ -320,9 +335,14 @@ def process_signal(
     timestamp_override: Optional[datetime] = None,
     significance_threshold: Optional[float] = None,
     event_override: Optional[Event] = None,
+    decay_as_of: Optional[datetime] = None,
 ) -> dict:
     """
     Entry point for the API to invoke the LangGraph pipeline.
+
+    decay_as_of: see apply_event_to_graph's docstring. Only the curated replay
+    passes this (a compressed narrative clock); live/custom signals leave it
+    None and decay uses the event's own real timestamp.
     """
     initial_state = {
         "raw_text": raw_text,
@@ -333,6 +353,7 @@ def process_signal(
         "timestamp_override": timestamp_override,
         "significance_threshold": significance_threshold,
         "event_override": event_override,
+        "decay_as_of": decay_as_of,
         "t_start": datetime.now(timezone.utc),
         "policy_overrides": None,
     }

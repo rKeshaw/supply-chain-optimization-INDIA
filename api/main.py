@@ -28,7 +28,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -100,6 +100,49 @@ async def lifespan(app: FastAPI):
     # Expose to orchestration/twin via the shared params dict (params convention).
     params["_baseline_routing_avg_cost_per_bbl"] = {"value": baseline_avg_cost}
 
+    # Structural criticality — what fraction of baseline deliverable flow
+    # actually depends on this node — computed ONCE against the pristine
+    # baseline topology, not recomputed per request. Attached as a node
+    # attribute so apply_scenario's deepcopy carries it through to every future
+    # disrupted graph automatically; see routing.py's risk-optimal weighting and
+    # the frontend's pathRiskScore(), which both blend risk_score with this.
+    #
+    # An earlier version used resilience.py's N-1 vulnerability_index (flow LOST
+    # if this node is degraded) instead. That measures something different and
+    # gave the wrong answer for the flagship case: this network has a Cape of
+    # Good Hope bypass that can absorb almost all of Hormuz's normal volume at
+    # a cost/time penalty, so degrading Hormuz barely reduces DELIVERABLE
+    # volume — its vulnerability_index came out at 0.048, near the BOTTOM of
+    # the ranking (chk_malacca ranked above it), which halved Hormuz's
+    # effective risk instead of amplifying it. Baseline FLOW SHARE avoids that:
+    # it directly answers "how much of the network currently depends on this
+    # node", which is the question that actually matters here — Hormuz carries
+    # ~90% of baseline flow vs. ~3.5% for a typical minor source, exactly
+    # matching the real-world intuition (and the PS's own framing) that a
+    # single-corridor closure should read as far riskier than an equally-"58%
+    # open" but easily-substituted source.
+    total_baseline_flow = max(baseline_deliverable["flow_value"], 1.0)
+    flow_share_by_node: dict[str, float] = {}
+    for cp, flow in baseline_deliverable["transit_flow"].items():
+        flow_share_by_node[cp] = flow / total_baseline_flow
+    for src, flow in baseline_deliverable["per_source"].items():
+        flow_share_by_node[src] = flow / total_baseline_flow
+    for ref, flow in baseline_deliverable["per_refinery"].items():
+        flow_share_by_node[ref] = flow / total_baseline_flow
+
+    # Covered types get their real (possibly zero, e.g. an unused source under
+    # sanctions) flow share. Everything else — SPR (carries zero *normal* flow
+    # by design, which is not the same as "not critical"), refinery_in, bypass
+    # (chk_cog's reroute volume isn't tracked as "chokepoint" transit flow),
+    # super_source/sink — defaults to 1.0 (no discount) so their risk is never
+    # silently understated for a type this measure was never meant to cover.
+    FLOW_CRITICALITY_COVERED_TYPES = {"source", "chokepoint", "refinery_out"}
+    for nid, node_data in G.nodes(data=True):
+        if node_data.get("type") in FLOW_CRITICALITY_COVERED_TYPES:
+            node_data["flow_criticality"] = min(1.0, flow_share_by_node.get(nid, 0.0))
+        else:
+            node_data["flow_criticality"] = 1.0
+
     APP_STATE.update({
         "G_baseline": G,
         "G_current": G,  # mutable current state (replaced on each signal/scenario)
@@ -113,12 +156,16 @@ async def lifespan(app: FastAPI):
         "sim_state": sim_state,
         "replay_index": 0,
         "replay_log": [],
+        "replay_narrative_clock": None,
         "live_signal_log": [],
         "live_last_poll_at": None,
         "current_scenario": None,
         "scenario_result": None,
         "ws_clients": [],
         "broadcast_fn": broadcast_update,
+        "live_task": None,
+        "live_stop_event": None,
+        "live_toggle_lock": asyncio.Lock(),
     })
 
     logger.info(
@@ -126,24 +173,21 @@ async def lifespan(app: FastAPI):
         f"Baseline flow: {baseline['flow_value']:,.0f} bbl/day."
     )
 
-    # Background live-sensing loop (sanctions registry, news, weather) — off by
-    # default; replay remains the reliable demo path. See live_sensing_scheduler.
-    from agents.live_sensing_scheduler import (
-        LIVE_INGESTION_ENABLED, live_sensing_loop,
-    )
-    stop_event = asyncio.Event()
-    live_task = None
+    # Background live-sensing loop (sanctions registry, news, weather). The env
+    # var picks the default at boot — off by default, so the demo stays
+    # deterministic — but it can be flipped on or off at runtime via
+    # POST /api/live/enable and /api/live/disable (the UI header toggle uses
+    # exactly these). See live_sensing_scheduler.start_live_loop/stop_live_loop.
+    from agents.live_sensing_scheduler import LIVE_INGESTION_ENABLED, start_live_loop, stop_live_loop
     if LIVE_INGESTION_ENABLED:
-        live_task = asyncio.create_task(live_sensing_loop(APP_STATE, stop_event))
-        logger.info("Live ingestion ENABLED — background sensing loop started.")
+        await start_live_loop(APP_STATE)
+        logger.info("Live ingestion ENABLED at startup — background sensing loop started.")
     else:
-        logger.info("Live ingestion disabled (LIVE_INGESTION_ENABLED=false) — replay-only mode.")
+        logger.info("Live ingestion disabled at startup — replay-only mode. Toggle via POST /api/live/enable.")
 
     yield
 
-    if live_task is not None:
-        stop_event.set()
-        await live_task
+    await stop_live_loop(APP_STATE)
 
 
 app = FastAPI(
@@ -188,6 +232,7 @@ class SimulateRequest(BaseModel):
     use_current_graph: bool = False
     horizon_days: int = 30
     enable_live_weather: bool = False  # opt-in live marine-weather overlay
+    compare_no_reroute: bool = False  # also run the "no adaptive rerouting" counterfactual
 
 
 class NLOpsQuery(BaseModel):
@@ -408,6 +453,37 @@ async def routes_baseline():
     }
 
 
+@app.get("/api/routes/current")
+async def routes_current():
+    """Pareto routing for whatever the graph's CURRENT state is — baseline on a
+    fresh load, or the live disrupted state if a signal/scenario/replay step has
+    already run. Same {pareto_routes, pareto_comparison} shape as process_signal's
+    "routing" key, so the frontend can populate the Routes tab immediately on page
+    load (or after a browser refresh mid-disruption) instead of showing nothing
+    until the next event arrives.
+    """
+    G = APP_STATE.get("G_current", APP_STATE["G_baseline"])
+    params = APP_STATE["params"]
+    demand = {nid: data.get("consumption_rate_bbl_day", 0)
+              for nid, data in G.nodes(data=True) if data.get("type") == "refinery_out"}
+    pareto_routes = compute_pareto_routes(G, demand, params)
+    return {
+        "pareto_routes": {
+            k: {
+                "label": v.get("label"),
+                "feasible": v.get("feasible"),
+                "total_volume": v.get("total_volume"),
+                "fulfillment": v.get("fulfillment"),
+                "routing_summary": v.get("routing_summary", []),
+                "path_allocations": v.get("path_allocations", []),
+            }
+            for k, v in pareto_routes.items()
+            if k != "pareto_comparison"
+        },
+        "pareto_comparison": pareto_routes.get("pareto_comparison", {}),
+    }
+
+
 @app.get("/api/scenarios/list")
 async def list_scenarios():
     """List all available named disruption scenarios."""
@@ -442,7 +518,15 @@ async def apply_scenario_endpoint(req: ScenarioRequest):
         raise HTTPException(status_code=400, detail="Provide scenario_id or custom dict.")
 
     G_baseline = APP_STATE["G_baseline"]
-    G_disrupted = apply_scenario(G_baseline, scenario_dict)
+    # Layer the new scenario on top of whatever is already disrupted (G_current),
+    # not the pristine baseline — otherwise disrupting a second node silently
+    # reverts every previously-disrupted node/edge back to fully open, since each
+    # call would rebuild from scratch. G_current already accumulates correctly
+    # across replay steps and custom signals; scenario application now matches
+    # that same "layer onto the current state" model. Explicit reset remains
+    # available via /api/replay/reset ("Reset Twin").
+    G_current = APP_STATE.get("G_current", G_baseline)
+    G_disrupted = apply_scenario(G_current, scenario_dict)
     params = APP_STATE["params"]
 
     demand = {
@@ -588,7 +672,7 @@ async def process_signal_endpoint(req: SignalRequest):
 async def run_replay():
     """
     Advance the replay by one step (one crisis_timeline event).
-    Call repeatedly to walk through the 2025 crisis timeline.
+    Call repeatedly to walk through the 2025-2026 crisis timeline.
     """
     from agents.orchestration import process_signal
     from agents.extraction_agent import event_from_curated_timeline
@@ -614,6 +698,24 @@ async def run_replay():
     timestamp_dt = datetime.fromisoformat(event_data["original_timestamp"])
     curated_event = event_from_curated_timeline(event_data)
 
+    # Compressed "narrative clock" for risk decay ONLY (see apply_event_to_graph's
+    # decay_as_of docstring) — the real headline date (timestamp_dt) is still
+    # used for display/audit everywhere else. The 12 curated events span real
+    # calendar gaps up to 224 days; replaying those verbatim decays each
+    # corridor's risk almost to zero between events, making one continuous,
+    # still-live crisis look like a series of disconnected incidents that keep
+    # "resolving" themselves before the next one starts, instead of building on
+    # each other the way the PS's own narrative (and the curated data) intends.
+    # REPLAY_NARRATIVE_STEP_DAYS keeps the whole 12-step arc within
+    # schema.py's decay cap (30 days), so even the last event still carries the
+    # accumulated weight of everything before it.
+    REPLAY_NARRATIVE_STEP_DAYS = 2
+    if idx == 0 or "replay_narrative_clock" not in APP_STATE or APP_STATE["replay_narrative_clock"] is None:
+        narrative_clock = timestamp_dt
+    else:
+        narrative_clock = APP_STATE["replay_narrative_clock"] + timedelta(days=REPLAY_NARRATIVE_STEP_DAYS)
+    APP_STATE["replay_narrative_clock"] = narrative_clock
+
     result = process_signal(
         raw_text=f"{event_data['headline']}\n\n{event_data['body_excerpt']}",
         G_current=G_current,
@@ -622,6 +724,7 @@ async def run_replay():
         source_override=event_data.get("source"),
         timestamp_override=timestamp_dt,
         event_override=curated_event,
+        decay_as_of=narrative_clock,
     )
 
     updated_graph = result.pop("_updated_graph", None)
@@ -633,6 +736,13 @@ async def run_replay():
         "headline": event_data["headline"],
         "result_summary": {
             "recompute_triggered": result.get("recompute_triggered"),
+            # "unrelated" vs "below_threshold" vs "relevant" — the curated
+            # timeline deliberately includes two unrelated test cases (a
+            # cricket headline, a chip-maker announcement) to demonstrate the
+            # extraction agent correctly ignores non-energy news; this lets
+            # the UI label those as filtered noise instead of listing them
+            # identically alongside genuine supply chain signals.
+            "reason": result.get("reason", "relevant" if result.get("recompute_triggered") else "below_threshold"),
             "latency_ms": result.get("latency_ms") or result.get("latency", {}).get("total_pipeline_ms"),
             "ingestion_mode": "curated_replay",
         },
@@ -677,6 +787,7 @@ async def reset_replay():
     APP_STATE["G_current"] = APP_STATE["G_baseline"]
     APP_STATE["replay_index"] = 0
     APP_STATE["replay_log"] = []
+    APP_STATE["replay_narrative_clock"] = None
     APP_STATE["live_signal_log"] = []
     APP_STATE["current_scenario"] = None
     APP_STATE["scenario_result"] = None
@@ -686,19 +797,48 @@ async def reset_replay():
 
 @app.get("/api/live/status")
 async def live_status():
-    """Whether the background live-sensing loop is running, and its recent log.
+    """Whether the background live-sensing loop is currently running, and its
+    recent log.
+
+    ``enabled`` reflects the loop's actual runtime state (it can be flipped by
+    POST /api/live/enable or /api/live/disable at any point in the session),
+    not just the LIVE_INGESTION_ENABLED startup default.
 
     Distinguishes LIVE-detected signals (sanctions/news/weather) from the
     curated replay and manually-submitted custom signals, so the UI can label
     each one honestly instead of implying everything came from a live feed.
     """
-    from agents.live_sensing_scheduler import LIVE_INGESTION_ENABLED, LIVE_POLL_INTERVAL_S
+    from agents.live_sensing_scheduler import LIVE_POLL_INTERVAL_S, is_running
     return {
-        "enabled": LIVE_INGESTION_ENABLED,
+        "enabled": is_running(APP_STATE),
         "poll_interval_s": LIVE_POLL_INTERVAL_S,
         "last_poll_at": APP_STATE.get("live_last_poll_at"),
         "live_signal_log": APP_STATE.get("live_signal_log", []),
     }
+
+
+@app.post("/api/live/enable")
+async def enable_live_ingestion():
+    """Start the background live-sensing loop (sanctions/news/weather) if it
+    is not already running. Idempotent — safe to call repeatedly."""
+    from agents.live_sensing_scheduler import start_live_loop
+    async with APP_STATE["live_toggle_lock"]:
+        await start_live_loop(APP_STATE)
+    await broadcast_update({"kind": "live_toggle", "enabled": True})
+    return await live_status()
+
+
+@app.post("/api/live/disable")
+async def disable_live_ingestion():
+    """Stop the background live-sensing loop if it is running. Idempotent.
+
+    Signals already logged remain in live_signal_log; only new polling stops.
+    """
+    from agents.live_sensing_scheduler import stop_live_loop
+    async with APP_STATE["live_toggle_lock"]:
+        await stop_live_loop(APP_STATE)
+    await broadcast_update({"kind": "live_toggle", "enabled": False})
+    return await live_status()
 
 
 @app.post("/api/live/poll-now")
@@ -801,7 +941,7 @@ async def simulate_twin(req: SimulateRequest):
         enable_live_weather=req.enable_live_weather,
     )
 
-    return {
+    response = {
         "horizon_days": horizon,
         "scenario": scenario_dict,
         "snapshots": snapshots,
@@ -811,6 +951,48 @@ async def simulate_twin(req: SimulateRequest):
             "total_spr_drawn": sum(s["spr_draw_bbl_day"] for s in snapshots),
         },
     }
+
+    if req.compare_no_reroute:
+        no_reroute_snapshots = run_digital_twin(
+            G_baseline=G_baseline,
+            scenario_dict=scenario_dict,
+            params=params,
+            horizon_days=horizon,
+            enable_live_weather=req.enable_live_weather,
+            disable_rerouting=True,
+        )
+        response["no_reroute_snapshots"] = no_reroute_snapshots
+        response["summary"]["days_to_stabilize_with_reroute"] = _days_to_stabilize(snapshots)
+        response["summary"]["days_to_stabilize_without_reroute"] = _days_to_stabilize(no_reroute_snapshots)
+        response["summary"]["total_cost_with_reroute_usd"] = _total_reroute_cost(snapshots)
+        response["summary"]["total_cost_without_reroute_usd"] = _total_reroute_cost(no_reroute_snapshots)
+
+    return response
+
+
+def _days_to_stabilize(snapshots: list[dict]) -> Optional[int]:
+    """First day fulfillment recovers to >= 99% *after* the shock's trough.
+
+    Pipeline inertia (cargoes already in transit when a scenario starts) keeps
+    fulfillment near 100% for the first few days regardless of the disruption
+    — scanning from day 0 would misreport that pre-shock grace period as
+    "already stabilized." Instead find the day of minimum fulfillment (the
+    trough), then look forward from there. Returns None if recovery to 99%
+    never happens within the simulated horizon (reported as "not stabilized"
+    by the caller, not a misleading number).
+    """
+    if not snapshots:
+        return None
+    trough_idx = min(range(len(snapshots)), key=lambda i: snapshots[i]["fulfillment_pct_overall"])
+    for s in snapshots[trough_idx:]:
+        if s["fulfillment_pct_overall"] >= 99.0:
+            return s["day"]
+    return None
+
+
+def _total_reroute_cost(snapshots: list[dict]) -> float:
+    """Sum of each day's reroute cost premium over undisrupted baseline routing."""
+    return sum(s["cascade"].get("daily_reroute_cost_premium_usd", 0.0) for s in snapshots)
 
 
 @app.post("/api/nl-ops")

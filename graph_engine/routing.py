@@ -19,6 +19,7 @@ def solve_min_cost_flow(
     demand: dict[str, float],
     cost_attribute: str = "weight",
     policy_constraints: Optional[dict] = None,
+    apply_spr_last_resort_penalty: bool = False,
 ) -> dict:
     """
     Solve a constraint-aware source-to-refinery allocation.
@@ -34,6 +35,9 @@ def solve_min_cost_flow(
         demand: Dict mapping refinery_out node IDs to their daily demand (bbl/day).
                 Positive = demand (sink). The super_source will be set as supplier.
         cost_attribute: Edge attribute to use as cost ('weight' = cost_per_bbl by default).
+        apply_spr_last_resort_penalty: See _solve_arc_based_flow. Must stay False
+                for the cost-optimal solve — see that function's docstring — so
+                leave it at the default unless you are the time/risk Pareto solve.
 
     Returns:
         Dict with:
@@ -43,201 +47,342 @@ def solve_min_cost_flow(
         - fulfillment: Per-refinery fraction of demand met.
         - feasible: Whether demand was fully met.
     """
-    return _solve_constraint_aware_paths(
-        G, demand, cost_attribute, policy_constraints or {}
+    return _solve_arc_based_paths(
+        G, demand, cost_attribute, policy_constraints or {}, apply_spr_last_resort_penalty
     )
 
 
-def _solve_constraint_aware_paths(
+# ---------------------------------------------------------------------------
+# Arc-based multi-commodity flow solver (production path since this session).
+#
+# The previous production solver (_solve_constraint_aware_paths — verified
+# clean against the full test suite and the synthetic-scale benchmark, then
+# removed; see git history if the old implementation is ever needed) enumerated
+# up to `max_paths_per_pair` candidate paths per (source, refinery, grade) via
+# nx.shortest_simple_paths (Yen's K-shortest-paths), then solved an LP over
+# those candidates only. That's a path-based LP with a bounded candidate set —
+# a real heuristic bound, not something with a correctness guarantee at
+# arbitrary scale. It happened to be verified-correct on this repo's real
+# 35-node network (see tests/test_routing_optimality.py), but that
+# verification doesn't extend to a larger or differently-shaped network, and
+# the candidate enumeration plus an O(edges * candidates * path-length)
+# constraint-building loop made it ~200x slower on a synthetic ~7.4x-scale
+# network (8,049ms vs. 40ms for a single objective, identical optimal cost
+# and volume — benchmarked directly before this change).
+#
+# This is the textbook-standard alternative for this problem class: one LP
+# variable per (edge, grade), flow-conservation constraints local to each
+# node, no path enumeration at all. It was already written and trusted in
+# this repo as `_arc_based_optimum` in tests/test_routing_optimality.py — an
+# INDEPENDENT reference used only to verify the old solver's cost-optimal
+# output. `_solve_arc_based_flow` below is that same formulation, generalized
+# to serve all three Pareto objectives (cost_attribute) and the SPR
+# last-resort penalty, and promoted to be the actual production solver.
+#
+# One real cost of this formulation: it produces flow[(u, v, grade)], not
+# "which specific source fed which specific refinery, via which chokepoints" —
+# every downstream consumer (routing_summary, the expandable per-route
+# tables, SPR-draw detection, the Risk column, the Route Transformation diff)
+# needs that. `_decompose_flow_to_paths` recovers it as an exact, standard,
+# polynomial-time post-processing step on the already-solved optimal flow —
+# not a re-solve, and not a heuristic, though the specific path-level
+# attribution it produces is not unique when a shared edge's flow could be
+# split multiple equally-valid ways between sources (total cost, volume, and
+# fulfillment are unaffected either way — those come directly from the LP).
+# ---------------------------------------------------------------------------
+
+_UNMET_DEMAND_PENALTY = 1e7  # matches the independent reference's own proven-safe constant
+_SPR_LAST_RESORT_PENALTY = 500.0  # dominates any realistic per-bbl cost/time/risk objective
+                                    # in this domain, stays far below the unmet penalty
+
+
+def _infer_grades(G: nx.DiGraph) -> list[str]:
+    """Distinct crude grades in play, derived from the data rather than
+    hardcoded — consistent with this codebase's existing philosophy (the
+    alias table, known_element_ids) of deriving from data/nodes.json instead
+    of a hand-maintained list that silently goes stale as data changes."""
+    grades = set()
+    for _, data in G.nodes(data=True):
+        for g in data.get("grade_compatibility", []) or []:
+            grades.add(g)
+    return sorted(grades)
+
+
+def _solve_arc_based_flow(
     G: nx.DiGraph,
     demand: dict[str, float],
     cost_attribute: str,
     policy_constraints: dict,
+    apply_spr_last_resort_penalty: bool = False,
 ) -> dict:
-    """Allocate complete, grade-compatible procurement paths using an OR-Tools LP.
-
-    Minimizes the chosen objective (freight cost, transit time, or risk-weighted
-    cost — set by ``cost_attribute``) subject to source capacity, per-edge capacity,
-    shared chokepoint/transit capacity, the grade-compatibility bucket rule, SPR
-    discharge limits, and the Cape-of-Good-Hope diversification cap.
-
-    The cost-optimal solve is the PROVABLE minimum-cost allocation: it has been
-    verified to match, to the dollar, an independent arc-based multi-commodity
-    min-cost-flow LP built with zero shared code (scratchpad/verify_correctness.py).
-    No hidden diversification penalty is folded into the objective — concentration
-    risk is surfaced honestly and separately (HHI metric, the hard Cape cap here,
-    and the risk-optimal Pareto route).
-    """
+    """Arc-based multi-commodity (grade-indexed) min-cost-flow LP — see the
+    module-level note above. Returns per-edge-per-grade flow plus totals; does
+    NOT produce path_allocations (see _decompose_flow_to_paths for that)."""
     try:
         from ortools.linear_solver import pywraplp
     except ImportError as e:
         raise ImportError("OR-Tools is not installed. Please run `pip install ortools`.") from e
 
-    physical = nx.DiGraph()
-    for u, v, data in G.edges(data=True):
-        if u in {"super_source", "super_sink"} or v in {"super_source", "super_sink"}:
-            continue
-        if data.get("capacity", 0) > 0:
-            physical.add_edge(u, v, **data)
+    grades = _infer_grades(G)
 
-    candidates = _build_path_candidates(G, physical, demand, cost_attribute)
-    
-    source_remaining = {
-        nid: float(data.get("capacity_bbl_day") or 0) * float(data.get("openness", 1.0))
-        for nid, data in G.nodes(data=True)
-        if data.get("type") == "source"
-    }
-    # SPR facilities: daily emergency-release capacity (discharge cap × openness).
-    spr_remaining = {
-        nid: float(data.get("capacity_bbl_day") or 0) * float(data.get("openness", 1.0))
-        for nid, data in G.nodes(data=True)
-        if data.get("type") == "spr"
-    }
-    edge_remaining = {
-        (u, v): float(data.get("capacity", 0))
-        for u, v, data in G.edges(data=True)
-    }
-    chokepoint_remaining = {
-        nid: float(data.get("capacity_bbl_day") or 0) * float(data.get("openness", 1.0))
-        for nid, data in G.nodes(data=True)
-        if data.get("type") == "chokepoint"
-    }
-    refinery_remaining = {nid: float(value) for nid, value in demand.items()}
-    
-    total_demand_val = sum(demand.values())
-    max_cape = float(policy_constraints.get("max_cape_fraction_of_total", 0.60)) * total_demand_val
+    phys = [
+        (u, v, data) for u, v, data in G.edges(data=True)
+        if u not in ("super_source", "super_sink") and v not in ("super_source", "super_sink")
+        and data.get("capacity", 0) > 0
+    ]
 
-    # Initialize Solver (GLOP is Google's fast LP solver)
-    solver = pywraplp.Solver.CreateSolver('GLOP')
+    solver = pywraplp.Solver.CreateSolver("GLOP")
     if not solver:
         raise RuntimeError("OR-Tools GLOP solver is not available.")
-    
-    # Create variables for each path
-    path_vars = []
-    for idx, c in enumerate(candidates):
-        # The upper bound is the demand of the target refinery
-        var = solver.NumVar(0, refinery_remaining[c["refinery_out"]], f'path_{idx}')
-        path_vars.append(var)
-        
-    # Unmet demand variables (slack) to ensure feasibility
+
+    f = {}
+    for u, v, data in phys:
+        cap = float(data.get("capacity", 0))
+        for g in grades:
+            if data.get("grade") in (None, g):
+                f[(u, v, g)] = solver.NumVar(0, cap, f"f_{u}_{v}_{g}")
+
+    out_edges: dict[str, list] = {}
+    in_edges: dict[str, list] = {}
+    for u, v, data in phys:
+        out_edges.setdefault(u, []).append((u, v, data))
+        in_edges.setdefault(v, []).append((u, v, data))
+
+    # Total flow (across grades) on each edge must not exceed its capacity.
+    for u, v, data in phys:
+        terms = [f[(u, v, g)] for g in grades if (u, v, g) in f]
+        if terms:
+            solver.Add(sum(terms) <= float(data.get("capacity", 0)))
+
+    node_type = {n: G.nodes[n].get("type") for n in G.nodes()}
     unmet_vars = {}
-    for ref_out in demand:
-        unmet_vars[ref_out] = solver.NumVar(0, refinery_remaining[ref_out], f'unmet_{ref_out}')
-        
-    # Constraint 1: Refinery Demand
-    for ref_out, req in refinery_remaining.items():
-        solver.Add(
-            sum(path_vars[i] for i, c in enumerate(candidates) if c["refinery_out"] == ref_out) + unmet_vars[ref_out] == req
-        )
-        
-    # Objective scale (median path objective) — used ONLY to size the unmet-demand
-    # penalty below, so that penalty dominates any feasible routing objective whether
-    # we are minimizing cost ($/bbl), time (days), or risk-weighted cost.
-    objective_values = [float(c["objective_per_bbl"]) for c in candidates if c.get("objective_per_bbl", 0) > 0]
-    if objective_values:
-        objective_values.sort()
-        objective_scale = objective_values[len(objective_values) // 2]  # median path objective
-    else:
-        objective_scale = 1.0
 
-    # Constraint 2: Source capacity — a plain hard bound (no diversification penalty
-    # in the objective), which is what makes the cost solve the provable minimum.
-    for src_id, cap in source_remaining.items():
-        solver.Add(
-            sum(path_vars[i] for i, c in enumerate(candidates) if c["source_id"] == src_id) <= cap
-        )
+    for n in G.nodes():
+        if n in ("super_source", "super_sink"):
+            continue
+        n_type, data = node_type[n], G.nodes[n]
+        node_out = out_edges.get(n, [])
+        node_in = in_edges.get(n, [])
 
-    # Constraint 2b: SPR daily discharge capacity (last-resort — its high per-bbl edge
-    # cost already keeps the solver off it unless cheaper imports cannot meet demand).
-    for spr_id, cap in spr_remaining.items():
-        solver.Add(
-            sum(path_vars[i] for i, c in enumerate(candidates) if c["source_id"] == spr_id) <= cap
-        )
+        if n_type == "source":
+            source_grade = (data.get("grade_compatibility") or [None])[0]
+            cap = float(data.get("capacity_bbl_day") or 0) * float(data.get("openness", 1.0))
+            for g in grades:
+                inflow = sum(f[(u, v, g)] for u, v, _ in node_in if (u, v, g) in f)
+                outflow = sum(f[(u, v, g)] for u, v, _ in node_out if (u, v, g) in f)
+                if g == source_grade:
+                    solver.Add(outflow - inflow <= cap)
+                    solver.Add(inflow == 0)
+                else:
+                    solver.Add(outflow == 0)
+        elif n_type == "spr":
+            # SPR facilities discharge into whatever grade the co-located
+            # refinery needs — grade-agnostic overall cap, unlike a source.
+            cap = float(data.get("capacity_bbl_day") or 0) * float(data.get("openness", 1.0))
+            solver.Add(sum(f[(u, v, g)] for u, v, _ in node_out for g in grades if (u, v, g) in f) <= cap)
+            for g in grades:
+                solver.Add(sum(f[(u, v, g)] for u, v, _ in node_in if (u, v, g) in f) == 0)
+        elif n_type == "refinery_out":
+            req = float(demand.get(n, 0))
+            um = solver.NumVar(0, req, f"unmet_{n}")
+            unmet_vars[n] = um
+            solver.Add(
+                sum(f[(u, v, g)] for u, v, _ in node_in for g in grades if (u, v, g) in f) + um == req
+            )
+            solver.Add(sum(f[(u, v, g)] for u, v, _ in node_out for g in grades if (u, v, g) in f) == 0)
+        else:
+            for g in grades:
+                inflow = sum(f[(u, v, g)] for u, v, _ in node_in if (u, v, g) in f)
+                outflow = sum(f[(u, v, g)] for u, v, _ in node_out if (u, v, g) in f)
+                solver.Add(inflow == outflow)
+            if n_type == "refinery_in":
+                accepted = set(data.get("grade_compatibility", []))
+                for g in grades:
+                    if g not in accepted:
+                        for u, v, _ in node_in:
+                            if (u, v, g) in f:
+                                solver.Add(f[(u, v, g)] == 0)
 
-    # Constraint 3: Edge Capacity
-    def edge_in_path(u, v, path):
-        return any(path[i] == u and path[i+1] == v for i in range(len(path)-1))
+    # Chokepoint capacity: total inbound flow (across grades) <= capacity * openness.
+    for n in G.nodes():
+        if node_type[n] == "chokepoint":
+            cap = float(G.nodes[n].get("capacity_bbl_day") or 0) * float(G.nodes[n].get("openness", 1.0))
+            terms = [f[(u, v, g)] for u, v, _ in in_edges.get(n, []) for g in grades if (u, v, g) in f]
+            if terms:
+                solver.Add(sum(terms) <= cap)
 
-    for (u, v), cap in edge_remaining.items():
-        solver.Add(
-            sum(path_vars[i] for i, c in enumerate(candidates) if edge_in_path(u, v, c["path"])) <= cap
-        )
-        
-    # Constraint 4: Chokepoint Capacity
-    for cp, cap in chokepoint_remaining.items():
-        solver.Add(
-            sum(path_vars[i] for i, c in enumerate(candidates) if cp in c["chokepoints"]) <= cap
-        )
-        
-    # Constraint 5: Corridor constraints (Cape of Good Hope diversification cap).
-    # Cape is a BYPASS, not a capacity chokepoint — it is deliberately excluded from
-    # the chokepoint-capacity constraint above. Its only limits are (a) its higher
-    # cost, and (b) this explicit policy cap on how much total volume may lean on one
-    # bypass. Detected by node membership in the path, since it is no longer a
-    # type=="chokepoint" element.
-    solver.Add(
-        sum(path_vars[i] for i, c in enumerate(candidates) if "chk_cog" in c["path"]) <= max_cape
-    )
-    
-    # Objective: minimize the chosen routing objective + an unmet-demand penalty.
+    # Cape of Good Hope diversification cap (policy, not a physical chokepoint —
+    # see disruption.py's note on why this replaced a cascading congestion penalty).
+    total_demand_val = sum(demand.values())
+    max_cape = float(policy_constraints.get("max_cape_fraction_of_total", 0.60)) * total_demand_val
+    if "chk_cog" in G:
+        cog_terms = [f[(u, v, g)] for u, v, _ in in_edges.get("chk_cog", []) for g in grades if (u, v, g) in f]
+        if cog_terms:
+            solver.Add(sum(cog_terms) <= max_cape)
+
+    # Objective: minimize the chosen routing objective + an SPR last-resort
+    # penalty (see this module's routing_policy notes elsewhere) + an
+    # unmet-demand penalty that must dominate any feasible objective so the
+    # solver always prefers delivering a barrel over leaving demand short.
     objective = solver.Objective()
-
-    for i, c in enumerate(candidates):
-        objective.SetCoefficient(path_vars[i], float(c["objective_per_bbl"]))
-
-    # Unmet-demand penalty must dominate any feasible routing objective so the
-    # solver always prefers delivering a barrel over leaving demand short. Scale
-    # it off the primary objective rather than a hard-coded 999999 (which was
-    # unit-inconsistent across the cost/time/risk solves).
-    unmet_penalty = max(1e6, objective_scale * 1e4)
-    for ref_out, var in unmet_vars.items():
-        objective.SetCoefficient(var, unmet_penalty)
-        
+    spr_node_ids = {n for n in G.nodes() if node_type[n] == "spr"}
+    for (u, v, g), var in f.items():
+        coefficient = float(G[u][v].get(cost_attribute, 0))
+        if apply_spr_last_resort_penalty and u in spr_node_ids:
+            coefficient += _SPR_LAST_RESORT_PENALTY
+        objective.SetCoefficient(var, coefficient)
+    for var in unmet_vars.values():
+        objective.SetCoefficient(var, _UNMET_DEMAND_PENALTY)
     objective.SetMinimization()
+
     status = solver.Solve()
-    
+
+    flow_values = {}
+    if status in (pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE):
+        for key, var in f.items():
+            val = var.solution_value()
+            if val > 1e-6:
+                flow_values[key] = val
+
+    return {
+        "flow_values": flow_values,  # {(u, v, grade): volume_bbl_day}
+        "grades": grades,
+        "feasible_solve": status in (pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE),
+    }
+
+
+def _decompose_flow_to_paths(
+    G: nx.DiGraph,
+    flow_values: dict,
+    grades: list[str],
+    cost_attribute: str,
+) -> list[dict]:
+    """Decompose an arc-based flow solution into individual source-to-refinery
+    path allocations, for reporting only. Standard, exact, polynomial-time flow
+    decomposition (bounded by the number of edges carrying flow, not by an
+    enumerated candidate count): repeatedly walk a path along edges with
+    remaining positive flow from a source to a refinery, record it, subtract
+    its bottleneck volume, repeat until each source's flow is exhausted.
+    """
+    remaining = dict(flow_values)
+    adjacency: dict[str, dict[str, set]] = {}
+    for (u, v, g) in remaining:
+        adjacency.setdefault(u, {}).setdefault(v, set()).add(g)
+
+    node_type = {n: G.nodes[n].get("type") for n in G.nodes()}
+    source_ids = [n for n, t in node_type.items() if t in ("source", "spr")]
+    epsilon = 1e-6
     allocations = []
-    # Track both real sources and SPR facilities to avoid KeyErrors on SPR paths.
-    source_allocated = {nid: 0.0 for nid in source_remaining}
-    source_allocated.update({nid: 0.0 for nid in spr_remaining})
-    refinery_allocated = {nid: 0.0 for nid in demand}
-    
-    if status in [pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE]:
-        for i, c in enumerate(candidates):
-            volume = path_vars[i].solution_value()
-            if volume > 1e-4:  # Float tolerance
-                source_allocated[c["source_id"]] += volume
-                refinery_allocated[c["refinery_out"]] += volume
-                allocations.append({**c, "volume_bbl_day": volume})
-                
+
+    for source_id in source_ids:
+        is_spr = node_type[source_id] == "spr"
+        while True:
+            start_grade = None
+            for v, grade_set in adjacency.get(source_id, {}).items():
+                for g in grade_set:
+                    if remaining.get((source_id, v, g), 0) > epsilon:
+                        start_grade = g
+                        break
+                if start_grade:
+                    break
+            if start_grade is None:
+                break  # nothing left to decompose from this source
+
+            # Walk from source_id to a refinery_out along positive-flow edges
+            # of this grade; guard against cycles via `visited`.
+            path = [source_id]
+            visited = {source_id}
+            current = source_id
+            grade = start_grade
+            while node_type.get(current) != "refinery_out":
+                next_node = None
+                for v, grade_set in adjacency.get(current, {}).items():
+                    if grade in grade_set and remaining.get((current, v, grade), 0) > epsilon and v not in visited:
+                        next_node = v
+                        break
+                if next_node is None:
+                    break  # dead end — abandon this walk rather than loop forever
+                path.append(next_node)
+                visited.add(next_node)
+                current = next_node
+
+            if node_type.get(current) != "refinery_out":
+                break  # could not reach a refinery; stop decomposing this source
+
+            edge_pairs = list(zip(path, path[1:]))
+            bottleneck = min(remaining[(u, v, grade)] for u, v in edge_pairs)
+            if bottleneck <= epsilon:
+                break
+
+            edge_data = [G[u][v] for u, v in edge_pairs]
+            allocations.append({
+                "source_id": source_id,
+                "is_spr": is_spr,
+                "refinery_in": current.replace("_out", "_in"),
+                "refinery_out": current,
+                "grade": grade,
+                "path": path,
+                "objective_per_bbl": sum(float(d.get(cost_attribute, 0)) for d in edge_data),
+                "cost_per_bbl": sum(float(d.get("cost_per_bbl", 0)) for d in edge_data),
+                "transit_time_days": sum(float(d.get("transit_time_days", 0)) for d in edge_data),
+                "chokepoints": [n for n in path if node_type.get(n) == "chokepoint"],
+                "volume_bbl_day": bottleneck,
+            })
+
+            for u, v in edge_pairs:
+                remaining[(u, v, grade)] -= bottleneck
+                if remaining[(u, v, grade)] <= epsilon:
+                    del remaining[(u, v, grade)]
+                    adjacency[u][v].discard(grade)
+
+    return allocations
+
+
+def _solve_arc_based_paths(
+    G: nx.DiGraph,
+    demand: dict[str, float],
+    cost_attribute: str,
+    policy_constraints: dict,
+    apply_spr_last_resort_penalty: bool = False,
+) -> dict:
+    """Production solve: arc-based LP + flow decomposition, assembled into the
+    exact same return shape _solve_constraint_aware_paths used to produce, so
+    every caller (deliverable_state, compute_pareto_routes, the API layer)
+    needed zero changes."""
+    solved = _solve_arc_based_flow(G, demand, cost_attribute, policy_constraints, apply_spr_last_resort_penalty)
+    allocations = (
+        _decompose_flow_to_paths(G, solved["flow_values"], solved["grades"], cost_attribute)
+        if solved["feasible_solve"] else []
+    )
+
     flow_dict = {nid: {} for nid in G.nodes()}
-    for allocation in allocations:
-        volume = allocation["volume_bbl_day"]
-        path = allocation["path"]
+    source_allocated: dict[str, float] = {}
+    refinery_allocated: dict[str, float] = {nid: 0.0 for nid in demand}
+
+    for a in allocations:
+        volume = a["volume_bbl_day"]
+        path = a["path"]
         for u, v in zip(path, path[1:]):
             flow_dict[u][v] = flow_dict[u].get(v, 0.0) + volume
+        source_allocated[a["source_id"]] = source_allocated.get(a["source_id"], 0.0) + volume
+        refinery_allocated[a["refinery_out"]] = refinery_allocated.get(a["refinery_out"], 0.0) + volume
 
     for source_id, volume in source_allocated.items():
-        # Only real import sources are fed by the virtual super_source; SPR draws
-        # originate at the reserve and flow along their own pipeline edges.
-        if volume > 1e-4 and source_id in source_remaining:
-            flow_dict["super_source"][source_id] = volume
+        # Only real import sources are fed by the virtual super_source; SPR
+        # draws originate at the reserve and flow along their own pipeline edges.
+        if volume > 1e-4 and G.nodes[source_id].get("type") == "source":
+            flow_dict.setdefault("super_source", {})[source_id] = volume
     for refinery_out, volume in refinery_allocated.items():
         if volume > 1e-4:
-            flow_dict[refinery_out]["super_sink"] = volume
-            
+            flow_dict.setdefault(refinery_out, {})["super_sink"] = volume
+
     total_volume = sum(refinery_allocated.values())
     fulfillment = {
         ref_out: refinery_allocated[ref_out] / max(required, 1.0)
         for ref_out, required in demand.items()
     }
-    
-    # Reported total_cost is the pure transport cost of the chosen allocation.
-    total_cost = sum(
-        allocation["volume_bbl_day"] * allocation["objective_per_bbl"]
-        for allocation in allocations
-    )
-    
+    total_cost = sum(a["volume_bbl_day"] * a["objective_per_bbl"] for a in allocations)
+
     return {
         "flow_dict": flow_dict,
         "total_cost": total_cost,
@@ -246,68 +391,6 @@ def _solve_constraint_aware_paths(
         "feasible": all(value >= 0.999999 for value in fulfillment.values()),
         "path_allocations": allocations,
     }
-
-
-def _build_path_candidates(
-    G: nx.DiGraph,
-    physical: nx.DiGraph,
-    demand: dict[str, float],
-    cost_attribute: str,
-    max_paths_per_pair: int = 4,
-) -> list[dict]:
-    """Enumerate feasible grade-preserving source-to-refinery paths.
-
-    Includes SPR facilities as last-resort suppliers: their emergency-release
-    pipeline edges carry a high per-bbl cost, so the solver only draws on them when
-    cheaper import routes cannot meet demand — but they now genuinely participate in
-    the recommendation (e.g. an SPR draw shows up under a Hormuz closure) instead of
-    being invisible to the routing solve.
-    """
-    candidates = []
-    # Real crude sources plus SPR facilities (both can originate a delivery path).
-    sources = [
-        nid for nid, data in G.nodes(data=True)
-        if data.get("type") in ("source", "spr")
-    ]
-
-    for source_id in sources:
-        is_spr = G.nodes[source_id].get("type") == "spr"
-        source_grades = G.nodes[source_id].get("grade_compatibility", [])
-        for refinery_out in demand:
-            refinery_in = refinery_out.replace("_out", "_in")
-            accepted_grades = set(G.nodes[refinery_in].get("grade_compatibility", []))
-            compatible_grades = [grade for grade in source_grades if grade in accepted_grades]
-            if not compatible_grades or source_id not in physical or refinery_out not in physical:
-                continue
-            try:
-                paths = islice(
-                    nx.shortest_simple_paths(physical, source_id, refinery_out, weight=cost_attribute),
-                    max_paths_per_pair,
-                )
-                for path in paths:
-                    edge_data = [G[u][v] for u, v in zip(path, path[1:])]
-                    for grade in compatible_grades:
-                        # An explicitly graded segment may not carry another grade.
-                        if any(data.get("grade") not in (None, grade) for data in edge_data):
-                            continue
-                        candidates.append({
-                            "source_id": source_id,
-                            "is_spr": is_spr,
-                            "refinery_in": refinery_in,
-                            "refinery_out": refinery_out,
-                            "grade": grade,
-                            "path": path,
-                            "objective_per_bbl": sum(float(data.get(cost_attribute, 0)) for data in edge_data),
-                            "cost_per_bbl": sum(float(data.get("cost_per_bbl", 0)) for data in edge_data),
-                            "transit_time_days": sum(float(data.get("transit_time_days", 0)) for data in edge_data),
-                            "chokepoints": [
-                                node_id for node_id in path
-                                if G.nodes[node_id].get("type") == "chokepoint"
-                            ],
-                        })
-            except nx.NetworkXNoPath:
-                continue
-    return candidates
 
 
 def deliverable_state(
@@ -408,7 +491,8 @@ def compute_pareto_routes(
     Args:
         G_disrupted: Graph after scenario application (deep copy — not mutated here).
         demand: Dict mapping refinery_out node IDs to their daily demand (bbl/day).
-        params: Parameters dict (for congestion_gamma if congestion penalty needed).
+        params: Parameters dict (routing_policy constraints — see disruption.py's
+            note on why the Cape cap replaced a cascading congestion penalty).
 
     Returns:
         Dict with three keys: 'cost_optimal', 'time_optimal', 'risk_optimal'.
@@ -437,7 +521,8 @@ def compute_pareto_routes(
         # to avoid network_simplex performance issues.
         data["weight"] = int(data.get("transit_time_days", 0))
     time_result = solve_min_cost_flow(
-        G_time, demand, cost_attribute="weight", policy_constraints=policy_constraints
+        G_time, demand, cost_attribute="weight", policy_constraints=policy_constraints,
+        apply_spr_last_resort_penalty=True,
     )
     time_result["label"] = "Fastest Route"
     time_result["optimization"] = "Minimizes transit time (days to delivery)"
@@ -445,15 +530,29 @@ def compute_pareto_routes(
     results["time_optimal"] = time_result
 
     # --- 3. Risk-optimal: minimize risk exposure (weight inversely proportional to node openness) ---
+    # Raw risk_score is blended with each node's flow_criticality (what share of
+    # baseline deliverable flow depends on it, precomputed once at startup —
+    # see api/main.py's lifespan) before taking the max: two equally-"58% open"
+    # nodes should NOT weigh the same if one is Hormuz (carries ~90% of
+    # baseline flow — nearly the whole network depends on it) and the other is
+    # an easily-substitutable minor source (a few percent of flow). The 0.5
+    # floor keeps a fully-substitutable node's risk contribution at half its raw
+    # value rather than zeroing it out entirely — a real reduction in available
+    # supply is never fully "free" even when alternatives exist.
     G_risk = copy.deepcopy(G_disrupted)
     for u, v, data in G_risk.edges(data=True):
         from_risk = G_risk.nodes[u].get("risk_score", 0.0)
         to_risk = G_risk.nodes[v].get("risk_score", 0.0)
-        max_risk = max(from_risk, to_risk)
+        from_crit = G_risk.nodes[u].get("flow_criticality", 1.0)
+        to_crit = G_risk.nodes[v].get("flow_criticality", 1.0)
+        from_effective = from_risk * (0.5 + 0.5 * from_crit)
+        to_effective = to_risk * (0.5 + 0.5 * to_crit)
+        max_risk = max(from_effective, to_effective)
         # Higher risk → higher cost → less preferred
         data["weight"] = (1.0 + max_risk * 10) * data.get("cost_per_bbl", 1.0)
     risk_result = solve_min_cost_flow(
-        G_risk, demand, cost_attribute="weight", policy_constraints=policy_constraints
+        G_risk, demand, cost_attribute="weight", policy_constraints=policy_constraints,
+        apply_spr_last_resort_penalty=True,
     )
     risk_result["label"] = "Lowest-Risk Route"
     risk_result["optimization"] = "Avoids high-risk corridors regardless of cost premium"

@@ -32,7 +32,7 @@ EVENT SCHEMA:
   "id": "string — a unique identifier you generate",
   "source": "string — the news source or domain if identifiable, else 'UNKNOWN'",
   "timestamp": "ISO 8601 UTC datetime — use the article date if given, else current time",
-  "entity": "string — the geographic entity, country, or corridor affected (exact name from article)",
+  "entity": "string — NEVER null, even for unrelated events. The geographic entity, country, or corridor affected (exact name from article) when relevant; for an unrelated story, use its main subject instead (e.g. 'India cricket team', 'Nvidia') — always a string.",
   "location": "string or null — more specific location if mentioned",
   "event_type": "one of: capacity_reduction | closure | reopening | price_shock | sanction | unrelated",
   "severity": "float in [0, 1] — 1.0 = complete closure of a major global corridor; 0 = no impact",

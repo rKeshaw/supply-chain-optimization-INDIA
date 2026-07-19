@@ -105,6 +105,11 @@ async def _apply_pipeline_result(app_state: dict, result: dict, origin: str, lab
         "label": label,
         "processed_at": datetime.now(timezone.utc).isoformat(),
         "recompute_triggered": result.get("recompute_triggered"),
+        # "unrelated" (genuinely irrelevant, e.g. a keyword-search false
+        # positive) vs "below_threshold" (a real but minor signal) vs
+        # "relevant" (triggered a full recompute) — lets the UI distinguish
+        # noise from signal instead of listing everything identically.
+        "reason": result.get("reason", "relevant" if result.get("recompute_triggered") else "below_threshold"),
         "latency_ms": result.get("latency_ms") or result.get("latency", {}).get("total_pipeline_ms"),
     })
     # Cap the in-memory log so a long-running process doesn't grow unbounded.
@@ -138,7 +143,7 @@ async def run_poll_cycle(app_state: dict) -> dict:
 
 
 async def live_sensing_loop(app_state: dict, stop_event: asyncio.Event) -> None:
-    """The background task itself. Runs until stop_event is set (app shutdown)."""
+    """The background task itself. Runs until stop_event is set (toggle-off or app shutdown)."""
     logger.info(f"Live sensing loop started (interval={LIVE_POLL_INTERVAL_S}s).")
     while not stop_event.is_set():
         try:
@@ -152,3 +157,38 @@ async def live_sensing_loop(app_state: dict, stop_event: asyncio.Event) -> None:
         except asyncio.TimeoutError:
             pass  # normal: interval elapsed, loop again
     logger.info("Live sensing loop stopped.")
+
+
+# ---------------------------------------------------------------------------
+# Runtime start/stop — lets an operator (or the UI toggle) flip live sensing
+# on or off mid-session instead of only at process startup via the env var.
+# The env var still picks the default at boot; these functions are what
+# POST /api/live/enable and /api/live/disable in api/main.py call.
+# ---------------------------------------------------------------------------
+
+def is_running(app_state: dict) -> bool:
+    task = app_state.get("live_task")
+    return task is not None and not task.done()
+
+
+async def start_live_loop(app_state: dict) -> bool:
+    """Start the background loop if it isn't already running. Idempotent."""
+    if is_running(app_state):
+        return True
+    stop_event = asyncio.Event()
+    app_state["live_stop_event"] = stop_event
+    app_state["live_task"] = asyncio.create_task(live_sensing_loop(app_state, stop_event))
+    return True
+
+
+async def stop_live_loop(app_state: dict) -> bool:
+    """Stop the background loop if it is running, and wait for it to exit. Idempotent."""
+    stop_event = app_state.get("live_stop_event")
+    task = app_state.get("live_task")
+    if stop_event is None or task is None:
+        return True
+    stop_event.set()
+    await task
+    app_state["live_task"] = None
+    app_state["live_stop_event"] = None
+    return True

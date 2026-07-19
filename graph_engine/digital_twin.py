@@ -86,12 +86,21 @@ def run_digital_twin(
     horizon_days: int = 30,
     initial_state: Optional[dict] = None,
     enable_live_weather: bool = False,
+    disable_rerouting: bool = False,
 ) -> list[dict]:
     """Simulate inventory, path-level arrivals, dispatches, and SPR support daily.
 
     ``enable_live_weather`` is opt-in: the default demo/backtest path stays fully
     deterministic and never blocks on the external marine API. Turn it on only
     when a live-telemetry overlay is genuinely wanted.
+
+    ``disable_rerouting`` is the "no adaptive rerouting" counterfactual: instead
+    of re-solving ``compute_pareto_routes`` against the disrupted network every
+    day, it keeps shipping via the exact same paths the optimizer chose before
+    the disruption, capped by whatever capacity those specific paths still have
+    — volume through a closed/degraded corridor is simply lost, with no search
+    for an alternative, ever, within the horizon. SPR draw still runs as normal
+    (it's a domestic reserve mechanism, not an import-routing decision).
     """
     from graph_engine.economic_model import compute_cascade
     from graph_engine.reserve_optimizer import optimize_spr_draw
@@ -123,9 +132,18 @@ def run_digital_twin(
     # At the start of a scenario, cargoes already ordered under normal routes
     # remain in the pipeline. Seed one daily arrival for every day of each
     # baseline path's transit time, then dispatches under the scenario take over.
-    if initial_state is None:
+    # Also the reference point for the no-rerouting counterfactual below.
+    baseline_routing = None
+    if initial_state is None or disable_rerouting:
         baseline_routing = compute_pareto_routes(G_baseline, demand, params)["cost_optimal"]
+    if initial_state is None:
         state["shipments_in_transit"] = _seed_steady_state_pipeline(baseline_routing)
+
+    no_reroute_allocations = None
+    if disable_rerouting:
+        no_reroute_allocations = _no_reroute_allocations(
+            baseline_routing.get("path_allocations", []), G_disrupted
+        )
 
     results = []
     for day in range(horizon_days):
@@ -133,9 +151,19 @@ def run_digital_twin(
         for refinery_out, volume in arrivals.items():
             state["refineries"][refinery_out].inventory_bbl += volume
 
-        # Decide today’s future dispatches from the disrupted network.
+        # Decide today's future dispatches from the disrupted network — unless
+        # rerouting is disabled, in which case keep dispatching the same
+        # pre-disruption paths at whatever volume they can still carry.
         try:
-            routing = compute_pareto_routes(G_disrupted, demand, params)["cost_optimal"]
+            if disable_rerouting:
+                total_volume = sum(a["volume_bbl_day"] for a in no_reroute_allocations)
+                routing = {
+                    "total_volume": total_volume,
+                    "feasible": total_volume > 0,
+                    "path_allocations": no_reroute_allocations,
+                }
+            else:
+                routing = compute_pareto_routes(G_disrupted, demand, params)["cost_optimal"]
             new_shipments = _shipments_from_path_allocations(routing.get("path_allocations", []))
             state["shipments_in_transit"].extend(new_shipments)
         except Exception:
@@ -226,6 +254,68 @@ def _shipment_from_allocation(allocation: dict) -> ShipmentInTransit:
         cost_per_bbl=float(allocation["cost_per_bbl"]),
         path=list(allocation["path"]),
     )
+
+
+def _no_reroute_allocations(baseline_allocations: list[dict], G_disrupted: nx.DiGraph) -> list[dict]:
+    """The "no adaptive rerouting" counterfactual: keep shipping via the exact
+    same paths the optimizer chose before the disruption, and lose whatever
+    volume those specific paths can no longer carry — never search for an
+    alternative. Two passes:
+
+    1. Per-path bottleneck: cap each path's volume by the tightest edge
+       capacity along that same path in the disrupted graph (a corridor
+       that's now closed or degraded carries less, or nothing).
+    2. Aggregate rebalance: several original paths can share one source,
+       chokepoint, or SPR facility even though each looks fine on its own
+       edge — mirrors the same aggregate capacity limit the real solver
+       enforces per node (see _solve_arc_based_flow) by proportionally
+       scaling down paths that collectively overrun a shared facility's
+       true capacity.
+    """
+    node_type = {n: data.get("type") for n, data in G_disrupted.nodes(data=True)}
+
+    capped = []
+    for alloc in baseline_allocations:
+        path = alloc["path"]
+        bottleneck = alloc["volume_bbl_day"]
+        broken = False
+        for u, v in zip(path, path[1:]):
+            if not G_disrupted.has_edge(u, v):
+                broken = True
+                break
+            bottleneck = min(bottleneck, float(G_disrupted[u][v].get("capacity", 0.0)))
+        if broken or bottleneck <= 1e-6:
+            continue
+        new_alloc = dict(alloc)
+        new_alloc["volume_bbl_day"] = bottleneck
+        capped.append(new_alloc)
+
+    def _aggregate_cap(node_id: str) -> Optional[float]:
+        if node_type.get(node_id) not in ("source", "spr", "chokepoint"):
+            return None
+        data = G_disrupted.nodes[node_id]
+        return float(data.get("capacity_bbl_day") or 0.0) * float(data.get("openness", 1.0))
+
+    for _ in range(5):  # a handful of passes converges quickly at realistic path-sharing depth
+        usage: dict[str, float] = {}
+        for a in capped:
+            for node_id in {a["source_id"]} | set(a.get("chokepoints", [])):
+                usage[node_id] = usage.get(node_id, 0.0) + a["volume_bbl_day"]
+
+        over_subscribed = False
+        for node_id, used in usage.items():
+            cap = _aggregate_cap(node_id)
+            if cap is None or cap <= 0 or used <= cap * 1.0001:
+                continue
+            over_subscribed = True
+            ratio = cap / used
+            for a in capped:
+                if node_id == a["source_id"] or node_id in a.get("chokepoints", []):
+                    a["volume_bbl_day"] *= ratio
+        if not over_subscribed:
+            break
+
+    return [a for a in capped if a["volume_bbl_day"] > 1e-6]
 
 
 def _advance_shipments(state: dict) -> dict[str, float]:

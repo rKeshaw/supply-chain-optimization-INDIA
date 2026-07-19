@@ -172,6 +172,7 @@ def apply_event_to_graph(
     G: nx.DiGraph,
     event,  # agents.schema.Event — avoid circular import
     params: dict,
+    decay_as_of: Optional[datetime] = None,
 ) -> nx.DiGraph:
     """
     Apply a validated Event to the graph's risk scores and return an updated graph.
@@ -183,6 +184,21 @@ def apply_event_to_graph(
         G: Current graph state.
         event: Validated Event object (from extraction_agent.parse).
         params: Parameters dict (for risk_decay_factor).
+        decay_as_of: Timestamp to decay existing risk toward, if different from
+            event.timestamp. Live/custom signals leave this None (decay uses the
+            event's own real timestamp — correct for genuine real-time
+            monitoring). The curated replay passes a separate, compressed
+            "narrative clock" here instead: replaying real 2025-2026 events with
+            their real calendar gaps (up to 224 days between some of them) would
+            decay each corridor's risk almost to zero before the next relevant
+            headline arrives, making one continuous, still-live crisis look like
+            a series of disconnected blips that keep "resolving" themselves —
+            the opposite of the escalating narrative the curated timeline and
+            the PS's own framing describe. event.timestamp itself is untouched
+            (still the real historical date, used for display/audit); only the
+            decay math and each touched element's last_updated bookkeeping use
+            this compressed clock, so subsequent replay steps decay against it
+            consistently.
 
     Returns:
         Updated graph with risk_score and openness adjusted for the affected element.
@@ -193,10 +209,11 @@ def apply_event_to_graph(
         return G
     decay = params.get("risk_decay_factor", {}).get("value", 0.92)
     G_updated = copy.deepcopy(G)
+    decay_timestamp = decay_as_of or event.timestamp
 
     # Decay every tracked risk value to the timestamp of the newly processed
-    # signal. This keeps replay and live event streams on the same time basis.
-    _decay_graph_risk_to_timestamp(G_updated, event.timestamp, decay, decay_risk_score)
+    # signal (or the compressed narrative clock, for replay — see decay_as_of above).
+    _decay_graph_risk_to_timestamp(G_updated, decay_timestamp, decay, decay_risk_score)
 
     if event.event_type == "unrelated" or event.affected_graph_element is None:
         return G_updated
@@ -218,7 +235,7 @@ def apply_event_to_graph(
 
         node_data["risk_score"] = new_risk
         node_data["openness"] = 1.0 - new_risk
-        node_data["last_updated"] = event.timestamp.isoformat()
+        node_data["last_updated"] = decay_timestamp.isoformat()
         _refresh_effective_capacities(G_updated)
         return G_updated
 
@@ -237,7 +254,7 @@ def apply_event_to_graph(
 
         edge_data["risk_score"] = new_risk
         edge_data["openness"] = 1.0 - new_risk
-        edge_data["last_updated"] = event.timestamp.isoformat()
+        edge_data["last_updated"] = decay_timestamp.isoformat()
         _refresh_effective_capacities(G_updated)
         return G_updated
 
@@ -316,6 +333,7 @@ def get_graph_state_json(G: nx.DiGraph, flow_dict: Optional[dict] = None) -> dic
             "lon": data.get("lon"),
             "openness": data.get("openness", 1.0),
             "risk_score": data.get("risk_score", 0.0),
+            "flow_criticality": data.get("flow_criticality", 1.0),
             "capacity_bbl_day": data.get("capacity_bbl_day"),
             "inventory_bbl": data.get("inventory_bbl"),
             "consumption_rate_bbl_day": data.get("consumption_rate_bbl_day"),

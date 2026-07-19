@@ -7,6 +7,7 @@
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/deck.gl@8.9.32/dist.min.js"></script>
+  <script src="https://unpkg.com/d3@7.9.0/dist/d3.min.js"></script>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -156,6 +157,14 @@
       animation: none;
     }
 
+    button.status-badge {
+      cursor: pointer;
+      font: inherit;
+      letter-spacing: normal;
+      transition: filter 0.15s;
+    }
+    button.status-badge:hover { filter: brightness(1.15); }
+
     /* Origin badges in the signal feed — distinguishes live-sensed signals from
        curated replay and manual submissions, so nothing is implied to be "live"
        that isn't. */
@@ -248,13 +257,13 @@
 
     .metric-strip {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 0.6rem;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 0.5rem;
       flex-shrink: 0;
     }
-    .metric-strip .metric-card { padding: 0.55rem 0.5rem; }
-    .metric-strip .metric-label { font-size: 0.6rem; margin-bottom: 0.15rem; }
-    .metric-strip .metric-value { font-size: 1.05rem; }
+    .metric-strip .metric-card { padding: 0.55rem 0.4rem; }
+    .metric-strip .metric-label { font-size: 0.58rem; margin-bottom: 0.15rem; }
+    .metric-strip .metric-value { font-size: 0.92rem; }
 
     /* ----------------------------------------------------
        Tabbed right panel
@@ -287,6 +296,23 @@
     .tab-content { flex: 1; min-height: 0; overflow-y: auto; padding: 1rem; }
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
+
+    .brief-role-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      padding: 0.25rem 0.6rem;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .brief-role-btn:hover { color: var(--text-secondary); }
+    .brief-role-btn.active { color: var(--accent-blue); border-color: var(--accent-blue); background: rgba(59,130,246,0.1); }
 
     /* Baseline route table */
     .baseline-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
@@ -344,6 +370,18 @@
 
     .btn-secondary:hover {
       background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Native <select> controls render their own background rather than
+       compositing the .btn-secondary translucent overlay reliably, which left
+       light text unreadable against the browser's default (light) control
+       background — visible only on :hover, when the OS applies its own
+       highlight. Force an explicit solid background on both the closed
+       control and its option list. */
+    select.btn-secondary,
+    select.btn-secondary option {
+      background-color: var(--bg-surface-solid);
+      color: var(--text-primary);
     }
 
     .timeline-progress {
@@ -413,6 +451,11 @@
       background: rgba(59, 130, 246, 0.05);
     }
 
+    /* Correctly-filtered noise (a cricket score, a chip announcement) — shown
+       dimmed rather than hidden, so filtering is demonstrably working instead
+       of just silently true. */
+    .feed-card.unrelated { opacity: 0.55; }
+
     .feed-meta {
       display: flex;
       justify-content: space-between;
@@ -473,6 +516,44 @@
     /* Prevent DeckGL mapbox logo from overlapping controls */
     .maplibregl-control-container { display: none; }
 
+    /* Network Graph view — topological alternative to the geospatial map,
+       same underlying graph_state, force-directed via D3. */
+    #knowledge-graph-view {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-radius: 12px;
+    }
+
+    .view-switch {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      z-index: 2;
+      display: flex;
+      gap: 0.15rem;
+      background: rgba(11, 15, 25, 0.85);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.25rem;
+    }
+    .view-switch-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .view-switch-btn:hover { color: var(--text-secondary); }
+    .view-switch-btn.active { background: var(--accent-blue); color: white; }
+
     /* Node styles */
     .node {
       cursor: pointer;
@@ -507,6 +588,13 @@
     .link.pipeline {
       stroke: var(--accent-emerald);
       stroke-width: 2.5;
+    }
+
+    .link.internal {
+      stroke: var(--text-muted);
+      stroke-width: 3;
+      stroke-opacity: 0.35;
+      stroke-dasharray: 2,2;
     }
 
     .link.disrupted {
@@ -714,7 +802,26 @@
       font-weight: 600;
       font-size: 0.775rem;
       margin-bottom: 0.5rem;
+      cursor: pointer;
     }
+
+    .route-chevron {
+      display: inline-block;
+      transition: transform 0.15s;
+      margin-right: 0.3rem;
+      color: var(--text-muted);
+    }
+    .route-option.expanded .route-chevron { transform: rotate(90deg); }
+
+    /* overflow-x here, not on an ancestor: .tab-content only sets overflow-y,
+       but per the CSS overflow spec that forces its own overflow-x to behave as
+       auto too — so without a scroll boundary of its own, this table's overflow
+       was being caught by .tab-content instead, making the WHOLE tab (card
+       borders, headers, everything) scroll sideways together. Scoping it here
+       keeps the card fixed and only the table area scrolls. */
+    .route-detail { display: none; margin-top: 0.65rem; overflow-x: auto; }
+    .route-option.expanded .route-detail { display: block; }
+    .route-detail .baseline-table { font-size: 0.68rem; }
 
     /* Route Transformation diff items — color-coded by change type */
     .change-item {
@@ -852,19 +959,20 @@
       </div>
       <div class="logo-text">
         <h1>Energy Resilience Digital Twin</h1>
-        <span>India Crude Supply Chain Defense & Anticipatory Sensing</span>
+        <span>India Crude Oil Supply Chain — Risk Monitoring &amp; Response Planning</span>
       </div>
     </div>
-    
+
     <div class="system-status">
       <div class="status-badge neutral" id="live-ws-badge">
         <div class="status-dot"></div>
         <span id="live-ws-label">Connecting…</span>
       </div>
-      <div class="status-badge">
-        <div class="status-dot"></div>
-        <span>Anticipatory Engine Active</span>
-      </div>
+      <button class="status-badge neutral" id="live-ingestion-badge" onclick="toggleLiveIngestion()"
+              title="Poll OFAC sanctions, GDELT news, and marine weather on an interval and process anything found through the pipeline">
+        <div class="status-dot" id="live-ingestion-dot"></div>
+        <span id="live-ingestion-label">Live Monitoring: Off</span>
+      </button>
     </div>
   </header>
 
@@ -875,7 +983,7 @@
       <div class="panel-header">
         <h2 class="panel-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Sensing Pipeline / Timeline
+          Signal Timeline
         </h2>
       </div>
       <div class="panel-content">
@@ -896,7 +1004,7 @@
         </div>
 
         <div class="signal-input-container">
-          <textarea class="signal-textarea" id="custom-signal-text" placeholder="Submit custom news signal or rumor to trigger the Anticipatory Pipeline..."></textarea>
+          <textarea class="signal-textarea" id="custom-signal-text" placeholder="Paste a news headline or report to process through the pipeline..."></textarea>
           <button class="btn btn-primary" style="width: 100%;" onclick="submitCustomSignal()">Submit Custom Signal</button>
         </div>
 
@@ -911,6 +1019,11 @@
     <section class="center-column">
       <div class="map-wrapper">
         <div id="map"></div>
+        <svg id="knowledge-graph-view" style="visibility: hidden; pointer-events: none;"></svg>
+        <div class="view-switch">
+          <button class="view-switch-btn active" data-view="map" onclick="setMapView('map')">Map</button>
+          <button class="view-switch-btn" data-view="graph" onclick="setMapView('graph')">Network Graph</button>
+        </div>
         <div class="map-controls">
           <div class="drill-label">Scenario library</div>
           <!-- Populated dynamically from GET /api/scenarios/list, alphabetically —
@@ -993,16 +1106,24 @@
           <div class="metric-label">SPR Days</div>
           <div class="metric-value green" id="metric-spr-cover">7.8d</div>
         </div>
+        <div class="metric-card" title="Delhi reference baseline × the model's projected retail price change — reflects this disruption once fully priced in, not the literal today's price (which stays administratively fixed until the next PPAC revision). State VAT makes actual prices vary; not a national figure.">
+          <div class="metric-label">Petrol (Expected)</div>
+          <div class="metric-value" id="metric-petrol-price">₹102.12</div>
+        </div>
+        <div class="metric-card" title="Delhi reference baseline × the model's projected retail price change — reflects this disruption once fully priced in, not the literal today's price (which stays administratively fixed until the next PPAC revision). State VAT makes actual prices vary; not a national figure.">
+          <div class="metric-label">Diesel (Expected)</div>
+          <div class="metric-value" id="metric-diesel-price">₹95.20</div>
+        </div>
       </div>
     </section>
 
     <!-- RIGHT PANEL: tabbed detail — Routes / Twin / Brief / Baseline -->
     <section class="panel">
       <div class="tab-bar">
-        <button class="tab-btn active" data-tab="tab-routes" onclick="switchTab('tab-routes', this)">Routes</button>
-        <button class="tab-btn" data-tab="tab-twin" onclick="switchTab('tab-twin', this)">Twin</button>
-        <button class="tab-btn" data-tab="tab-brief" onclick="switchTab('tab-brief', this)">Brief</button>
-        <button class="tab-btn" data-tab="tab-baseline" onclick="switchTab('tab-baseline', this)">Baseline</button>
+        <button class="tab-btn active" data-tab="tab-routes" onclick="switchTab('tab-routes', this)">Routing Options</button>
+        <button class="tab-btn" data-tab="tab-twin" onclick="switchTab('tab-twin', this)">30-Day Forecast</button>
+        <button class="tab-btn" data-tab="tab-brief" onclick="switchTab('tab-brief', this)">Decision Brief</button>
+        <button class="tab-btn" data-tab="tab-baseline" onclick="switchTab('tab-baseline', this)">Baseline Plan</button>
       </div>
       <div class="tab-content">
 
@@ -1016,13 +1137,21 @@
 
         <!-- TWIN tab: 30-day fulfillment forecast -->
         <div class="tab-pane" id="tab-twin">
-          <h3 style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.75rem; text-transform: uppercase;">Refinery Fulfillment Forecast (30-Day Twin)</h3>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+            <h3 style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin: 0;">Refinery Fulfillment Forecast</h3>
+            <label style="font-size: 0.7rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="twin-compare-toggle" onchange="simulateTwin()">
+              Compare: no-reroute baseline
+            </label>
+          </div>
           <div style="height: 220px; position: relative;">
             <canvas id="twin-chart" style="width: 100%; height: 100%;"></canvas>
           </div>
+          <div id="twin-compare-callout" style="display: none; margin-top: 0.75rem; padding: 0.6rem 0.75rem; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); font-size: 0.75rem; line-height: 1.5;"></div>
           <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.5;">
             Projected % of refinery demand met each day. Disruption impact is delayed by transit-time
             inertia (cargoes already at sea keep arriving), then the reserve buffers before the gap bites.
+            <span id="twin-compare-legend" style="display: none;"> Dashed line: a counterfactual system with no rerouting capability — it keeps shipping via the same corridors used before the disruption and simply loses whatever volume they can no longer carry.</span>
           </p>
         </div>
 
@@ -1044,7 +1173,14 @@
             </p>
           </div>
           <div class="brief-section">
-            <h3>3. Tactical Recommendation</h3>
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+              <h3 style="margin: 0;">3. Tactical Recommendation</h3>
+              <div id="brief-role-toggle" style="display: flex; gap: 0.35rem;">
+                <button type="button" class="brief-role-btn active" data-role="procurement" onclick="setBriefRole('procurement', this)">Procurement</button>
+                <button type="button" class="brief-role-btn" data-role="refiner" onclick="setBriefRole('refiner', this)">Refiner</button>
+                <button type="button" class="brief-role-btn" data-role="policymaker" onclick="setBriefRole('policymaker', this)">Policymaker</button>
+              </div>
+            </div>
             <p class="brief-text" id="brief-recommendation">
               Maintain current routes. SPR reserves standing at ~73% fill across Visakhapatnam, Mangalore, and Padur caverns.
             </p>
@@ -1112,6 +1248,7 @@
       loadScenarioList();
       connectLiveSocket();
       loadBaselineRoute();
+      loadCurrentRoutes();
     });
 
     // ----------------------------------------------------
@@ -1156,13 +1293,31 @@
             <b>Alternative routes.</b> ${r.options}
           </div>
           <h3 style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); margin: 0.9rem 0 0.5rem; text-transform: uppercase;">Optimal source → refinery allocation</h3>
+          <div style="overflow-x: auto;">
           <table class="baseline-table">
             <thead><tr><th>Source</th><th>Refinery</th><th>Grade</th><th>Via</th><th class="num">Vol</th><th class="num">$/bbl</th><th class="num">Days</th></tr></thead>
             <tbody>${rows}</tbody>
-          </table>`;
+          </table>
+          </div>`;
       } catch (err) {
         console.error("Failed to load baseline route:", err);
         document.getElementById("baseline-content").innerText = "Baseline route unavailable.";
+      }
+    }
+
+    // Populates the Routes tab immediately on load — otherwise it stays empty
+    // until the first signal/scenario/replay step, since that's the only thing
+    // that normally calls updateParetoOptions(). Also seeds lastCostAllocations
+    // so the very first real disruption's route-change diff compares against the
+    // true starting plan instead of an empty baseline.
+    async function loadCurrentRoutes() {
+      try {
+        const res = await fetch(`${API_URL}/api/routes/current`);
+        const data = await res.json();
+        updateParetoOptions(data);
+        APP_STATE.lastCostAllocations = extractCostAllocations(data);
+      } catch (err) {
+        console.error("Failed to load current routes:", err);
       }
     }
 
@@ -1207,6 +1362,29 @@
       }
     }
 
+    // Live-sensing toggle (OFAC sanctions / GDELT news / marine weather). The
+    // badge always reflects the backend's actual running state — set from
+    // GET /api/live/status on every refreshData() call — not just this tab's
+    // last click, so a toggle made from another tab or session stays honest here.
+    let liveIngestionEnabled = false;
+
+    function setLiveIngestionBadge(enabled) {
+      liveIngestionEnabled = enabled;
+      document.getElementById("live-ingestion-badge").className = enabled ? "status-badge" : "status-badge neutral";
+      document.getElementById("live-ingestion-label").innerText = `Live Monitoring: ${enabled ? "On" : "Off"}`;
+    }
+
+    async function toggleLiveIngestion() {
+      const endpoint = liveIngestionEnabled ? "/api/live/disable" : "/api/live/enable";
+      try {
+        const res = await fetch(`${API_URL}${endpoint}`, { method: "POST" });
+        const data = await res.json();
+        setLiveIngestionBadge(data.enabled);
+      } catch (err) {
+        console.error("Live ingestion toggle failed:", err);
+      }
+    }
+
     // Populate the scenario dropdown from the backend's named-scenario library,
     // sorted alphabetically by name — deliberately not in problem-statement or
     // any other order that would visually privilege one geography over another.
@@ -1246,6 +1424,7 @@
 
         updateTimelineStatus(repStatus, liveStatus);
         renderGraph(graph);
+        refreshGraphViewIfActive(graph);
         updateMetrics(vuln, spr);
 
         // Re-simulate digital twin forecast
@@ -1268,6 +1447,7 @@
 
     function updateTimelineStatus(status, liveStatus) {
       document.getElementById("replay-step-label").innerText = `${status.current_index} / ${status.total_events}`;
+      setLiveIngestionBadge(!!(liveStatus && liveStatus.enabled));
 
       // Merge the curated-replay log and the live-sensing log into one
       // chronological feed, each entry honestly labeled with where it came
@@ -1277,6 +1457,7 @@
         origin: "replay",
         headline: log.headline,
         latency_ms: log.result_summary.latency_ms,
+        reason: log.result_summary.reason,
         active: log.replay_step === status.current_index,
         sortKey: log.replay_step,
       }));
@@ -1284,6 +1465,7 @@
         origin: log.origin,
         headline: log.label,
         latency_ms: log.latency_ms,
+        reason: log.reason,
         active: false,
         sortKey: Date.parse(log.processed_at) / 1000,
       }));
@@ -1293,11 +1475,22 @@
       feed.innerHTML = "";
       merged.forEach(entry => {
         const originMeta = ORIGIN_LABELS[entry.origin] || { cls: "replay", text: entry.origin.toUpperCase() };
+        // "unrelated" means the extraction agent correctly determined this has
+        // nothing to do with energy supply chains (a cricket score, a chip
+        // announcement — two such cases are deliberately in the curated replay
+        // to demonstrate this filtering; a live news keyword search can also
+        // surface real false positives). Shown dimmed with an explicit
+        // FILTERED tag rather than hidden — proving the system discriminates
+        // is more useful than pretending it never saw the noise.
+        const isUnrelated = entry.reason === "unrelated";
         const card = document.createElement("div");
-        card.className = `feed-card ${entry.active ? "active" : ""}`;
+        card.className = `feed-card ${entry.active ? "active" : ""} ${isUnrelated ? "unrelated" : ""}`;
         card.innerHTML = `
           <div class="feed-meta">
-            <span class="origin-tag ${originMeta.cls}">${originMeta.text}</span>
+            <span style="display:flex;gap:0.3rem;align-items:center;">
+              <span class="origin-tag ${originMeta.cls}">${originMeta.text}</span>
+              ${isUnrelated ? '<span class="origin-tag" style="background:rgba(148,163,184,0.15);color:var(--text-muted);" title="Correctly classified as unrelated to energy supply chains — filtered before reaching the graph">FILTERED</span>' : ""}
+            </span>
             <span>Latency: ${entry.latency_ms ? entry.latency_ms.toFixed(0) + "ms" : "N/A"}</span>
           </div>
           <div class="feed-headline">${entry.headline}</div>
@@ -1412,11 +1605,15 @@
         const prevFlow = prevFlowById.get(e.id) ?? 0;
         const newFlow = e.flow_bbl_day || 0;
 
-        // Hide corridors that are closed AND were never carrying meaningful flow —
-        // but keep a closed corridor visible if it WAS carrying flow before, so it
-        // can render as the "abandoned route" ghost rather than silently vanishing.
-        const wasActivelyUsed = prevFlow >= ROUTE_CHANGE_FLOW_THRESHOLD;
-        if (effectiveOpenness <= 0.01 && !wasActivelyUsed) return false;
+        // A disrupted corridor always renders (dimmed/red per getColor below,
+        // not hidden) regardless of whether it happened to be carrying flow —
+        // a node/edge you just clicked to close should visibly show as closed.
+        // effective_openness <= 0.01 never occurs at baseline for an
+        // undisrupted edge (verified against the data), so this used to only
+        // ever suppress the ONE case that mattered: a just-disrupted corridor
+        // that wasn't part of the currently-active route vanishing instead of
+        // showing red, which read as "did my click even do anything?" rather
+        // than "closed as expected".
 
         // Classify the before->after change for this segment.
         if (prevFlow >= ROUTE_CHANGE_FLOW_THRESHOLD && newFlow < ROUTE_CHANGE_FLOW_THRESHOLD) {
@@ -1452,10 +1649,16 @@
           return 50;
         },
         getFillColor: d => {
-          if (d.type === "spr") return [16, 185, 129];
-          if (d.type.startsWith("refinery")) return [139, 92, 246]; // Purple
+          // Disruption always wins over the type color — an SPR facility or
+          // refinery that's been degraded needs to visibly show it, the same
+          // way a source node already does. Previously SPR/refinery checked
+          // FIRST and returned unconditionally, so disrupting one produced no
+          // visible change on the map at all (permanently emerald/purple
+          // regardless of openness).
           if (d.openness < 0.2) return [239, 68, 68];
           if (d.openness < 0.8) return [245, 158, 11];
+          if (d.type === "spr") return [16, 185, 129];
+          if (d.type.startsWith("refinery")) return [139, 92, 246]; // Purple
           return [59, 130, 246];
         },
         getLineColor: d => [255, 255, 255, 100],
@@ -1476,18 +1679,32 @@
           return [[d.src.lon, d.src.lat], [d.tgt.lon, d.tgt.lat]];
         },
         getColor: d => {
-          // Before->after diff takes priority over the normal risk/mode coloring:
-          // a route that just went dark reads as a fading ghost, not a normal
-          // closed-corridor red, so it's visually distinct from "always risky".
+          // A corridor that is ITSELF now degraded/closed always reads as
+          // disrupted (red) first — that has to outrank the before/after diff,
+          // not the other way around. The previous order checked "abandoned"
+          // (no longer carrying its former flow) BEFORE checking actual
+          // openness, so a corridor you had just closed — if it happened to be
+          // carrying real flow a moment earlier, e.g. Bab-el-Mandeb's own
+          // approach lanes — got the slate/gray "ghost" treatment instead of
+          // red. That slate color (148,163,184) has its highest channel in
+          // blue, so at the ghost's low opacity it reads as a lingering blue
+          // line still connecting to a node you just disabled, rather than a
+          // closed corridor. Gray ghosting is now reserved for what it was
+          // meant to show: a route that's still fully open but simply isn't
+          // the chosen path anymore (a cost/time tradeoff), not a route that's
+          // physically closed.
+          if ((d.effective_openness ?? 1) < 0.8) return [239, 68, 68, 200];
           if (d.changeStatus === "abandoned") return [148, 163, 184, 130];   // slate ghost
           if (d.changeStatus === "rerouted_onto") return [245, 158, 11, 235]; // amber highlight
-          if ((d.effective_openness ?? 1) < 0.8) return [239, 68, 68, 200];
           if (d.mode === 'pipeline') return [16, 185, 129, 200];
           return [59, 130, 246, 200];
         },
         getWidth: d => {
           if (d.changeStatus === "abandoned") {
-            // Sized by what it USED to carry, so its former importance still reads.
+            // Sized by what it USED to carry, so its former importance still
+            // reads — applies whether it's ghosted (still open, just unused)
+            // or now shown red (closed): either way, a corridor that used to
+            // carry a lot should render as a prominent line, not a hairline.
             const ratio = (d._prevFlow || 0) / Math.max(d.base_capacity_bbl_day || 1, 1);
             return Math.max(1, ratio * 28);
           }
@@ -1574,6 +1791,174 @@
           layers: allLayers
         });
       }
+    }
+
+    // ----------------------------------------------------
+    // Network Graph view — the same graph_state as a force-directed node-link
+    // diagram (supplier -> route -> chokepoint -> refinery -> reserve), rather
+    // than the geospatial projection above. Rebuilt from the identical payload
+    // on every renderGraph() call site, so it is never a static picture: it
+    // reflects whatever the graph currently is, including mid-disruption.
+    // ----------------------------------------------------
+    let graphSimulation = null;
+    const graphNodePositions = new Map(); // node id -> {x, y}, kept across renders so the layout settles instead of jumping each refresh
+
+    const NODE_RISK_COLOR = (openness) => {
+      if (openness < 0.2) return "#ef4444";
+      if (openness < 0.8) return "#f59e0b";
+      return "#3b82f6";
+    };
+    const NODE_TYPE_COLOR = { spr: "#10b981", refinery_in: "#8b5cf6", refinery_out: "#8b5cf6" };
+    const NODE_TYPE_RADIUS = { chokepoint: 10, bypass: 10, spr: 7, refinery_in: 7, refinery_out: 7, source: 6 };
+
+    function stripSplitSuffix(name) {
+      return (name || "").replace(/\s*[—–-]\s*(Inlet|Outlet)\s*$/i, "").trim() || name;
+    }
+
+    function renderKnowledgeGraph(graph) {
+      const container = document.getElementById("knowledge-graph-view");
+      const width = container.clientWidth || 800;
+      const height = container.clientHeight || 600;
+      const svg = d3.select(container)
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", `0 0 ${width} ${height}`);
+      svg.selectAll("text.graph-error").remove();
+
+      try {
+
+      // super_source/super_sink are solver plumbing, not real supply-chain
+      // entities — everything else (including chokepoints, shown as gate
+      // segments on the map) is a genuine node in this topological view.
+      const nodes = graph.nodes
+        .filter(n => n.id !== "super_source" && n.id !== "super_sink")
+        .map(n => Object.assign({}, n, graphNodePositions.get(n.id) || {}));
+      const includedNodeIds = new Set(nodes.map(n => n.id));
+
+      const links = graph.edges
+        .filter(e => includedNodeIds.has(e.from_id) && includedNodeIds.has(e.to_id))
+        .map(e => Object.assign({}, e, { source: e.from_id, target: e.to_id }));
+
+      if (!graphSimulation) {
+        graphSimulation = d3.forceSimulation()
+          .force("charge", d3.forceManyBody().strength(-160))
+          .force("collide", d3.forceCollide().radius(d => (NODE_TYPE_RADIUS[d.type] || 6) + 14));
+      }
+      // .nodes(nodes) MUST run before .force("link", ...) below: simulation.force()
+      // calls the new force's .initialize() immediately, using whatever nodes the
+      // simulation currently holds — on the first render that's [] (forceSimulation()
+      // defaults to no nodes), so forceLink would try to resolve every link's
+      // source/target against an empty set and throw "node not found: <id>" for
+      // the very first link, before .nodes(nodes) ever got a chance to run.
+      graphSimulation
+        .nodes(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id)
+          .distance(d => d.mode === "internal" ? 22 : d.mode === "pipeline" ? 55 : 90)
+          .strength(d => d.mode === "internal" ? 1 : 0.25))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .alpha(0.5)
+        .restart();
+
+      let g = svg.select("g.graph-root");
+      if (g.empty()) {
+        g = svg.append("g").attr("class", "graph-root");
+        svg.call(d3.zoom().scaleExtent([0.4, 3]).on("zoom", (event) => g.attr("transform", event.transform)));
+      }
+
+      const linkSel = g.selectAll("line.link").data(links, d => d.id || `${d.from_id}-${d.to_id}`);
+      linkSel.exit().remove();
+      const linkAll = linkSel.enter().append("line").attr("class", "link").merge(linkSel)
+        .attr("class", d => {
+          const openness = d.effective_openness ?? d.openness ?? 1.0;
+          const flowActive = (d.flow_bbl_day || 0) > (d.base_capacity_bbl_day || 1) * 0.02;
+          return "link " + (d.mode || "sea") + (openness < 0.8 ? " disrupted" : "") + (flowActive ? " active-flow" : "");
+        })
+        .style("stroke-width", d => {
+          if (d.mode === "internal") return 3;
+          const ratio = (d.flow_bbl_day || 0) / Math.max(d.base_capacity_bbl_day || 1, 1);
+          return Math.max(1.2, Math.min(7, ratio * 8));
+        })
+        .on("click", (event, d) => { if (d.id) clickEdge(d.id); });
+      linkAll.selectAll("title").remove();
+      linkAll.append("title").text(d =>
+        `${d.mode || "route"}\nFlow: ${((d.flow_bbl_day || 0) / 1000).toFixed(0)}k bpd\n` +
+        `Available: ${(((d.effective_openness ?? d.openness ?? 1)) * 100).toFixed(0)}%`
+      );
+
+      const nodeSel = g.selectAll("g.node").data(nodes, d => d.id);
+      nodeSel.exit().remove();
+      const nodeEnter = nodeSel.enter().append("g").attr("class", "node")
+        .call(d3.drag()
+          .on("start", (event, d) => { if (!event.active) graphSimulation.alphaTarget(0.15).restart(); d.fx = d.x; d.fy = d.y; })
+          .on("drag", (event, d) => { d.fx = event.x; d.fy = event.y; })
+          .on("end", (event, d) => { if (!event.active) graphSimulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+      nodeEnter.append("circle").attr("stroke", "rgba(255,255,255,0.4)").attr("stroke-width", 1.5);
+      nodeEnter.append("text").attr("class", "node-label").attr("dy", -12).attr("text-anchor", "middle");
+
+      const nodeAll = nodeEnter.merge(nodeSel);
+      nodeAll.select("circle")
+        .attr("r", d => NODE_TYPE_RADIUS[d.type] || 6)
+        // Disruption wins over the type color here too — same bug, same fix
+        // as the map's nodeLayer: NODE_TYPE_COLOR[d.type] is truthy for every
+        // SPR/refinery node, so it always short-circuited before
+        // NODE_RISK_COLOR ever ran, meaning disrupting an SPR or refinery
+        // node here never changed its color either.
+        .attr("fill", d => (d.openness ?? 1.0) < 0.8 ? NODE_RISK_COLOR(d.openness ?? 1.0) : (NODE_TYPE_COLOR[d.type] || NODE_RISK_COLOR(d.openness ?? 1.0)));
+      nodeAll.select("text").text(d => stripSplitSuffix(d.name));
+      nodeAll.on("click", (event, d) => clickNode(d.id));
+      nodeAll.selectAll("title").remove();
+      nodeAll.append("title").text(d =>
+        `${stripSplitSuffix(d.name)}\nType: ${d.type}\nRisk: ${((d.risk_score || 0) * 100).toFixed(0)}%\n` +
+        `Available: ${((d.openness ?? 1) * 100).toFixed(0)}%`
+      );
+
+      graphSimulation.on("tick", () => {
+        linkAll.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+               .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+        nodeAll.attr("transform", d => `translate(${d.x},${d.y})`);
+        nodes.forEach(n => graphNodePositions.set(n.id, { x: n.x, y: n.y }));
+      });
+
+      } catch (err) {
+        // Surface the failure on-canvas instead of leaving a silent blank SVG —
+        // this view has no other visible feedback path if D3 or the data shape
+        // is unexpectedly wrong.
+        console.error("Network graph render failed:", err);
+        svg.append("text").attr("class", "graph-error")
+          .attr("x", width / 2).attr("y", height / 2)
+          .attr("text-anchor", "middle")
+          .attr("fill", "#ef4444")
+          .attr("font-size", "13px")
+          .text(`Network graph failed to render: ${err.message}`);
+      }
+    }
+
+    function setMapView(mode) {
+      const isGraph = mode === "graph";
+      // visibility, not display: the map is a persistent MapLibre/deck.gl WebGL
+      // instance created once, and only recalculates its canvas size in response
+      // to its container's LAYOUT actually changing. display:none removes an
+      // element from layout entirely (collapsing it to 0x0), so un-hiding it via
+      // display:block later is a real resize the library has to notice and
+      // recover from — and dispatching a synthetic window "resize" event turned
+      // out not to be enough to make that happen reliably. visibility:hidden
+      // instead leaves the element fully laid out at its normal size the whole
+      // time (just unpainted and non-interactive per spec), so the map's canvas
+      // dimensions never actually change and there is nothing to recover from.
+      document.getElementById("map").style.visibility = isGraph ? "hidden" : "visible";
+      document.getElementById("map").style.pointerEvents = isGraph ? "none" : "auto";
+      document.getElementById("knowledge-graph-view").style.visibility = isGraph ? "visible" : "hidden";
+      document.getElementById("knowledge-graph-view").style.pointerEvents = isGraph ? "auto" : "none";
+      document.querySelectorAll(".view-switch-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.view === mode));
+      if (isGraph && APP_STATE.graph) renderKnowledgeGraph(APP_STATE.graph);
+    }
+
+    // Called alongside every renderGraph(graph) call site. Only actively
+    // re-renders the network graph when it is the visible view (harmless either
+    // way now that visibility:hidden keeps it correctly sized, but there's no
+    // reason to run the force simulation while nobody can see it).
+    function refreshGraphViewIfActive(graph) {
+      if (document.getElementById("knowledge-graph-view").style.visibility !== "hidden") renderKnowledgeGraph(graph);
     }
 
     // ----------------------------------------------------
@@ -1763,6 +2148,21 @@
 
       const cost = cascade.total_import_cost_increase_usd_bn || 0;
       setVal("metric-cost-impact", `$${cost.toFixed(1)}B`, cost > 20 ? "red" : (cost > 0 ? "amber" : "green"));
+
+      // Expected Delhi pump prices — the projected price once this
+      // disruption's severity is fully reflected, not the literal
+      // administered price on day zero (which the retail-revision lag keeps
+      // pinned at baseline). Computed server-side in economic_model.py
+      // (projected_retail_price_change_pct, not the lag-gated
+      // retail_price_change_pct) — not derived again here, so there's only
+      // one place this math lives.
+      const projectedRetailPct = cascade.projected_retail_price_change_pct || 0;
+      if (cascade.petrol_price_inr_per_liter != null) {
+        setVal("metric-petrol-price", `₹${cascade.petrol_price_inr_per_liter.toFixed(2)}`, projectedRetailPct > 0 ? "amber" : "green");
+      }
+      if (cascade.diesel_price_inr_per_liter != null) {
+        setVal("metric-diesel-price", `₹${cascade.diesel_price_inr_per_liter.toFixed(2)}`, projectedRetailPct > 0 ? "amber" : "green");
+      }
     }
 
     // ----------------------------------------------------
@@ -1788,6 +2188,40 @@
         .filter(n => n && (n.type === "chokepoint" || n.type === "bypass"))
         .map(n => n.name);
       return names.length ? names.join(" → ") : "direct route";
+    }
+
+    // Worst (max) EFFECTIVE risk among EVERY node a path visits — matching the
+    // backend's actual risk-optimal objective in routing.py, which blends raw
+    // risk_score with flow_criticality (share of baseline deliverable flow
+    // that depends on this node, precomputed once at startup) before taking
+    // the max: a node at, say, 58% risk that is easily substituted elsewhere
+    // contributes less than an equally-58%-risk node the whole network
+    // depends on (Hormuz carries ~90% of baseline flow; a typical minor source
+    // carries a few percent). The 0.5 floor means full substitutability halves
+    // a node's risk contribution, it never zeroes it out — losing real supply
+    // is never entirely "free". flow_criticality defaults to 1.0 (no discount)
+    // for node types this measure doesn't cover (SPR, refinery_in, bypass),
+    // so their risk is never silently understated. super_source/super_sink are
+    // excluded: solver plumbing, not real risk.
+    //
+    // (An earlier version blended with resilience.py's N-1 vulnerability_index
+    // instead — flow LOST if a node is degraded. That gave the wrong answer for
+    // Hormuz specifically: this network's Cape of Good Hope bypass can absorb
+    // almost all its normal volume at a cost/time penalty, so degrading Hormuz
+    // barely reduces deliverable volume, which scored it near the BOTTOM of
+    // that ranking instead of the top. flow_criticality — how much of the
+    // network currently depends on a node, not how much volume survives its
+    // loss — is what this blend actually needs.)
+    function pathRiskScore(path) {
+      const nodes = APP_STATE.graph?.nodes || [];
+      return (path || [])
+        .map(id => nodes.find(n => n.id === id))
+        .filter(n => n && n.id !== "super_source" && n.id !== "super_sink")
+        .reduce((max, n) => {
+          const crit = n.flow_criticality ?? 1.0;
+          const effective = (n.risk_score || 0) * (0.5 + 0.5 * crit);
+          return Math.max(max, effective);
+        }, 0);
     }
 
     function computeRouteChanges(prevAllocs, newAllocs) {
@@ -1857,6 +2291,7 @@
       APP_STATE.currentScenario = {};
       // Update Graph SVG
       renderGraph(res.graph_state);
+      refreshGraphViewIfActive(res.graph_state);
 
       // Update Metrics (volume + cost channels)
       renderEconomicImpact(res.cascade, res.cascade.shortfall_pct);
@@ -1893,6 +2328,8 @@
       const newAllocations = extractCostAllocations(res.routing);
       renderRouteChanges(computeRouteChanges(prevAllocations, newAllocations));
       APP_STATE.lastCostAllocations = newAllocations;
+      APP_STATE.lastBriefContext = { kind: "pipeline", res };
+      renderRoleRecommendation();
       simulateTwin();
     }
 
@@ -1900,13 +2337,173 @@
       const prevAllocations = APP_STATE.lastCostAllocations || [];
       APP_STATE.currentScenario = res.scenario_dict || {};
       renderGraph(res.graph_state);
+      refreshGraphViewIfActive(res.graph_state);
       // Volume shortfall comes from the flow delta; cost channel from the cascade.
       renderEconomicImpact(res.economic_cascade, res.flow_loss_pct);
       updateParetoOptions(res.routing);
       const newAllocations = extractCostAllocations(res.routing);
       renderRouteChanges(computeRouteChanges(prevAllocations, newAllocations));
       APP_STATE.lastCostAllocations = newAllocations;
+      renderScenarioBrief(res);
+      APP_STATE.lastBriefContext = { kind: "disruption", res };
+      renderRoleRecommendation();
       simulateTwin();
+    }
+
+    // /api/scenario/apply (node/edge clicks, named scenarios) never calls the
+    // explainer model — deliberately reserved for the full signal/replay
+    // pipeline, so an interactive map click never blocks on a network round
+    // trip. Without this, the Decision Brief tab silently kept showing
+    // whatever the last real signal produced (or the initial placeholder),
+    // which reads as "broken" when a disruption clearly changed everything
+    // else on screen. Built from the same response already driving the
+    // map/routes/economics, in the same voice as the model-authored brief:
+    // states findings and the specific reroute (volume/cost/transit), never
+    // mentions how it was produced.
+    function renderScenarioBrief(res) {
+      const c = res.economic_cascade || {};
+      const hasImpact = (res.flow_loss_pct || 0) > 0.5 || (c.landed_cost_change_pct || 0) > 0.5;
+      const comp = (res.routing && res.routing.pareto_comparison && res.routing.pareto_comparison.cost_optimal) || {};
+      const costRoute = res.routing && res.routing.pareto_routes && res.routing.pareto_routes.cost_optimal;
+      const feasible = costRoute ? costRoute.feasible : true;
+
+      const hb = document.getElementById("brief-headline");
+      hb.className = "brief-headline-bar";
+      // Lead with the money figure, not just the shortfall % — officials scan
+      // headlines for the dollar number first (same requirement given to the
+      // LLM-authored brief's own headline spec, kept consistent here).
+      const totalCostBn = c.total_import_cost_increase_usd_bn || 0;
+      const costClause = totalCostBn > 0.05 ? `, $${totalCostBn.toFixed(1)}B annualized import-bill impact` : "";
+      hb.innerText = hasImpact
+        ? `${res.scenario_name}: ${(res.flow_loss_pct || 0).toFixed(1)}% supply shortfall${costClause}`
+        : `${res.scenario_name}: no material supply shortfall`;
+      hb.style.borderLeftColor = hasImpact ? "var(--accent-red)" : "var(--accent-emerald)";
+      hb.style.background = hasImpact
+        ? "linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, rgba(0, 0, 0, 0.2) 100%)"
+        : "linear-gradient(90deg, rgba(16, 185, 129, 0.15) 0%, rgba(0, 0, 0, 0.2) 100%)";
+
+      document.getElementById("brief-situation").innerText =
+        `${res.scenario_name}. Flow ${((res.baseline_flow_bbl_day || 0)/1e3).toFixed(0)}k bpd → ` +
+        `${((res.disrupted_flow_bbl_day || 0)/1e3).toFixed(0)}k bpd (${(res.flow_loss_pct || 0).toFixed(1)}% loss).`;
+
+      document.getElementById("brief-impact").innerText =
+        `Crude +${(c.crude_price_change_pct || 0).toFixed(1)}%. Landed cost +${(c.landed_cost_change_pct || 0).toFixed(1)}%. ` +
+        `GDP drag ${(c.gdp_drag_pct || 0).toFixed(2)}pp if sustained beyond the retail pass-through lag. ` +
+        `Power sector: ${c.power_sector_stress || "NORMAL"}.`;
+
+      const action = comp.volume_delivered
+        ? `Reroute ${(comp.volume_delivered/1e3).toFixed(0)}k bbl/day at $${(comp.avg_cost_per_bbl || 0).toFixed(2)}/bbl, ` +
+          `${(comp.avg_transit_days || 0).toFixed(0)}-day transit.`
+        : "Hold current routing — no reroute indicated at this severity.";
+      const gapNote = feasible === false ? "Gap remains; draw SPR to cover the shortfall." : "Fully covered by the reroute.";
+
+      document.getElementById("brief-recommendation").innerText =
+        `${action} ${gapNote} Full corridor-by-corridor allocation in Routing Options.`;
+    }
+
+    // ----------------------------------------------------
+    // Role-segmented Decision Brief — same underlying res data (path
+    // allocations, fulfillment, cascade), reshaped into whichever paragraph a
+    // given reader actually needs, without a separate API call per role.
+    // ----------------------------------------------------
+    function setBriefRole(role, btn) {
+      APP_STATE.briefRole = role;
+      document.querySelectorAll(".brief-role-btn").forEach(b => b.classList.toggle("active", b === btn));
+      renderRoleRecommendation();
+    }
+
+    function nodeNameLookup(graphState) {
+      const map = {};
+      ((graphState && graphState.nodes) || []).forEach(n => { map[n.id] = n.name || n.id; });
+      return map;
+    }
+
+    async function renderRoleRecommendation() {
+      const ctx = APP_STATE.lastBriefContext;
+      const el = document.getElementById("brief-recommendation");
+      if (!ctx || !el) return;
+
+      const role = APP_STATE.briefRole || "procurement";
+      const res = ctx.res;
+      const cascade = (ctx.kind === "pipeline" ? res.cascade : res.economic_cascade) || {};
+      const costRoute = res.routing && res.routing.pareto_routes && res.routing.pareto_routes.cost_optimal;
+      const allocations = (costRoute && costRoute.path_allocations) || [];
+      const fulfillment = (costRoute && costRoute.fulfillment) || {};
+      const nodeNames = nodeNameLookup(res.graph_state);
+
+      if (role === "procurement") {
+        el.innerHTML = renderProcurementView(allocations, nodeNames);
+      } else if (role === "refiner") {
+        el.innerHTML = renderRefinerView(fulfillment, res.graph_state, nodeNames);
+      } else {
+        el.innerHTML = "Loading SPR reserve position…";
+        el.innerHTML = await renderPolicymakerView(cascade, ctx.kind === "pipeline" ? res.spr : null);
+      }
+    }
+
+    function renderProcurementView(allocations, nodeNames) {
+      const active = allocations
+        .filter(a => (a.volume_bbl_day || 0) > 1)
+        .sort((a, b) => (b.volume_bbl_day || 0) - (a.volume_bbl_day || 0));
+      if (!active.length) return "No active source allocation under current conditions.";
+
+      const total = active.reduce((s, a) => s + (a.volume_bbl_day || 0), 0);
+      const lines = active.slice(0, 5).map(a => {
+        const source = nodeNames[a.source_id] || a.source_id;
+        const corridor = (a.chokepoints && a.chokepoints.length)
+          ? a.chokepoints.map(cp => nodeNames[cp] || cp).join(" → ")
+          : "direct route, no chokepoint transit";
+        const tag = a.is_spr ? " <strong>[SPR emergency draw]</strong>" : "";
+        return `${source} (${a.grade})${tag} via ${corridor}: <strong>${(a.volume_bbl_day / 1e3).toFixed(0)}k bbl/day</strong> at $${(a.cost_per_bbl || 0).toFixed(2)}/bbl freight`;
+      });
+      const more = active.length > 5 ? ` (+${active.length - 5} more corridor${active.length - 5 === 1 ? "" : "s"} in Routing Options)` : "";
+      return `Procurement guidance — active source allocation, cost-optimal route:<br>` +
+        lines.join("<br>") +
+        `<br>Total: ${(total / 1e3).toFixed(0)}k bbl/day across ${active.length} corridor${active.length === 1 ? "" : "s"}.${more}`;
+    }
+
+    function renderRefinerView(fulfillment, graphState, nodeNames) {
+      const refineryNodes = ((graphState && graphState.nodes) || []).filter(n => n.type === "refinery_out");
+      if (!refineryNodes.length) return "No refinery data available for this scenario.";
+
+      const lines = refineryNodes.map(n => {
+        const runRate = (fulfillment[n.id] !== undefined ? fulfillment[n.id] * 100 : 100);
+        const consumption = n.consumption_rate_bbl_day || 0;
+        const daysOfCover = consumption > 0 ? (n.inventory_bbl || 0) / consumption : null;
+        const coverText = daysOfCover === null ? "n/a" : `${daysOfCover.toFixed(1)}d cover`;
+        const flag = runRate < 90 ? " ⚠" : "";
+        return `${nodeNames[n.id] || n.id}: <strong>${runRate.toFixed(0)}% run-rate</strong>, ${coverText}${flag}`;
+      });
+      const critical = refineryNodes.filter(n => (fulfillment[n.id] !== undefined ? fulfillment[n.id] * 100 : 100) < 90);
+      const summary = critical.length
+        ? `${critical.length} of ${refineryNodes.length} refineries below 90% run-rate — prioritize inbound scheduling to those sites.`
+        : `All ${refineryNodes.length} refineries at or above 90% run-rate.`;
+      return `Refiner guidance — run-rate and inventory cover by site:<br>${lines.join("<br>")}<br>${summary}`;
+    }
+
+    async function renderPolicymakerView(cascade, sprStatusFromRes) {
+      let spr = sprStatusFromRes;
+      if (!spr) {
+        try {
+          const res = await fetch(`${API_URL}/api/spr/status`);
+          spr = await res.json();
+        } catch (err) {
+          spr = null;
+        }
+      }
+
+      const gdpLine = `GDP drag: ${(cascade.gdp_drag_pct || 0).toFixed(2)}pp if the disruption is sustained beyond the retail pass-through lag.`;
+      const retailLine = cascade.retail_lag_days_remaining > 0
+        ? `Retail prices administratively held for ~${Math.round(cascade.retail_lag_days_remaining)} more day(s), then projected petrol ₹${(cascade.petrol_price_inr_per_liter || 0).toFixed(2)}/L, diesel ₹${(cascade.diesel_price_inr_per_liter || 0).toFixed(2)}/L once passed through.`
+        : `Retail: petrol ₹${(cascade.petrol_price_inr_per_liter || 0).toFixed(2)}/L, diesel ₹${(cascade.diesel_price_inr_per_liter || 0).toFixed(2)}/L (fully passed through).`;
+      const sprLine = spr
+        ? `SPR strategic reserve: ${spr.total_days_remaining.toFixed(1)} day(s) national cover, status ${spr.status}.`
+        : `SPR strategic reserve status unavailable.`;
+      const powerLine = cascade.power_sector_stress && cascade.power_sector_stress !== "NORMAL"
+        ? `Power sector stress flagged: ${cascade.power_sector_stress}.`
+        : "";
+
+      return `National-level framing:<br>${gdpLine}<br>${retailLine}<br>${sprLine}${powerLine ? "<br>" + powerLine : ""}`;
     }
 
     function updateParetoOptions(routing) {
@@ -1935,11 +2532,46 @@
                ⛽ SPR emergency draw: <strong>${(sprDraw/1e3).toFixed(0)}k bpd</strong></div>`
           : "";
 
+        // Per-corridor detail — the same source/refinery/grade/via/volume/cost/
+        // transit breakdown already shown in Baseline Plan and Route Transformation,
+        // now reachable per route by expanding the card instead of only on the map.
+        // Sorted by the metric THIS route actually optimizes for — cheapest lane
+        // first for Cost-Optimal, fastest first for Time-Optimal, safest first
+        // for Risk-Averse — so the ordering visibly demonstrates what the solver
+        // optimized, instead of a single fixed sort applied to every route alike.
+        const SORT_BY_OBJECTIVE = {
+          cost_optimal: (a, b) => (a.cost_per_bbl || 0) - (b.cost_per_bbl || 0),
+          time_optimal: (a, b) => (a.transit_time_days || 0) - (b.transit_time_days || 0),
+          risk_optimal: (a, b) => pathRiskScore(a.path) - pathRiskScore(b.path),
+        };
+        const detailRows = allocations
+          .slice()
+          .sort(SORT_BY_OBJECTIVE[key] || ((a, b) => (b.volume_bbl_day || 0) - (a.volume_bbl_day || 0)))
+          .map(a => `
+            <tr>
+              <td>${labelNode(a.source_id)}</td>
+              <td>${labelNode(a.refinery_out)}</td>
+              <td><span class="origin-tag ${a.grade === 'SWEET' ? 'custom' : 'replay'}" style="font-size:0.55rem;">${a.grade}</span></td>
+              <td>${transitLabel(a.path)}</td>
+              <td class="num">${((a.volume_bbl_day || 0)/1e3).toFixed(0)}k</td>
+              <td class="num">$${(a.cost_per_bbl || 0).toFixed(2)}</td>
+              <td class="num">${(a.transit_time_days || 0).toFixed(0)}d</td>
+              <td class="num">${(pathRiskScore(a.path) * 100).toFixed(0)}%</td>
+            </tr>`).join("");
+        const detailHtml = detailRows
+          ? `<div class="route-detail">
+               <table class="baseline-table">
+                 <thead><tr><th>Source</th><th>Refinery</th><th>Grade</th><th>Via</th><th class="num">Vol</th><th class="num">$/bbl</th><th class="num">Days</th><th class="num" title="Worst node's risk_score along this path, weighted by what share of baseline flow depends on that node — the same exposure measure the Risk-Averse route is solved to avoid. An easily-substituted node's risk counts for less than one the whole network relies on (e.g. Hormuz, ~90% of baseline flow) at the same raw risk level.">Risk</th></tr></thead>
+                 <tbody>${detailRows}</tbody>
+               </table>
+             </div>`
+          : `<div class="route-detail"><p style="font-size:0.7rem;color:var(--text-muted);">No allocations for this route.</p></div>`;
+
         const card = document.createElement("div");
         card.className = `route-option ${idx === 0 ? 'active' : ''}`;
         card.innerHTML = `
-          <div class="route-header">
-            <span>${labels[key]}</span>
+          <div class="route-header" onclick="toggleRouteDetail(this)">
+            <span><span class="route-chevron">▸</span>${labels[key]}</span>
             <span style="${opt.feasible ? 'color: var(--accent-emerald)' : 'color: var(--accent-red)'}">
               ${opt.feasible ? 'Feasible' : 'Gap Exists'}
             </span>
@@ -1950,9 +2582,14 @@
             <span>Transit: <strong>${(comp.avg_transit_days || 0).toFixed(1)} d</strong></span>
           </div>
           ${sprLine}
+          ${detailHtml}
         `;
         container.appendChild(card);
       });
+    }
+
+    function toggleRouteDetail(headerEl) {
+      headerEl.closest(".route-option").classList.toggle("expanded");
     }
 
     // ----------------------------------------------------
@@ -1960,26 +2597,69 @@
     // ----------------------------------------------------
     async function simulateTwin() {
       try {
+        const compare = document.getElementById("twin-compare-toggle")?.checked || false;
         const scenario = APP_STATE.currentScenario || {};
+        // A longer horizon gives the no-reroute counterfactual room to show its
+        // full trajectory (a severe closure can take well past 30 days to
+        // either recover or plateau) — the plain single-line view stays at 30.
+        const horizon = compare ? 47 : 30;
         const res = await fetch(`${API_URL}/api/twin/simulate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ custom_scenario: scenario, use_current_graph: true, horizon_days: 30 })
+          body: JSON.stringify({ custom_scenario: scenario, use_current_graph: true, horizon_days: horizon, compare_no_reroute: compare })
         });
         const data = await res.json();
-        
-        renderTwinChart(data.snapshots);
+
+        renderTwinChart(data.snapshots, compare ? data.no_reroute_snapshots : null);
+        renderTwinCompareCallout(compare ? data.summary : null);
       } catch (err) {
         console.error("Twin simulation forecast chart failed:", err);
       }
     }
 
-    function renderTwinChart(snapshots) {
+    function renderTwinCompareCallout(summary) {
+      const el = document.getElementById("twin-compare-callout");
+      const legend = document.getElementById("twin-compare-legend");
+      if (!el) return;
+      if (!summary) { el.style.display = "none"; if (legend) legend.style.display = "none"; return; }
+
+      const fmtDays = (d) => d === null || d === undefined ? "not stabilized within the simulated horizon" : `${d} day${d === 1 ? "" : "s"} to stabilize`;
+      const fmtUsd = (v) => `$${(Math.abs(v) / 1e6).toFixed(1)}M`;
+
+      const withDays = summary.days_to_stabilize_with_reroute;
+      const withoutDays = summary.days_to_stabilize_without_reroute;
+      const withCost = summary.total_cost_with_reroute_usd || 0;
+      const withoutCost = summary.total_cost_without_reroute_usd || 0;
+
+      let savingsLine;
+      if (withDays !== null && withDays !== undefined && withoutDays !== null && withoutDays !== undefined) {
+        const daysSaved = withoutDays - withDays;
+        const costDelta = withoutCost - withCost;
+        const daysPhrase = daysSaved > 0 ? `${daysSaved} day${daysSaved === 1 ? "" : "s"} sooner` : "no faster on this scenario";
+        const costPhrase = costDelta > 0 ? `${fmtUsd(costDelta)} lower reroute cost` : `${fmtUsd(costDelta)} higher reroute cost`;
+        savingsLine = `<strong>Adaptive routing wins by ${daysPhrase}, ${costPhrase}.</strong>`;
+      } else if (withDays !== null && withDays !== undefined) {
+        savingsLine = `<strong>Adaptive routing stabilizes; the no-reroute baseline never does within this horizon.</strong>`;
+      } else {
+        savingsLine = `Neither variant stabilizes within this horizon — this scenario is beyond what rerouting alone can fully absorb.`;
+      }
+
+      el.innerHTML = `
+        No-reroute baseline: ${fmtDays(withoutDays)}, ${fmtUsd(withoutCost)} total reroute cost.<br>
+        With adaptive rerouting: ${fmtDays(withDays)}, ${fmtUsd(withCost)} total reroute cost.<br>
+        ${savingsLine}
+      `;
+      el.style.display = "block";
+      if (legend) legend.style.display = "inline";
+    }
+
+    function renderTwinChart(snapshots, noRerouteSnapshots) {
       const canvas = document.getElementById("twin-chart");
       // Skip while the Twin tab is hidden (offsetParent === null) — the canvas has
       // no dimensions then; switchTab() re-renders it when the tab becomes visible.
-      if (!canvas || canvas.offsetParent === null) { APP_STATE.lastTwinSnapshots = snapshots; return; }
+      if (!canvas || canvas.offsetParent === null) { APP_STATE.lastTwinSnapshots = snapshots; APP_STATE.lastTwinNoReroute = noRerouteSnapshots; return; }
       APP_STATE.lastTwinSnapshots = snapshots;
+      APP_STATE.lastTwinNoReroute = noRerouteSnapshots;
       const ctx = canvas.getContext("2d");
       
       // Standardize canvas resolution for retina displays
@@ -2016,13 +2696,32 @@
         ctx.fillText(`${level}%`, 2, y + 3);
       });
 
-      // Plot line
+      const getX = (i) => 30 + (i / Math.max(days - 1, 1)) * (width - 55);
+      const getY = (val) => height - (val / 100) * (height - 30) - 15;
+
+      // No-reroute counterfactual: a muted dashed line drawn first (behind
+      // the main line), no area fill — it's the reference to beat, not the
+      // headline series.
+      if (noRerouteSnapshots && noRerouteSnapshots.length) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(245, 158, 11, 0.85)"; // amber, distinct from the blue primary line
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        noRerouteSnapshots.forEach((s, idx) => {
+          const x = getX(idx);
+          const y = getY(s.fulfillment_pct_overall);
+          if (idx === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Plot line (adaptive rerouting — the primary series)
       ctx.beginPath();
       ctx.strokeStyle = "var(--accent-blue)";
       ctx.lineWidth = 2.5;
-
-      const getX = (i) => 30 + (i / Math.max(days - 1, 1)) * (width - 55);
-      const getY = (val) => height - (val / 100) * (height - 30) - 15;
 
       snapshots.forEach((s, idx) => {
         const x = getX(idx);
@@ -2042,13 +2741,15 @@
       ctx.closePath();
       ctx.fill();
 
-      // Render day markers on X axis
+      // Render day markers on X axis (evenly spaced regardless of horizon length)
       ctx.fillStyle = "var(--text-muted)";
       ctx.font = "9px Inter";
-      [0, 10, 20, 30].forEach(day => {
-        const x = getX(day === 30 ? 29 : day);
+      const tickCount = 4;
+      for (let t = 0; t <= tickCount; t++) {
+        const day = Math.round((t / tickCount) * (days - 1));
+        const x = getX(day);
         ctx.fillText(`D${day}`, x - 8, height - 2);
-      });
+      }
     }
   </script>
 
