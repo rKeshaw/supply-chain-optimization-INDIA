@@ -103,7 +103,7 @@ def _save_seen_ids(ids: set[str]) -> None:
 def _compile_alias_patterns() -> list[tuple[re.Pattern, str]]:
     """Word-boundary regex for every alias, longest phrase first.
 
-    Raw substring containment (an earlier version of this function) produced
+    Raw substring containment produces
     false positives at an unusable rate — e.g. the 4-letter alias "oman"
     matching inside "Romania", or "iraq"-style short aliases matching inside
     an unrelated word in a long free-text remarks field. Word-boundary regex

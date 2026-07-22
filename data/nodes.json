@@ -15,7 +15,7 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "Virtual node for network flow computation",
     "_note": "Connects to all source nodes with unconstrained capacity"
   },
@@ -35,14 +35,14 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "Virtual node for network flow computation",
     "_note": "All refinery_out nodes connect to this"
   },
   {
     "id": "src_russia_urals",
     "type": "source",
-    "name": "Russia \u2014 Urals (Novorossiysk)",
+    "name": "Russia — Urals (Novorossiysk)",
     "lat": 44.6,
     "lon": 37.8,
     "capacity_bbl_day": 750000,
@@ -54,17 +54,20 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "PPAC/Reuters 2024-25: Urals grade (SOUR, ~31 API, ~1.5% S) exported from Black Sea (Novorossiysk) / Baltic (Primorsk). ~40% of Russia\u2192India = ~750 kb/d. Routes westbound via Suez/Bab.",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/Reuters 2024-25: Urals grade (SOUR, ~31 API, ~1.5% S) exported from Black Sea (Novorossiysk) / Baltic (Primorsk). ~40% of Russia→India = ~750 kb/d. Routes westbound via Suez/Bab.",
     "_note": "Split from the former combined src_russia node so ESPO and Urals originate at their real, geographically distinct ports.",
     "aliases": [
       "primorsk"
-    ]
+    ],
+    "crude_differential_usd_per_bbl": -10.0,
+    "supplier_group": "russia",
+    "_differential_source": "[VERIFIED] Urals into Indian ports traded at discounts of $10/bbl or more to Dated Brent for August delivery (Reuters, 7 July 2026), close to the widest since 2022. Urals had been at a PREMIUM from March to June while Middle East supply was disrupted, then flipped back as Gulf and Iranian exports were restored."
   },
   {
     "id": "src_russia_espo",
     "type": "source",
-    "name": "Russia \u2014 ESPO (Kozmino)",
+    "name": "Russia — ESPO (Kozmino)",
     "lat": 42.62,
     "lon": 133.09,
     "capacity_bbl_day": 1100000,
@@ -76,9 +79,12 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "PPAC/Reuters 2024-25: ESPO grade (SOUR, ~35 API, ~0.5% S) exported from Kozmino on the Pacific coast. ~60% of Russia\u2192India = ~1.10 Mb/d. Routes via South China Sea / Malacca.",
-    "_note": "Split from the former combined src_russia node. Pacific origin fixes the previously wrong-way (via-Suez) ESPO route."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/Reuters 2024-25: ESPO grade (SOUR, ~35 API, ~0.5% S) exported from Kozmino on the Pacific coast. ~60% of Russia→India = ~1.10 Mb/d. Routes via South China Sea / Malacca.",
+    "_note": "Split from the former combined src_russia node. Pacific origin fixes the previously wrong-way (via-Suez) ESPO route.",
+    "crude_differential_usd_per_bbl": -8.75,
+    "supplier_group": "russia",
+    "_differential_source": "[VERIFIED] ESPO assessed at ICE Brent minus $8.50-$9.00/bbl (February 2026), widened from $7.50-$8.00. Midpoint used. Older than the other assessments here."
   },
   {
     "id": "src_iran",
@@ -94,14 +100,17 @@
     "consumption_rate_bbl_day": null,
     "openness": 1.0,
     "risk_score": 0.0,
+    "sanctions_restricted": true,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "Hackathon baseline estimate.",
-    "_note": "Added to resolve missing src_iran alias.",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Capacity 500 kb/d reflects India's pre-sanctions import level: Iran supplied roughly 0.45-0.5 Mb/d to Indian refiners in FY2018-19, its last full year before the US secondary-sanctions waiver expired in May 2019. India has imported no Iranian crude since.",
+    "_note": "sanctions_restricted: excluded from the routing LP unless routing_policy.allow_sanctions_restricted_sources is true. Connected to chk_hormuz so an Iran event still moves the global benchmark, and so sanctions relief is a policy toggle rather than a data edit.",
     "aliases": [
       "iranian",
       "tehran"
-    ]
+    ],
+    "crude_differential_usd_per_bbl": -12.0,
+    "_differential_source": "[ESTIMATED] Iranian Heavy, ~30 API / 1.8% S. Sanctioned barrels clear at a deep discount well beyond quality; no transparent assessment exists. Only reachable at all when routing_policy.allow_sanctions_restricted_sources is enabled."
   },
   {
     "id": "src_iraq",
@@ -118,13 +127,15 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC 2024-25: Iraq ~19% of India imports = ~950 kb/d. Grade: Basrah Heavy (SOUR, ~29 API, ~3.5% sulfur) and Basrah Light (SOUR, ~33 API, ~2.9% sulfur). All transit via Hormuz.",
     "_note": "Exports primarily from Basrah/Fao terminals; all routed via Strait of Hormuz to India.",
     "aliases": [
       "iraqi",
       "basra"
-    ]
+    ],
+    "crude_differential_usd_per_bbl": 0.05,
+    "_differential_source": "[VERIFIED] SOMO set August Basrah Medium OSP for Asia at $1.35/bbl over the Oman/Dubai average, up from $0.30 in July. Converted to a Brent basis by subtracting the $1.30 Brent-Dubai EFS."
   },
   {
     "id": "src_saudi",
@@ -141,12 +152,14 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC 2024-25: Saudi Arabia ~16% of India imports = ~800 kb/d. Grade: Arab Heavy (SOUR, ~27 API, ~2.8% sulfur) and Arab Light (SOUR, ~33 API, ~1.8% sulfur).",
     "_note": "Term supply agreements with ARAMCO for Indian state refiners IOC/HPCL/BPCL. All transit via Hormuz.",
     "aliases": [
       "aramco"
-    ]
+    ],
+    "crude_differential_usd_per_bbl": -2.8,
+    "_differential_source": "[VERIFIED] Aramco set August Arab Light OSP for Asia at $1.50/bbl BELOW the Oman/Dubai average - an $11 cut from July, the largest in over two decades and a six-year low. Converted to a Brent basis by subtracting the $1.30 Brent-Dubai EFS."
   },
   {
     "id": "src_uae",
@@ -163,7 +176,7 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC 2024-25: UAE ~11% of India imports = ~550 kb/d. Grade: Murban (SWEET, ~40.5 API, ~0.6% sulfur) and Das Blend. Murban classified SWEET per API/sulfur threshold.",
     "_note": "UAE's dominant export grade to India is Murban from Abu Dhabi. All transit via Hormuz (Abu Dhabi/Ruwais terminals).",
     "aliases": [
@@ -171,7 +184,9 @@
       "abu dhabi",
       "murban",
       "adnoc"
-    ]
+    ],
+    "crude_differential_usd_per_bbl": 0.5,
+    "_differential_source": "[ESTIMATED] Murban, 40.5 API / 0.6% S - light sweet, better quality than Arab Light. ADNOC prices Murban outright through IFAD futures rather than as a differential (August OSP $80.01/bbl, down 21.2% from July's $101.48), so no directly comparable differential is published."
   },
   {
     "id": "src_kuwait",
@@ -188,13 +203,15 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC 2024-25: Kuwait ~5% of India imports = ~250 kb/d. Grade: Kuwait Export Crude (SOUR, ~31 API, ~2.5% sulfur). All transit via Hormuz.",
     "_note": "Kuwait Oil Company exports via Mina Abdulla and Shuaiba terminals; all via Hormuz.",
     "aliases": [
       "kuwaiti",
       "kpc"
-    ]
+    ],
+    "crude_differential_usd_per_bbl": -7.3,
+    "_differential_source": "[VERIFIED] KPC set Kuwait Export Crude at a $6.00/bbl discount to the Oman/Dubai average. This is the JUNE 2026 figure - no August assessment was found - so it is staler than the Saudi and Iraqi values. Converted to a Brent basis by subtracting the $1.30 Brent-Dubai EFS."
   },
   {
     "id": "src_nigeria",
@@ -211,13 +228,15 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC 2024-25: Nigeria ~4% of India imports = ~200 kb/d. Grade: Bonny Light (SWEET, ~35.4 API, ~0.14% sulfur). Key SWEET crude for complex refineries.",
     "_note": "Bonny Light terminals in Niger Delta. Reaches India via Red Sea/Suez or Cape of Good Hope reroute.",
     "aliases": [
       "nigerian",
       "bonny light"
-    ]
+    ],
+    "crude_differential_usd_per_bbl": 1.7,
+    "_differential_source": "[VERIFIED] Bonny Light offered at Dated Brent plus $1.70. NNPC publishes Nigerian OSPs as Dated Brent differentials, so no basis conversion is needed. The figure is a 2025 market offering rather than an August 2026 OSP."
   },
   {
     "id": "src_usa",
@@ -234,7 +253,7 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC 2024-25: USA ~3% of India imports = ~150 kb/d. Grade: WTI (SWEET, ~39.6 API, ~0.24% sulfur). Exports from Gulf Coast (Houston Ship Channel).",
     "_note": "Reaches India via Atlantic/Cape of Good Hope route (~30 days). Increasingly important SWEET source for complex refineries.",
     "aliases": [
@@ -242,7 +261,9 @@
       "us",
       "wti",
       "american"
-    ]
+    ],
+    "crude_differential_usd_per_bbl": 0.3,
+    "_differential_source": "[ESTIMATED] US Gulf Coast light sweet delivered to Asia, ~38 API / 0.4% S."
   },
   {
     "id": "src_oman",
@@ -259,9 +280,11 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-18T00:00:00Z",
-    "_source": "PPAC/DGCI&S: India sources ~40 countries; Oman is a long-standing term supplier (Oman Blend, medium/sour, ~33 API ~1.1% S). Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude from the ~17.4% non-top-5 share of 4.84 Mb/d; PPAC's exact country-wise table did not extract via automated fetch]. Refresh with exact PPAC figures.",
-    "_note": "Mina Al Fahal is on the Gulf of Oman, EAST of the Strait of Hormuz narrows (~56.3-56.6E) \u2014 Omani crude does not transit Hormuz. Routed directly to west-coast refineries, deliberately bypassing chk_hormuz, unlike every other Gulf source in this model. This is the key de-biasing addition: a real Gulf-adjacent supplier immune to the chokepoint every other Gulf source shares."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/DGCI&S: India sources ~40 countries; Oman is a long-standing term supplier (Oman Blend, medium/sour, ~33 API ~1.1% S). Capacity [ESTIMATED — residual-bucket order-of-magnitude from the ~17.4% non-top-5 share of 4.84 Mb/d; PPAC's exact country-wise table did not extract via automated fetch]. Refresh with exact PPAC figures.",
+    "_note": "Mina Al Fahal is on the Gulf of Oman, EAST of the Strait of Hormuz narrows (~56.3-56.6E) — Omani crude does not transit Hormuz. Routed directly to west-coast refineries, deliberately bypassing chk_hormuz, unlike every other Gulf source in this model. This is the key de-biasing addition: a real Gulf-adjacent supplier immune to the chokepoint every other Gulf source shares.",
+    "crude_differential_usd_per_bbl": -1.3,
+    "_differential_source": "[STRUCTURAL] Oman is one of the two grades in the Oman/Dubai marker basket, so its differential to Brent is the negative of the Brent-Dubai EFS by identity, not an estimate. EFS taken as $1.30."
   },
   {
     "id": "src_qatar",
@@ -278,9 +301,11 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-18T00:00:00Z",
-    "_source": "Qatar Marine crude, ~35 API, ~1.5% S \u2014 deep-Gulf term supplier via Ras Laffan. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude, see Oman note].",
-    "_note": "Ras Laffan is inside the Gulf; Qatari crude transits Hormuz like Saudi/Iraq/Kuwait."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Qatar Marine crude, ~35 API, ~1.5% S — deep-Gulf term supplier via Ras Laffan. Capacity [ESTIMATED — residual-bucket order-of-magnitude, see Oman note].",
+    "_note": "Ras Laffan is inside the Gulf; Qatari crude transits Hormuz like Saudi/Iraq/Kuwait.",
+    "crude_differential_usd_per_bbl": -2.5,
+    "_differential_source": "[ESTIMATED] Qatar Marine, ~33 API / 1.9% S - medium sour, positioned near Arab Light."
   },
   {
     "id": "src_kazakhstan",
@@ -297,19 +322,21 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-18T00:00:00Z",
-    "_source": "CPC Blend (Tengiz/Kashagan), ~45 API, ~0.5-0.6% S \u2014 light, comparatively sweet grade despite sharing a Black Sea loading area with Russian Urals. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude, opportunistic/spot volumes to India].",
-    "_note": "Exported from the CPC Marine Terminal at Yuzhnaya Ozereyevka, ~9km from Novorossiysk \u2014 the same Black Sea loading area as src_russia_urals, but a distinct country and a materially lighter/sweeter grade. Demonstrates the grade constraint is independent of shared shipping geography, not just shared politics.",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "CPC Blend (Tengiz/Kashagan), ~45 API, ~0.5-0.6% S — light, comparatively sweet grade despite sharing a Black Sea loading area with Russian Urals. Capacity [ESTIMATED — residual-bucket order-of-magnitude, opportunistic/spot volumes to India].",
+    "_note": "Exported from the CPC Marine Terminal at Yuzhnaya Ozereyevka, ~9km from Novorossiysk — the same Black Sea loading area as src_russia_urals, but a distinct country and a materially lighter/sweeter grade. Demonstrates the grade constraint is independent of shared shipping geography, not just shared politics.",
     "aliases": [
       "cpc blend",
       "cpc",
       "tengiz"
-    ]
+    ],
+    "crude_differential_usd_per_bbl": -1.5,
+    "_differential_source": "[ESTIMATED] CPC Blend, ~45 API / 0.55% S - light sweet, but freight-disadvantaged into Asia. Asian buying rose in 2026 as European demand eased, widening CPC discounts by roughly $1/bbl."
   },
   {
     "id": "src_venezuela",
     "type": "source",
-    "name": "Venezuela (Jos\u00e9 Terminal)",
+    "name": "Venezuela (José Terminal)",
     "lat": 10.22,
     "lon": -64.68,
     "capacity_bbl_day": 180000,
@@ -321,14 +348,16 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-18T00:00:00Z",
-    "_source": "Merey/Boscan heavy sour blends. Reuters/OilPrice (2026) name Venezuela among the fastest-growing diversification suppliers as Indian refiners reduced Russian intake. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude].",
-    "_note": "Routed via Cape of Good Hope \u2014 same southern-Atlantic logic as the existing USA route; no Panama/Suez shortcut advantage for VLCCs bound for India."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Merey/Boscan heavy sour blends. Reuters/OilPrice (2026) name Venezuela among the fastest-growing diversification suppliers as Indian refiners reduced Russian intake. Capacity [ESTIMATED — residual-bucket order-of-magnitude].",
+    "_note": "Routed via Cape of Good Hope — same southern-Atlantic logic as the existing USA route; no Panama/Suez shortcut advantage for VLCCs bound for India.",
+    "crude_differential_usd_per_bbl": -9.0,
+    "_differential_source": "[VERIFIED] Merey-16 and Hamaca traded at $8.50-$9.50/bbl under Brent futures in late January 2026. Highly unstable: offers ranged from -$13 to -$22/bbl earlier that month depending on cargo and destination. Midpoint of the traded range used."
   },
   {
     "id": "src_brazil",
     "type": "source",
-    "name": "Brazil (Porto do A\u00e7u)",
+    "name": "Brazil (Porto do Açu)",
     "lat": -22.83,
     "lon": -41.05,
     "capacity_bbl_day": 170000,
@@ -340,9 +369,11 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-18T00:00:00Z",
-    "_source": "Lula/Tupi pre-salt crude, ~28-30 API, ~0.3-0.4% S (light, low-sulfur). Reuters/OilPrice (2026) name Brazil among the fastest-growing diversification suppliers. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude].",
-    "_note": "South Atlantic route via Cape of Good Hope is the natural path \u2014 no detour through the Northern Hemisphere chokepoints this model already covers."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Lula/Tupi pre-salt crude, ~28-30 API, ~0.3-0.4% S (light, low-sulfur). Reuters/OilPrice (2026) name Brazil among the fastest-growing diversification suppliers. Capacity [ESTIMATED — residual-bucket order-of-magnitude].",
+    "_note": "South Atlantic route via Cape of Good Hope is the natural path — no detour through the Northern Hemisphere chokepoints this model already covers.",
+    "crude_differential_usd_per_bbl": -0.5,
+    "_differential_source": "[ESTIMATED] Tupi/Lula, ~29 API / 0.35% S - medium sweet, low sulphur but heavier."
   },
   {
     "id": "src_angola",
@@ -359,9 +390,11 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-18T00:00:00Z",
-    "_source": "Girassol/Cabinda light-sweet crudes (~31-32 API, ~0.35-0.4% S). Named alongside Nigeria as a growing West-African diversification supplier. Capacity [ESTIMATED \u2014 residual-bucket order-of-magnitude].",
-    "_note": "Routed via Cape of Good Hope only, matching Nigeria's real post-Houthi primary route (the pre-2024 Suez/Bab route is not modeled here to keep the addition tight)."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Girassol/Cabinda light-sweet crudes (~31-32 API, ~0.35-0.4% S). Named alongside Nigeria as a growing West-African diversification supplier. Capacity [ESTIMATED — residual-bucket order-of-magnitude].",
+    "_note": "Routed via Cape of Good Hope only, matching Nigeria's real post-Houthi primary route (the pre-2024 Suez/Bab route is not modeled here to keep the addition tight).",
+    "crude_differential_usd_per_bbl": 0.8,
+    "_differential_source": "[ESTIMATED] Cabinda, ~32 API / 0.15% S - medium sweet, positioned below Bonny Light on gravity."
   },
   {
     "id": "chk_hormuz",
@@ -369,7 +402,7 @@
     "name": "Strait of Hormuz",
     "lat": 26.5,
     "lon": 56.5,
-    "capacity_bbl_day": 2550000,
+    "capacity_bbl_day": 3140000,
     "grade_compatibility": [
       "SWEET",
       "SOUR"
@@ -379,12 +412,14 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "EIA World Oil Transit Chokepoints 2024: global flow 20.7 Mb/d. India-specific capacity set to sum of Iraq+Saudi+UAE+Kuwait exports to India = 2,550,000 bbl/day (all Middle Eastern sources transit here). Global figure used for context only.",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "EIA World Oil Transit Chokepoints 2024: global flow 20.7 Mb/d. India-specific capacity = sum of India-bound volumes that physically transit here: Iraq 950k + Saudi 800k + UAE 550k + Kuwait 250k + Qatar 90k + Iran 500k = 3,140,000 bbl/day. Iran's latent volume is included so this physical capacity does not silently change meaning when routing_policy.allow_sanctions_restricted_sources is toggled; India lifts none of it today. Previously 2,550,000, which omitted Qatar and Iran even though both load inside the strait.",
     "_note": "Narrowest point is 21 nautical miles wide. Only 2-mile-wide shipping lanes in each direction. ~40-45% of India's crude imports transit here per EIA/PS.",
     "aliases": [
       "hormuz strait"
-    ]
+    ],
+    "global_transit_bbl_day": 20000000,
+    "has_sea_alternative": false
   },
   {
     "id": "chk_bab",
@@ -392,7 +427,7 @@
     "name": "Bab-el-Mandeb / Red Sea",
     "lat": 12.5,
     "lon": 43.5,
-    "capacity_bbl_day": 950000,
+    "capacity_bbl_day": 1010000,
     "grade_compatibility": [
       "SWEET",
       "SOUR"
@@ -402,13 +437,15 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "EIA 2024: global Bab-el-Mandeb flow dropped to 4.1 Mb/d (from 9.3 Mb/d in 2023) due to Houthi attacks. India-specific capacity = Russia Urals route (750k) + Nigeria via Suez (200k) = 950,000 bbl/day. The Houthi disruption is already partially modeled in the risk baseline.",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "EIA 2024: global Bab-el-Mandeb flow dropped to 4.1 Mb/d (from 9.3 Mb/d in 2023) due to Houthi attacks. India-specific = the same serial flow that clears Suez immediately upstream: Russia Urals 750k + Nigeria 200k + Kazakhstan CPC 60k = 1,010,000 bbl/day.",
     "_note": "Key risk corridor: Houthi attacks in 2024-2025 have already demonstrated real disruption. Risk score elevated in demo scenarios.",
     "aliases": [
       "bab al mandeb",
       "gulf of aden"
-    ]
+    ],
+    "global_transit_bbl_day": 4100000,
+    "has_sea_alternative": true
   },
   {
     "id": "chk_suez",
@@ -416,7 +453,7 @@
     "name": "Suez Canal",
     "lat": 30.5,
     "lon": 32.3,
-    "capacity_bbl_day": 950000,
+    "capacity_bbl_day": 1010000,
     "grade_compatibility": [
       "SWEET",
       "SOUR"
@@ -426,12 +463,14 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "EIA 2024: Suez+SUMED combined 4.8 Mb/d globally. India capacity set equal to chk_bab (950k) as flows are serial on the Urals/West Africa route. Canal can accommodate up to Suezmax vessels.",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "EIA 2024: Suez+SUMED combined 4.8 Mb/d globally. India-specific = sum of India-bound volumes transiting the canal: Russia Urals 750k + Nigeria 200k + Kazakhstan CPC 60k = 1,010,000 bbl/day. Suez is UPSTREAM of Bab-el-Mandeb on every India-bound route (Bosphorus -> Mediterranean -> Suez -> Red Sea -> Bab).",
     "_note": "Connected to chk_bab in series for westbound-to-India routes (Russia Urals, Nigeria). The 2021 Ever Given blockage demonstrated real disruption risk.",
     "aliases": [
       "sumed"
-    ]
+    ],
+    "global_transit_bbl_day": 4800000,
+    "has_sea_alternative": true
   },
   {
     "id": "chk_malacca",
@@ -439,7 +478,7 @@
     "name": "Strait of Malacca",
     "lat": 2.5,
     "lon": 102.0,
-    "capacity_bbl_day": 1700000,
+    "capacity_bbl_day": 1100000,
     "grade_compatibility": [
       "SWEET",
       "SOUR"
@@ -449,12 +488,14 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "EIA 2024: Malacca global flow 22.5 Mb/d. India-specific: Russia ESPO (1,100k) + ME crude to east coast via Indian Ocean (600k) = 1,700,000 bbl/day. Used by east-coast refineries (Paradip, Vizag) receiving ESPO and some Gulf crude.",
-    "_note": "India's east coast refineries receive ESPO crude (Russia) primarily through this strait. Lowest risk chokepoint in our network \u2014 no active threat actors as of 2026.",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "EIA 2024: Malacca global flow 22.5 Mb/d. India-specific = Russia ESPO from Kozmino (1,100,000 bbl/day), which is the only India-bound crude flow that genuinely transits this strait. Previously 1,700,000, which added 600k of 'ME crude to east coast via Indian Ocean' - that component was an artefact of routing Persian Gulf cargoes to Paradip/Vizag via Malacca, 2,590 km east of Paradip. Those cargoes now sail directly around Sri Lanka.",
+    "_note": "India's east coast refineries receive ESPO crude (Russia) primarily through this strait. Lowest risk chokepoint in our network — no active threat actors as of 2026.",
     "aliases": [
       "malacca strait"
-    ]
+    ],
+    "global_transit_bbl_day": 22500000,
+    "has_sea_alternative": true
   },
   {
     "id": "chk_cog",
@@ -462,7 +503,7 @@
     "name": "Cape of Good Hope",
     "lat": -34.4,
     "lon": 18.5,
-    "capacity_bbl_day": 1000000,
+    "capacity_bbl_day": 830000,
     "grade_compatibility": [
       "SWEET",
       "SOUR"
@@ -472,14 +513,14 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "EIA 2024: Cape of Good Hope reroute flows rose to 9.3 Mb/d in 2024 (from 6.2 Mb/d in 2023) due to Houthi-induced Red Sea diversion. India-specific bypass capacity estimated at 1,000,000 bbl/day \u2014 constrained by vessel scheduling lead time and port throughput, not the route itself. Labeled [ESTIMATED].",
-    "_note": "NOT a chokepoint \u2014 this is a BYPASS ROUTE. openness is always 1.0, risk_score always 0.0. Its higher cost comes from edge attributes (extra ~10-14 days, +$1.5-2/bbl freight). The EIA data shows this route is actively used today."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "EIA 2024: Cape of Good Hope reroute flows rose to 9.3 Mb/d in 2024 (from 6.2 Mb/d in 2023) due to Houthi-induced Red Sea diversion. India-specific = sum of Atlantic-basin sources routed around the Cape: Nigeria 200k + Venezuela 180k + Brazil 170k + USA 150k + Angola 130k = 830,000 bbl/day.",
+    "_note": "NOT a chokepoint — this is a BYPASS ROUTE. openness is always 1.0, risk_score always 0.0. Its higher cost comes from edge attributes (extra ~10-14 days, +$1.5-2/bbl freight). The EIA data shows this route is actively used today."
   },
   {
     "id": "ref_jamnagar_in",
     "type": "refinery_in",
-    "name": "Jamnagar (Reliance) \u2014 Inlet",
+    "name": "Jamnagar (Reliance) — Inlet",
     "lat": 22.46,
     "lon": 70.07,
     "capacity_bbl_day": 1364000,
@@ -492,8 +533,8 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "Reliance Industries Annual Report 2024-25: 68.2 MMTPA combined capacity (33.0 MMTPA DTA + 35.2 MMTPA SEZ). Conversion: 1 MMTPA = 20,000 bbl/day. Grade: NCI 21.1, capable of 216+ crude grades including ultra-heavy SOUR. Classified SWEET+SOUR.",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "68.2 MMTPA (33.0 DTA + 35.2 SEZ), the PPAC/MoPNG installed-capacity basis, converted at 7.33 bbl/tonne to 1,364,000 bbl/day. AMBIGUOUS: Reliance reports the site at 1.24 million barrels per STREAM day (660,000 DTA + 580,000 SEZ), which is a different metric - stream-day capacity excludes turnaround downtime and implies ~61.7 MMTPA. Some tabulations list only the 35.4 MMTPA DTA unit, and one source gives 74 MMTPA for the wider complex. The MMTPA basis is used here because every other refinery in this file is on it.",
     "_note": "World's largest single-location refinery complex. Located on Gulf of Kutch, Gujarat. Receives crude via Single-Point Mooring (SPM) at Sikka terminal.",
     "aliases": [
       "sikka"
@@ -502,7 +543,7 @@
   {
     "id": "ref_jamnagar_out",
     "type": "refinery_out",
-    "name": "Jamnagar (Reliance) \u2014 Outlet",
+    "name": "Jamnagar (Reliance) — Outlet",
     "lat": 22.46,
     "lon": 70.07,
     "capacity_bbl_day": 1364000,
@@ -510,19 +551,19 @@
       "SWEET",
       "SOUR"
     ],
-    "inventory_bbl": 4092000,
+    "inventory_bbl": 20460000,
     "consumption_rate_bbl_day": 1364000,
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "Same as ref_jamnagar_in. Initial inventory set to 3 days \u00d7 consumption_rate = 3 \u00d7 1,364,000 = 4,092,000 bbl (operational buffer).",
-    "_note": "Outlet node for flow conservation. Inventory drain rate = consumption_rate_bbl_day."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "68.2 MMTPA (33.0 DTA + 35.2 SEZ), the PPAC/MoPNG installed-capacity basis, converted at 7.33 bbl/tonne to 1,364,000 bbl/day. AMBIGUOUS: Reliance reports the site at 1.24 million barrels per STREAM day (660,000 DTA + 580,000 SEZ), which is a different metric - stream-day capacity excludes turnaround downtime and implies ~61.7 MMTPA. Some tabulations list only the 35.4 MMTPA DTA unit, and one source gives 74 MMTPA for the wider complex. The MMTPA basis is used here because every other refinery in this file is on it.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
   },
   {
     "id": "ref_paradip_in",
     "type": "refinery_in",
-    "name": "Paradip (IOCL) \u2014 Inlet",
+    "name": "Paradip (IOCL) — Inlet",
     "lat": 20.31,
     "lon": 86.61,
     "capacity_bbl_day": 300000,
@@ -534,33 +575,33 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC Refinery Capacity 2024-25: Paradip 15.0 MMTPA = 300,000 bbl/day. Designed for high-sulfur (SOUR) crudes with advanced hydrocracker and coker units. Located at Paradip Port, Odisha.",
-    "_note": "East coast refinery. Receives primarily ESPO (Russia) and Middle East SOUR crudes via Bay of Bengal. Does NOT have significant SWEET crude processing capacity \u2014 classified SOUR only."
+    "_note": "East coast refinery. Receives primarily ESPO (Russia) and Middle East SOUR crudes via Bay of Bengal. Does NOT have significant SWEET crude processing capacity — classified SOUR only."
   },
   {
     "id": "ref_paradip_out",
     "type": "refinery_out",
-    "name": "Paradip (IOCL) \u2014 Outlet",
+    "name": "Paradip (IOCL) — Outlet",
     "lat": 20.31,
     "lon": 86.61,
     "capacity_bbl_day": 300000,
     "grade_compatibility": [
       "SOUR"
     ],
-    "inventory_bbl": 900000,
+    "inventory_bbl": 4500000,
     "consumption_rate_bbl_day": 300000,
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "Same as ref_paradip_in. Initial inventory = 3 days \u00d7 300,000 = 900,000 bbl.",
-    "_note": "Outlet node."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Same as ref_paradip_in. Initial inventory = 3 days × 300,000 = 900,000 bbl.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
   },
   {
     "id": "ref_vizag_in",
     "type": "refinery_in",
-    "name": "Visakh / Vizag (HPCL) \u2014 Inlet",
+    "name": "Visakh / Vizag (HPCL) — Inlet",
     "lat": 17.69,
     "lon": 83.22,
     "capacity_bbl_day": 300000,
@@ -573,7 +614,7 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC 2024-25: Vizag 15.0 MMTPA = 300,000 bbl/day. Post-modernization with LC-Max unit allows processing of heavy and bottom-of-barrel feedstocks, both SWEET and SOUR. Located at Visakhapatnam Port, Andhra Pradesh.",
     "_note": "East coast refinery. Co-located with ISPRL Visakhapatnam SPR facility. Grade: SWEET+SOUR after modernization.",
     "aliases": [
@@ -583,7 +624,7 @@
   {
     "id": "ref_vizag_out",
     "type": "refinery_out",
-    "name": "Visakh / Vizag (HPCL) \u2014 Outlet",
+    "name": "Visakh / Vizag (HPCL) — Outlet",
     "lat": 17.69,
     "lon": 83.22,
     "capacity_bbl_day": 300000,
@@ -591,19 +632,19 @@
       "SWEET",
       "SOUR"
     ],
-    "inventory_bbl": 900000,
+    "inventory_bbl": 4500000,
     "consumption_rate_bbl_day": 300000,
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "Same as ref_vizag_in. Initial inventory = 3 \u00d7 300,000 = 900,000 bbl.",
-    "_note": "Outlet node."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Same as ref_vizag_in. Initial inventory = 3 × 300,000 = 900,000 bbl.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
   },
   {
     "id": "ref_mangalore_in",
     "type": "refinery_in",
-    "name": "Mangalore (MRPL) \u2014 Inlet",
+    "name": "Mangalore (MRPL) — Inlet",
     "lat": 12.91,
     "lon": 74.86,
     "capacity_bbl_day": 300000,
@@ -616,14 +657,14 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC 2024-25: MRPL 15.0 MMTPA = 300,000 bbl/day. Processes crudes from 18-46 API gravity range (broadest range of any Indian refinery per MRPL disclosures). SWEET+SOUR flexibility confirmed.",
     "_note": "West coast refinery. Co-located with ISPRL Mangalore SPR. Receives crude via SPM buoy off Mangalore coast."
   },
   {
     "id": "ref_mangalore_out",
     "type": "refinery_out",
-    "name": "Mangalore (MRPL) \u2014 Outlet",
+    "name": "Mangalore (MRPL) — Outlet",
     "lat": 12.91,
     "lon": 74.86,
     "capacity_bbl_day": 300000,
@@ -631,19 +672,19 @@
       "SWEET",
       "SOUR"
     ],
-    "inventory_bbl": 900000,
+    "inventory_bbl": 4500000,
     "consumption_rate_bbl_day": 300000,
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "Same as ref_mangalore_in. Initial inventory = 3 \u00d7 300,000 = 900,000 bbl.",
-    "_note": "Outlet node."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Same as ref_mangalore_in. Initial inventory = 3 × 300,000 = 900,000 bbl.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
   },
   {
     "id": "ref_kochi_in",
     "type": "refinery_in",
-    "name": "Kochi (BPCL) \u2014 Inlet",
+    "name": "Kochi (BPCL) — Inlet",
     "lat": 9.94,
     "lon": 76.27,
     "capacity_bbl_day": 310000,
@@ -656,7 +697,7 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
+    "last_updated": "2026-02-27T00:00:00Z",
     "_source": "PPAC 2024-25: BPCL Kochi 15.5 MMTPA = 310,000 bbl/day. Equipped with SPM for VLCCs, diverse crude basket. SWEET+SOUR confirmed per BPCL disclosures.",
     "_note": "West coast refinery, southernmost of the five. Receives crude via SPM in Arabian Sea. BPCL is expanding this refinery.",
     "aliases": [
@@ -666,7 +707,7 @@
   {
     "id": "ref_kochi_out",
     "type": "refinery_out",
-    "name": "Kochi (BPCL) \u2014 Outlet",
+    "name": "Kochi (BPCL) — Outlet",
     "lat": 9.94,
     "lon": 76.27,
     "capacity_bbl_day": 310000,
@@ -674,14 +715,14 @@
       "SWEET",
       "SOUR"
     ],
-    "inventory_bbl": 930000,
+    "inventory_bbl": 4650000,
     "consumption_rate_bbl_day": 310000,
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "Same as ref_kochi_in. Initial inventory = 3 \u00d7 310,000 = 930,000 bbl.",
-    "_note": "Outlet node."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Same as ref_kochi_in. Initial inventory = 3 × 310,000 = 930,000 bbl.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
   },
   {
     "id": "spr_vizag",
@@ -700,9 +741,9 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "ISPRL public disclosures: Visakhapatnam capacity 1.33 MMT = 9.78 Mb (conversion: 1 MMT crude \u2248 7.35 barrels). Rounded to 9.8 Mb; 73% fill assumed from MoPNG statements (~Q3 2025). Fill = 0.73 \u00d7 9,800,000 = 7,154,000 \u2248 7.17 Mb. Max discharge: [ESTIMATED] ~85,000 bbl/day based on facility design specs (no public figure available).",
-    "_note": "Underground rock cavern storage. Located adjacent to HPCL Vizag refinery \u2014 emergency pipeline connects directly."
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "ISPRL public disclosures: Visakhapatnam capacity 1.33 MMT = 9.78 Mb (conversion: 1 MMT crude ≈ 7.35 barrels). Rounded to 9.8 Mb; 73% fill assumed from MoPNG statements (~Q3 2025). Fill = 0.73 × 9,800,000 = 7,154,000 ≈ 7.17 Mb. Max discharge: [ESTIMATED] ~85,000 bbl/day based on facility design specs (no public figure available).",
+    "_note": "Underground rock cavern storage. Located adjacent to HPCL Vizag refinery — emergency pipeline connects directly."
   },
   {
     "id": "spr_mangalore",
@@ -721,8 +762,8 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "ISPRL: Mangalore capacity 1.50 MMT = 11.025 Mb. ~73% fill = 8.05 Mb \u2248 8.08 Mb. Max discharge [ESTIMATED]: ~95,000 bbl/day.",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "ISPRL: Mangalore capacity 1.50 MMT = 11.025 Mb. ~73% fill = 8.05 Mb ≈ 8.08 Mb. Max discharge [ESTIMATED]: ~95,000 bbl/day.",
     "_note": "Underground cavern at Padur outskirts, operationally linked to MRPL Mangalore refinery."
   },
   {
@@ -742,8 +783,568 @@
     "openness": 1.0,
     "risk_score": 0.0,
     "confidence": 1.0,
-    "last_updated": "2026-07-15T00:00:00Z",
-    "_source": "ISPRL: Padur capacity 2.50 MMT = 18.375 Mb. ~73% fill = 13.41 Mb \u2248 13.48 Mb. Max discharge [ESTIMATED]: ~160,000 bbl/day (largest facility).",
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "ISPRL: Padur capacity 2.50 MMT = 18.375 Mb. ~73% fill = 13.41 Mb ≈ 13.48 Mb. Max discharge [ESTIMATED]: ~160,000 bbl/day (largest facility).",
     "_note": "Largest SPR facility. Located near Udupi district, Karnataka. Serves both Mangalore and Kochi refineries via pipeline."
+  },
+  {
+    "id": "port_salaya",
+    "type": "port",
+    "name": "Salaya Crude Terminal (Gulf of Kutch)",
+    "lat": 22.32,
+    "lon": 69.6,
+    "capacity_bbl_day": 500000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Origin of IndianOil's 2,663 km Salaya-Mathura crude pipeline (SMPL), installed capacity 25 MMTPA, which supplies the Koyali, Mathura and Panipat refineries. Modelled as its own node because a crude pipeline must originate at a marine terminal; folding it into a sea lane would hide both the terminal and the pipeline."
+  },
+  {
+    "id": "port_vadinar",
+    "type": "port",
+    "name": "Vadinar Crude Terminal (BPCL)",
+    "lat": 22.28,
+    "lon": 69.7,
+    "capacity_bbl_day": 156000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Origin of the 937 km Vadinar-Bina crude pipeline, installed capacity 7.8 MMTPA, the sole crude supply to the BORL Bina refinery. Physically adjacent to the Nayara Vadinar refinery but a separate BPCL installation, so it is modelled separately rather than merged."
+  },
+  {
+    "id": "port_mundra",
+    "type": "port",
+    "name": "Mundra Crude Terminal (Gulf of Kutch)",
+    "lat": 22.74,
+    "lon": 69.7,
+    "capacity_bbl_day": 393000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Origin of two crude pipelines: IndianOil's 1,194 km Mundra-Panipat line (8.4 MMTPA) and HMEL's 1,017 km Mundra-Bathinda line (11.25 MMTPA). Capacity 19.65 MMTPA is the sum of the two."
+  },
+  {
+    "id": "port_paradip",
+    "type": "port",
+    "name": "Paradip Crude Terminal (Odisha)",
+    "lat": 20.27,
+    "lon": 86.68,
+    "capacity_bbl_day": 708000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "Paradip marine crude receipt terminal, Odisha. 708,000 bbl/day = the IOCL Paradip refinery's 300,000 bbl/day intake at the berth plus the 408,000 bbl/day (20.4 MMTPA) throughput of the Paradip-Haldia-Barauni crude pipeline (PHBPL) originating here. The refinery takes crude at the terminal, not through the pipeline, so the two are additive."
+  },
+  {
+    "id": "ref_vadinar_in",
+    "type": "refinery_in",
+    "name": "Vadinar (Nayara Energy) — Inlet",
+    "lat": 22.29,
+    "lon": 69.72,
+    "capacity_bbl_day": 400000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 20.0 MMTPA. India's second-largest single-site refinery. Receives crude at its own Vadinar SPM in the Gulf of Kutch. Majority Rosneft-linked ownership; the principal processor of Russian Urals in India, and itself the subject of EU sanctions listed in July 2025 -- the most geopolitically exposed refinery in the country and the most conspicuous omission from the previous 5-refinery model.",
+    "_note": "Crude receipt: coastal."
+  },
+  {
+    "id": "ref_vadinar_out",
+    "type": "refinery_out",
+    "name": "Vadinar (Nayara Energy) — Outlet",
+    "lat": 22.29,
+    "lon": 69.72,
+    "capacity_bbl_day": 400000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 6000000,
+    "consumption_rate_bbl_day": 400000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 20.0 MMTPA. India's second-largest single-site refinery. Receives crude at its own Vadinar SPM in the Gulf of Kutch. Majority Rosneft-linked ownership; the principal processor of Russian Urals in India, and itself the subject of EU sanctions listed in July 2025 -- the most geopolitically exposed refinery in the country and the most conspicuous omission from the previous 5-refinery model.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_mumbai_bpcl_in",
+    "type": "refinery_in",
+    "name": "Mumbai (BPCL) — Inlet",
+    "lat": 19.0,
+    "lon": 72.9,
+    "capacity_bbl_day": 240000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 12.0 MMTPA. Mahul, Maharashtra. Receives crude via the Jawahar Dweep offshore terminal in Mumbai harbour.",
+    "_note": "Crude receipt: coastal."
+  },
+  {
+    "id": "ref_mumbai_bpcl_out",
+    "type": "refinery_out",
+    "name": "Mumbai (BPCL) — Outlet",
+    "lat": 19.0,
+    "lon": 72.9,
+    "capacity_bbl_day": 240000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 3600000,
+    "consumption_rate_bbl_day": 240000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 12.0 MMTPA. Mahul, Maharashtra. Receives crude via the Jawahar Dweep offshore terminal in Mumbai harbour.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_chennai_cpcl_in",
+    "type": "refinery_in",
+    "name": "Manali / Chennai (CPCL) — Inlet",
+    "lat": 13.16,
+    "lon": 80.26,
+    "capacity_bbl_day": 210000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 10.5 MMTPA. Chennai Petroleum Corporation, an IOCL subsidiary. Receives crude at Chennai port. This is India's only other east-coast import refinery besides Paradip and Visakhapatnam.",
+    "_note": "Crude receipt: coastal."
+  },
+  {
+    "id": "ref_chennai_cpcl_out",
+    "type": "refinery_out",
+    "name": "Manali / Chennai (CPCL) — Outlet",
+    "lat": 13.16,
+    "lon": 80.26,
+    "capacity_bbl_day": 210000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 3150000,
+    "consumption_rate_bbl_day": 210000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 10.5 MMTPA. Chennai Petroleum Corporation, an IOCL subsidiary. Receives crude at Chennai port. This is India's only other east-coast import refinery besides Paradip and Visakhapatnam.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_mumbai_hpcl_in",
+    "type": "refinery_in",
+    "name": "Mumbai (HPCL) — Inlet",
+    "lat": 19.01,
+    "lon": 72.89,
+    "capacity_bbl_day": 190000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 9.5 MMTPA. Mahul, Maharashtra. Shares the Jawahar Dweep receipt terminal with the adjacent BPCL refinery.",
+    "_note": "Crude receipt: coastal."
+  },
+  {
+    "id": "ref_mumbai_hpcl_out",
+    "type": "refinery_out",
+    "name": "Mumbai (HPCL) — Outlet",
+    "lat": 19.01,
+    "lon": 72.89,
+    "capacity_bbl_day": 190000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 2850000,
+    "consumption_rate_bbl_day": 190000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 9.5 MMTPA. Mahul, Maharashtra. Shares the Jawahar Dweep receipt terminal with the adjacent BPCL refinery.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_haldia_in",
+    "type": "refinery_in",
+    "name": "Haldia (IOCL) — Inlet",
+    "lat": 22.03,
+    "lon": 88.1,
+    "capacity_bbl_day": 160000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 8.0 MMTPA. West Bengal. Receives crude at Haldia Dock and is also a delivery point on the Paradip-Haldia-Barauni crude pipeline; both routes are modelled.",
+    "_note": "Crude receipt: coastal."
+  },
+  {
+    "id": "ref_haldia_out",
+    "type": "refinery_out",
+    "name": "Haldia (IOCL) — Outlet",
+    "lat": 22.03,
+    "lon": 88.1,
+    "capacity_bbl_day": 160000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 2400000,
+    "consumption_rate_bbl_day": 160000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 8.0 MMTPA. West Bengal. Receives crude at Haldia Dock and is also a delivery point on the Paradip-Haldia-Barauni crude pipeline; both routes are modelled.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_panipat_in",
+    "type": "refinery_in",
+    "name": "Panipat (IOCL) — Inlet",
+    "lat": 29.33,
+    "lon": 76.97,
+    "capacity_bbl_day": 300000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 15.0 MMTPA (expansion to 25 MMTPA under way). Haryana. Landlocked: fed by the Salaya-Mathura pipeline and by the Mundra-Panipat pipeline.",
+    "_note": "Crude receipt: inland."
+  },
+  {
+    "id": "ref_panipat_out",
+    "type": "refinery_out",
+    "name": "Panipat (IOCL) — Outlet",
+    "lat": 29.33,
+    "lon": 76.97,
+    "capacity_bbl_day": 300000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 4500000,
+    "consumption_rate_bbl_day": 300000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 15.0 MMTPA (expansion to 25 MMTPA under way). Haryana. Landlocked: fed by the Salaya-Mathura pipeline and by the Mundra-Panipat pipeline.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_koyali_in",
+    "type": "refinery_in",
+    "name": "Koyali / Vadodara (IOCL) — Inlet",
+    "lat": 22.4,
+    "lon": 73.13,
+    "capacity_bbl_day": 274000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 13.7 MMTPA (expansion to 18 MMTPA under way). Gujarat. Landlocked: fed by the Salaya-Mathura crude pipeline from the Gulf of Kutch.",
+    "_note": "Crude receipt: inland."
+  },
+  {
+    "id": "ref_koyali_out",
+    "type": "refinery_out",
+    "name": "Koyali / Vadodara (IOCL) — Outlet",
+    "lat": 22.4,
+    "lon": 73.13,
+    "capacity_bbl_day": 274000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 4110000,
+    "consumption_rate_bbl_day": 274000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 13.7 MMTPA (expansion to 18 MMTPA under way). Gujarat. Landlocked: fed by the Salaya-Mathura crude pipeline from the Gulf of Kutch.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_bathinda_in",
+    "type": "refinery_in",
+    "name": "Guru Gobind Singh, Bathinda (HMEL) — Inlet",
+    "lat": 30.03,
+    "lon": 74.95,
+    "capacity_bbl_day": 226000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 11.3 MMTPA. HPCL-Mittal Energy, Punjab. Landlocked: fed exclusively by the 1,017 km Mundra-Bathinda crude pipeline. The single largest refinery missing from the previous model.",
+    "_note": "Crude receipt: inland."
+  },
+  {
+    "id": "ref_bathinda_out",
+    "type": "refinery_out",
+    "name": "Guru Gobind Singh, Bathinda (HMEL) — Outlet",
+    "lat": 30.03,
+    "lon": 74.95,
+    "capacity_bbl_day": 226000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 3390000,
+    "consumption_rate_bbl_day": 226000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 11.3 MMTPA. HPCL-Mittal Energy, Punjab. Landlocked: fed exclusively by the 1,017 km Mundra-Bathinda crude pipeline. The single largest refinery missing from the previous model.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_mathura_in",
+    "type": "refinery_in",
+    "name": "Mathura (IOCL) — Inlet",
+    "lat": 27.47,
+    "lon": 77.72,
+    "capacity_bbl_day": 160000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 8.0 MMTPA. Uttar Pradesh. Landlocked: fed by the Salaya-Mathura crude pipeline.",
+    "_note": "Crude receipt: inland."
+  },
+  {
+    "id": "ref_mathura_out",
+    "type": "refinery_out",
+    "name": "Mathura (IOCL) — Outlet",
+    "lat": 27.47,
+    "lon": 77.72,
+    "capacity_bbl_day": 160000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 2400000,
+    "consumption_rate_bbl_day": 160000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 8.0 MMTPA. Uttar Pradesh. Landlocked: fed by the Salaya-Mathura crude pipeline.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_bina_in",
+    "type": "refinery_in",
+    "name": "Bina (BORL / BPCL) — Inlet",
+    "lat": 24.18,
+    "lon": 78.23,
+    "capacity_bbl_day": 156000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 7.8 MMTPA. Bharat Oman Refineries, Madhya Pradesh. Landlocked: fed exclusively by the 937 km Vadinar-Bina crude pipeline.",
+    "_note": "Crude receipt: inland."
+  },
+  {
+    "id": "ref_bina_out",
+    "type": "refinery_out",
+    "name": "Bina (BORL / BPCL) — Outlet",
+    "lat": 24.18,
+    "lon": 78.23,
+    "capacity_bbl_day": 156000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 2340000,
+    "consumption_rate_bbl_day": 156000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 7.8 MMTPA. Bharat Oman Refineries, Madhya Pradesh. Landlocked: fed exclusively by the 937 km Vadinar-Bina crude pipeline.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "ref_barauni_in",
+    "type": "refinery_in",
+    "name": "Barauni (IOCL) — Inlet",
+    "lat": 25.47,
+    "lon": 85.97,
+    "capacity_bbl_day": 120000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 6.0 MMTPA (expansion to 9 MMTPA under way). Bihar. Landlocked: fed by the Paradip-Haldia-Barauni crude pipeline.",
+    "_note": "Crude receipt: inland."
+  },
+  {
+    "id": "ref_barauni_out",
+    "type": "refinery_out",
+    "name": "Barauni (IOCL) — Outlet",
+    "lat": 25.47,
+    "lon": 85.97,
+    "capacity_bbl_day": 120000,
+    "grade_compatibility": [
+      "SWEET",
+      "SOUR"
+    ],
+    "inventory_bbl": 1800000,
+    "consumption_rate_bbl_day": 120000,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "_source": "PPAC/MoPNG installed capacity 6.0 MMTPA (expansion to 9 MMTPA under way). Bihar. Landlocked: fed by the Paradip-Haldia-Barauni crude pipeline.",
+    "_note": "inventory_bbl = 15 days of throughput. India's combined strategic, commercial and refinery crude holdings stood at 104 million barrels at end-June 2026; net of the ~28.7 Mb held in ISPRL caverns that leaves ~75 Mb of commercial and refinery crude, i.e. ~15 days at the modelled 5.01 Mb/day. Product stocks are excluded: they meet fuel demand downstream and cannot feed a crude distillation unit. The Petroleum Minister's '60 days of stocks' (2 July 2026) is crude plus products plus SPR and is not comparable to this figure."
+  },
+  {
+    "id": "src_mumbai_high",
+    "type": "source",
+    "name": "Mumbai High (ONGC, Western Offshore)",
+    "lat": 19.5,
+    "lon": 71.5,
+    "capacity_bbl_day": 131000,
+    "grade_compatibility": [
+      "SWEET"
+    ],
+    "_source": "ONGC Western Offshore. Current production ~131,000 bbl/day (2025), down from a ~400,000 bbl/day peak in the 1980s. Crude comes ashore at the Uran terminal and is piped to the two Mumbai refineries.",
+    "_note": "DOMESTIC crude: transits no international chokepoint and is therefore immune to Hormuz, Bab-el-Mandeb, Suez and Malacca disruption. Modelling it explicitly is what lets the network show which Indian refining capacity is genuinely insulated from a corridor closure.",
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "sanctions_restricted": false,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "crude_differential_usd_per_bbl": 1.0,
+    "_differential_source": "[ESTIMATED] Mumbai High, ~39 API / 0.15% S - light sweet. Domestic crude is sold to Indian refiners on an import-parity formula rather than a published Brent differential."
+  },
+  {
+    "id": "src_gujarat_onshore",
+    "type": "source",
+    "name": "Gujarat Onshore (ONGC — Ankleshwar / Gandhar / Kalol)",
+    "lat": 21.62,
+    "lon": 72.99,
+    "capacity_bbl_day": 87000,
+    "grade_compatibility": [
+      "SWEET"
+    ],
+    "_source": "ONGC Gujarat onshore fields. CEIC reports 361,300 tonnes for September 2025, i.e. ~4.34 Mt/year, ~87,000 bbl/day at 7.33 bbl/tonne. Production is on a declining trend.",
+    "_note": "DOMESTIC crude, piped directly to the Koyali refinery, which was originally built around Gujarat onshore production. Immune to every modelled chokepoint. This is also what closes the real inland-pipeline shortfall: SMPL (25 MMTPA) plus MPPL (8.4 MMTPA) cannot on their own supply Koyali + Mathura + Panipat (36.7 MMTPA of refining) from imports alone.",
+    "inventory_bbl": null,
+    "consumption_rate_bbl_day": null,
+    "openness": 1.0,
+    "risk_score": 0.0,
+    "sanctions_restricted": false,
+    "confidence": 1.0,
+    "last_updated": "2026-02-27T00:00:00Z",
+    "crude_differential_usd_per_bbl": 0.5,
+    "_differential_source": "[ESTIMATED] Gujarat onshore, waxy light low-sulphur. Domestic crude, import-parity priced."
   }
 ]

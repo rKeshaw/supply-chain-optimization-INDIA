@@ -26,25 +26,33 @@ import asyncio
 import json
 import logging
 import os
-import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from graph_engine.build_graph import load_graph, compute_baseline, get_graph_state_json
-from graph_engine.routing import compute_pareto_routes, deliverable_state, reroute_cost_premium
+from graph_engine.routing import (
+    compute_pareto_routes,
+    deliverable_state,
+    refinery_demand,
+    reroute_premium_vs_baseline,
+)
 from graph_engine.disruption import apply_scenario, DEFAULT_SCENARIOS
 from graph_engine.resilience import compute_n1_vulnerability, compute_hhi
-from graph_engine.reserve_optimizer import get_spr_status_summary
+from graph_engine.reserve_optimizer import get_spr_status_summary, planned_draw_from_allocations
 from graph_engine.digital_twin import build_initial_state, run_digital_twin
-from graph_engine.economic_model import compute_cascade, compute_backtest_cascade
+from graph_engine.economic_model import (
+    compute_cascade,
+    compute_backtest_cascade,
+    global_supply_loss_bbl_day,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -62,11 +70,10 @@ APP_STATE: dict = {}
 async def broadcast_update(payload: dict) -> None:
     """Push a compact event summary to every connected /ws/live client.
 
-    Deliberately sends a SUMMARY, not the full pipeline result (routing,
-    cascade, brief) — clients that want the details already have the matching
-    REST endpoints; this channel's job is just "something changed, go refetch
-    or update your feed", not duplicating the whole response payload over the
-    socket. Silently drops any client that errors (already disconnected).
+    Carries a summary rather than the full pipeline result. Clients that want
+    routing, cascade or brief detail have REST endpoints for them, so this
+    channel only needs to say that something changed. Any client that errors has
+    already disconnected and is dropped.
     """
     dead = []
     for client in APP_STATE.get("ws_clients", []):
@@ -99,28 +106,23 @@ async def lifespan(app: FastAPI):
     baseline_avg_cost = _avg_cost_per_bbl(baseline_cost_route)
     # Expose to orchestration/twin via the shared params dict (params convention).
     params["_baseline_routing_avg_cost_per_bbl"] = {"value": baseline_avg_cost}
+    # The full baseline allocation, not just its average cost: the cost channel
+    # has to re-price the baseline mix at CURRENT crude prices to isolate the
+    # routing premium from the benchmark move, and that needs the allocations.
+    params["_baseline_cost_route"] = {"value": baseline_cost_route}
 
-    # Structural criticality — what fraction of baseline deliverable flow
-    # actually depends on this node — computed ONCE against the pristine
-    # baseline topology, not recomputed per request. Attached as a node
-    # attribute so apply_scenario's deepcopy carries it through to every future
-    # disrupted graph automatically; see routing.py's risk-optimal weighting and
-    # the frontend's pathRiskScore(), which both blend risk_score with this.
+    # Structural criticality: the share of baseline deliverable flow that depends
+    # on each node. Computed once against the pristine baseline topology and
+    # attached as a node attribute, so the deep copy inside apply_scenario
+    # carries it into every disrupted graph. Both the risk objective in
+    # routing.py and the interface read it.
     #
-    # An earlier version used resilience.py's N-1 vulnerability_index (flow LOST
-    # if this node is degraded) instead. That measures something different and
-    # gave the wrong answer for the flagship case: this network has a Cape of
-    # Good Hope bypass that can absorb almost all of Hormuz's normal volume at
-    # a cost/time penalty, so degrading Hormuz barely reduces DELIVERABLE
-    # volume — its vulnerability_index came out at 0.048, near the BOTTOM of
-    # the ranking (chk_malacca ranked above it), which halved Hormuz's
-    # effective risk instead of amplifying it. Baseline FLOW SHARE avoids that:
-    # it directly answers "how much of the network currently depends on this
-    # node", which is the question that actually matters here — Hormuz carries
-    # ~90% of baseline flow vs. ~3.5% for a typical minor source, exactly
-    # matching the real-world intuition (and the PS's own framing) that a
-    # single-corridor closure should read as far riskier than an equally-"58%
-    # open" but easily-substituted source.
+    # Flow share answers how much of the network currently depends on a node,
+    # which is the question the risk weighting needs. A measure based on volume
+    # lost when a node degrades answers something else and ranks Hormuz low,
+    # because the Cape of Good Hope bypass can absorb most of its volume at a
+    # cost and time penalty. Hormuz carries roughly 90% of baseline flow against
+    # about 3.5% for a typical minor source.
     total_baseline_flow = max(baseline_deliverable["flow_value"], 1.0)
     flow_share_by_node: dict[str, float] = {}
     for cp, flow in baseline_deliverable["transit_flow"].items():
@@ -130,12 +132,11 @@ async def lifespan(app: FastAPI):
     for ref, flow in baseline_deliverable["per_refinery"].items():
         flow_share_by_node[ref] = flow / total_baseline_flow
 
-    # Covered types get their real (possibly zero, e.g. an unused source under
-    # sanctions) flow share. Everything else — SPR (carries zero *normal* flow
-    # by design, which is not the same as "not critical"), refinery_in, bypass
-    # (chk_cog's reroute volume isn't tracked as "chokepoint" transit flow),
-    # super_source/sink — defaults to 1.0 (no discount) so their risk is never
-    # silently understated for a type this measure was never meant to cover.
+    # Covered types carry their real flow share, which may be zero for a source
+    # sitting under sanctions. Every other type defaults to 1.0 and takes no
+    # discount, because this measure was never meant to cover them: the reserve
+    # carries no flow under normal operation, and the Cape bypass volume is not
+    # counted as chokepoint transit.
     FLOW_CRITICALITY_COVERED_TYPES = {"source", "chokepoint", "refinery_out"}
     for nid, node_data in G.nodes(data=True):
         if node_data.get("type") in FLOW_CRITICALITY_COVERED_TYPES:
@@ -143,9 +144,35 @@ async def lifespan(app: FastAPI):
         else:
             node_data["flow_criticality"] = 1.0
 
+    # Check the solved network against the reference figures in parameters.json,
+    # so a drift between the model and its own documented assumptions surfaces at
+    # startup rather than in a demo.
+    modelled_capacity = sum(
+        data.get("consumption_rate_bbl_day") or 0
+        for _, data in G.nodes(data=True) if data.get("type") == "refinery_out"
+    )
+    declared_capacity = params.get("modeled_refinery_capacity_bbl_day", {}).get("value")
+    if declared_capacity and abs(modelled_capacity - declared_capacity) > 1:
+        logger.warning(
+            "Modelled refining capacity is %s bbl/day but parameters.json declares %s. "
+            "Update modeled_refinery_capacity_bbl_day.", f"{modelled_capacity:,.0f}", f"{declared_capacity:,.0f}",
+        )
+    hormuz_share = baseline_deliverable["transit_flow"].get("chk_hormuz", 0.0) / max(baseline_deliverable["flow_value"], 1.0)
+    declared_share = params.get("hormuz_india_exposure_pct", {}).get("value")
+    if declared_share:
+        logger.info(
+            "Hormuz share of baseline supply: %.1f%% (reference figure %.1f%%).",
+            hormuz_share * 100, declared_share * 100,
+        )
+        if abs(hormuz_share - declared_share) > 0.15:
+            logger.warning(
+                "Hormuz exposure differs from the reference by more than 15 points. "
+                "Either the routing policy or hormuz_india_exposure_pct needs revisiting."
+            )
+
     APP_STATE.update({
         "G_baseline": G,
-        "G_current": G,  # mutable current state (replaced on each signal/scenario)
+        "G_current": G,
         "nodes": nodes,
         "edges": edges,
         "params": params,
@@ -156,16 +183,19 @@ async def lifespan(app: FastAPI):
         "sim_state": sim_state,
         "replay_index": 0,
         "replay_log": [],
-        "replay_narrative_clock": None,
         "live_signal_log": [],
         "live_last_poll_at": None,
         "current_scenario": None,
         "scenario_result": None,
+        "last_brief": None,
+        "n1_ranking": None,
         "ws_clients": [],
         "broadcast_fn": broadcast_update,
         "live_task": None,
         "live_stop_event": None,
         "live_toggle_lock": asyncio.Lock(),
+        # Guards concurrent writes to G_current, scenario_result, and n1_ranking.
+        "state_lock": asyncio.Lock(),
     })
 
     logger.info(
@@ -173,11 +203,6 @@ async def lifespan(app: FastAPI):
         f"Baseline flow: {baseline['flow_value']:,.0f} bbl/day."
     )
 
-    # Background live-sensing loop (sanctions registry, news, weather). The env
-    # var picks the default at boot — off by default, so the demo stays
-    # deterministic — but it can be flipped on or off at runtime via
-    # POST /api/live/enable and /api/live/disable (the UI header toggle uses
-    # exactly these). See live_sensing_scheduler.start_live_loop/stop_live_loop.
     from agents.live_sensing_scheduler import LIVE_INGESTION_ENABLED, start_live_loop, stop_live_loop
     if LIVE_INGESTION_ENABLED:
         await start_live_loop(APP_STATE)
@@ -197,9 +222,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# The interface is served from this origin. The wildcard allows the API to be
+# exercised from a separate dev server or from /docs on another port.
+ALLOWED_ORIGINS = os.environ.get("CORS_ALLOW_ORIGINS", "*").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -230,7 +259,7 @@ class SimulateRequest(BaseModel):
     scenario_id: Optional[str] = None
     custom_scenario: Optional[dict[str, float]] = None
     use_current_graph: bool = False
-    horizon_days: int = 30
+    horizon_days: int = 60
     enable_live_weather: bool = False  # opt-in live marine-weather overlay
     compare_no_reroute: bool = False  # also run the "no adaptive rerouting" counterfactual
 
@@ -325,8 +354,8 @@ async def provider_health():
 async def graph_state():
     """Current graph state with openness and risk scores for all nodes and edges.
 
-    Edge flows shown on the map come from the canonical grade/transit-aware solve,
-    not the grade-blind max-flow, so the picture matches the recommendations.
+    Edge flows come from the grade and transit aware solve, so the map shows the
+    same allocation as the recommendations.
     """
     G = APP_STATE.get("G_current", APP_STATE.get("G_baseline"))
     flow = deliverable_state(G, APP_STATE.get("params", {}))["flow_dict"]
@@ -335,10 +364,11 @@ async def graph_state():
 
 @app.get("/api/graph/baseline")
 async def graph_baseline():
-    """Baseline (undisrupted) deliverable flow and per-refinery fulfillment.
+    """Undisrupted deliverable flow and per-refinery fulfilment.
 
-    ``flow_value_bbl_day`` is the canonical LP figure (the single source of truth);
-    ``structural_min_cut`` is the max-flow cut set, kept only as a topology sanity aid.
+    ``flow_value_bbl_day`` is the figure every other number is measured against.
+    ``structural_min_cut`` comes from the max-flow computation and serves as a
+    topology check.
     """
     d = APP_STATE["baseline_deliverable"]
     mf = APP_STATE["baseline"]
@@ -349,18 +379,34 @@ async def graph_baseline():
         "per_source": d["per_source"],
         "transit_flow": d["transit_flow"],
         "structural_min_cut": mf["cut_set"],
+        # Per-edge baseline flow, keyed by edge id. The map styles routes against
+        # normal operations, and that reference comes from the server so it
+        # survives a page reload.
+        "edge_flows": {
+            data.get("edge_id"): d["flow_dict"].get(u, {}).get(v, 0.0)
+            for u, v, data in APP_STATE["G_baseline"].edges(data=True)
+            if data.get("edge_id")
+        },
     }
 
 
 @app.get("/api/graph/vulnerability")
 async def graph_vulnerability():
-    """N-1 vulnerability ranking of all chokepoints and sources."""
-    G = APP_STATE["G_baseline"]
-    baseline_flow = APP_STATE["baseline_deliverable"]["flow_value"]
-    ranking = compute_n1_vulnerability(G, baseline_flow, params=APP_STATE["params"])
+    """N-1 vulnerability ranking of all chokepoints and sources.
 
-    # HHI over the canonical (grade-aware) source allocation, not the max-flow one.
-    hhi = compute_hhi(G, APP_STATE["baseline_deliverable"]["flow_dict"])
+    Solved against the live disrupted graph (G_current) rather than the
+    pristine baseline, so the ranking answers the operationally relevant
+    question: given what is already closed, what else is critical? The result
+    is cached and cleared whenever G_current changes.
+    """
+    G_current = APP_STATE.get("G_current", APP_STATE["G_baseline"])
+    baseline_flow = APP_STATE["baseline_deliverable"]["flow_value"]
+    ranking = APP_STATE.get("n1_ranking")
+    if ranking is None:
+        ranking = compute_n1_vulnerability(G_current, baseline_flow, params=APP_STATE["params"])
+        APP_STATE["n1_ranking"] = ranking
+
+    hhi = compute_hhi(G_current, deliverable_state(G_current, APP_STATE["params"])["flow_dict"])
 
     return {
         "n1_ranking": ranking,
@@ -371,15 +417,16 @@ async def graph_vulnerability():
 
 @app.get("/api/routes/baseline")
 async def routes_baseline():
-    """The initial, undisrupted optimal procurement plan — the reference every
-    disruption is measured against. Returns the three Pareto routes (cheapest /
-    fastest / lowest-risk) with per-corridor allocations and plain-language
-    reasoning about why the cost route is what it is and what the alternatives cost.
+    """The undisrupted procurement plan, which is the reference every disruption
+    is measured against.
+
+    Returns the three Pareto routes, cheapest, fastest and lowest risk, with
+    per-corridor allocations and plain-language reasoning covering why the cost
+    route looks the way it does and what the alternatives cost.
     """
     G = APP_STATE["G_baseline"]
     params = APP_STATE["params"]
-    demand = {nid: data.get("consumption_rate_bbl_day", 0)
-              for nid, data in G.nodes(data=True) if data.get("type") == "refinery_out"}
+    demand = refinery_demand(G)
     pareto = compute_pareto_routes(G, demand, params)
 
     def summarize(route):
@@ -388,13 +435,19 @@ async def routes_baseline():
         return {
             "total_volume_bbl_day": round(sum(a["volume_bbl_day"] for a in allocs)),
             "avg_cost_per_bbl": round(sum(a["volume_bbl_day"] * a.get("cost_per_bbl", 0) for a in allocs) / tv, 2),
+            # Landed = crude at origin + freight, i.e. what the cost objective
+            # actually minimises. Ranking the options on freight alone made the
+            # "cheapest" plan read as dearer than the "fastest" one, because the
+            # cheap plan buys a discounted grade and pays a little more to ship it.
+            "avg_landed_cost_per_bbl": round(
+                sum(a["volume_bbl_day"] * a.get("landed_cost_per_bbl", 0) for a in allocs) / tv, 2
+            ),
             "avg_transit_days": round(sum(a["volume_bbl_day"] * a.get("transit_time_days", 0) for a in allocs) / tv, 1),
         }
 
     cost_route = pareto["cost_optimal"]
-    # Per-corridor allocation rows for the cost-optimal (recommended) plan.
-    # Strip the "<dash> Inlet/Outlet" split-node suffix for clean display (robust to
-    # em-dash / en-dash / hyphen variants in the data).
+    # Per-corridor allocation rows for the recommended plan. The inlet and outlet
+    # suffixes come from refinery node splitting and are stripped for display.
     import re as _re
     def clean_name(data):
         name = data.get("name", "")
@@ -428,14 +481,24 @@ async def routes_baseline():
     return {
         "recommended": "cost_optimal",
         "allocations": rows,
+        # Raw allocations too: the Route Transformation diff needs source/corridor
+        # IDs and volumes to aggregate against, which the display rows above
+        # (names, formatted transits) cannot provide.
+        "path_allocations": cost_route.get("path_allocations", []),
         "summary": {"cost_optimal": cost_s, "time_optimal": time_s, "risk_optimal": risk_s},
         "reasoning": {
+            # The optimality guarantee rests on the formulation: an arc-based
+            # multi-commodity min-cost flow is a linear program, and its optimum
+            # is global for the stated model.
             "why_optimal": (
-                "This is the provably minimum-cost plan that fully supplies all refineries while "
-                "respecting every constraint — crude-grade compatibility (sweet/sour), source export "
-                "volumes, per-lane and strait (transit) capacities, and the Cape-of-Good-Hope "
-                "diversification cap. It is verified to match, to the dollar, an independent "
-                "arc-based min-cost-flow optimum."
+                "Minimum landed cost (crude at origin plus freight) for supplying every refinery, "
+                "subject to crude-grade compatibility (sweet/sour), source export ceilings, per-lane "
+                "and transit-node capacities, and the sustainable draw limit on the strategic reserve. "
+                "Solved as an arc-based multi-commodity min-cost-flow linear program, so the optimum "
+                "is global for the stated model rather than the best of a sampled set of routes. "
+                "Diversification ceilings (supplier, chokepoint, Cape) are policy rather than physics "
+                "and are priced, not enforced absolutely — the solver will exceed one and report it "
+                "rather than leave a refinery short or drain the reserve."
             ),
             "top_sources": [
                 {"source": s, "volume_bbl_day": round(v), "share_pct": round(v / total * 100, 1)}
@@ -443,11 +506,18 @@ async def routes_baseline():
             ],
             "concentration_hhi": hhi["hhi_value"],
             "concentration_note": hhi["interpretation"],
+            # Stated in LANDED cost, the quantity being optimised. Freight is
+            # given alongside it because the two move in opposite directions
+            # here and quoting only one of them is what made this panel appear
+            # to contradict itself.
             "options": (
-                f"Cheapest: ${cost_s['avg_cost_per_bbl']}/bbl over {cost_s['avg_transit_days']}d. "
-                f"Fastest trims transit to {time_s['avg_transit_days']}d but costs ${time_s['avg_cost_per_bbl']}/bbl. "
-                f"Lowest-risk costs ${risk_s['avg_cost_per_bbl']}/bbl — identical to cheapest at baseline "
-                f"because no corridor is under threat yet; the routes diverge only once a disruption raises risk."
+                f"Cheapest: ${cost_s['avg_landed_cost_per_bbl']}/bbl landed "
+                f"(${cost_s['avg_cost_per_bbl']} of that freight) over {cost_s['avg_transit_days']}d. "
+                f"Fastest trims transit to {time_s['avg_transit_days']}d at "
+                f"${time_s['avg_landed_cost_per_bbl']}/bbl landed — cheaper freight "
+                f"(${time_s['avg_cost_per_bbl']}) but a dearer barrel, which is why it is not the cost pick. "
+                f"Lowest-risk lands at ${risk_s['avg_landed_cost_per_bbl']}/bbl, identical to cheapest at "
+                f"baseline because no corridor is under threat yet."
             ),
         },
     }
@@ -455,17 +525,17 @@ async def routes_baseline():
 
 @app.get("/api/routes/current")
 async def routes_current():
-    """Pareto routing for whatever the graph's CURRENT state is — baseline on a
-    fresh load, or the live disrupted state if a signal/scenario/replay step has
-    already run. Same {pareto_routes, pareto_comparison} shape as process_signal's
-    "routing" key, so the frontend can populate the Routes tab immediately on page
-    load (or after a browser refresh mid-disruption) instead of showing nothing
-    until the next event arrives.
+    """Pareto routing for the graph's current state, which is the baseline on a
+    fresh load and the live disrupted state once a signal, scenario or replay
+    step has run.
+
+    Shares the {pareto_routes, pareto_comparison} shape with the signal
+    pipeline, so the routes panel can populate on page load and after a refresh
+    taken part way through a disruption.
     """
     G = APP_STATE.get("G_current", APP_STATE["G_baseline"])
     params = APP_STATE["params"]
-    demand = {nid: data.get("consumption_rate_bbl_day", 0)
-              for nid, data in G.nodes(data=True) if data.get("type") == "refinery_out"}
+    demand = refinery_demand(G)
     pareto_routes = compute_pareto_routes(G, demand, params)
     return {
         "pareto_routes": {
@@ -476,6 +546,7 @@ async def routes_current():
                 "fulfillment": v.get("fulfillment"),
                 "routing_summary": v.get("routing_summary", []),
                 "path_allocations": v.get("path_allocations", []),
+                "policy_breaches": v.get("policy_breaches", {}),
             }
             for k, v in pareto_routes.items()
             if k != "pareto_comparison"
@@ -503,8 +574,10 @@ async def list_scenarios():
 @app.post("/api/scenario/apply")
 async def apply_scenario_endpoint(req: ScenarioRequest):
     """
-    Apply a disruption scenario to the graph and return flow impact.
-    Named scenarios use DEFAULT_SCENARIOS; custom uses the provided dict.
+    Apply a disruption scenario to the graph and return the flow impact.
+
+    Named scenarios come from DEFAULT_SCENARIOS; a custom request supplies its
+    own element-to-openness mapping.
     """
     if req.scenario_id:
         if req.scenario_id not in DEFAULT_SCENARIOS:
@@ -518,22 +591,25 @@ async def apply_scenario_endpoint(req: ScenarioRequest):
         raise HTTPException(status_code=400, detail="Provide scenario_id or custom dict.")
 
     G_baseline = APP_STATE["G_baseline"]
-    # Layer the new scenario on top of whatever is already disrupted (G_current),
-    # not the pristine baseline — otherwise disrupting a second node silently
-    # reverts every previously-disrupted node/edge back to fully open, since each
-    # call would rebuild from scratch. G_current already accumulates correctly
-    # across replay steps and custom signals; scenario application now matches
-    # that same "layer onto the current state" model. Explicit reset remains
-    # available via /api/replay/reset ("Reset Twin").
+    # Scenarios layer onto the live state rather than the pristine baseline, so
+    # disrupting a second element leaves the first one disrupted. Replay steps
+    # and custom signals accumulate the same way. Reset Twin clears everything
+    # through /api/replay/reset.
     G_current = APP_STATE.get("G_current", G_baseline)
-    G_disrupted = apply_scenario(G_current, scenario_dict)
+    # A named scenario layers onto whatever is already disrupted; a hand-set
+    # openness value from the inspector is an outright assignment.
+    G_disrupted = apply_scenario(
+        G_current, scenario_dict, mode="layer" if req.scenario_id else "set"
+    )
+    unresolved = G_disrupted.graph.get("unresolved_scenario_elements") or []
+    if unresolved:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown graph element(s): {', '.join(sorted(unresolved))}",
+        )
     params = APP_STATE["params"]
 
-    demand = {
-        node_id: data.get("consumption_rate_bbl_day", 0)
-        for node_id, data in G_disrupted.nodes(data=True)
-        if data.get("type") == "refinery_out"
-    }
+    demand = refinery_demand(G_disrupted)
     total_demand = sum(demand.values())
 
     # Canonical disrupted state + the three Pareto routes come from the SAME LP solve
@@ -561,18 +637,13 @@ async def apply_scenario_endpoint(req: ScenarioRequest):
             "loss_pct": (base_flow - dis_flow) / max(base_flow, 1) * 100,
         }
 
-    # Cost channel: how much more the disrupted routing costs vs. baseline routing.
-    premium = reroute_cost_premium(APP_STATE.get("baseline_cost_route", {}), disrupted_cost_route)
+    # Cost channel: how much more the disrupted routing costs vs. baseline routing,
+    # at constant crude prices (see reroute_premium_vs_baseline).
+    premium = reroute_premium_vs_baseline(G_disrupted, params, disrupted_cost_route)
 
     # Market channel: source barrels removed from the global market by this scenario
     # (e.g. OPEC+ cut) — moves the crude benchmark even if India reroutes to cover.
-    market_supply_loss = 0.0
-    for node_id, base_data in G_baseline.nodes(data=True):
-        if base_data.get("type") != "source":
-            continue
-        base_cap = base_data.get("capacity_bbl_day") or 0
-        dis_open = G_disrupted.nodes[node_id].get("openness", 1.0)
-        market_supply_loss += base_cap * (1.0 - dis_open)
+    market_supply_loss = global_supply_loss_bbl_day(G_disrupted, params)
 
     gap = max(0.0, total_demand - disrupted_flow)
     cascade = compute_cascade(
@@ -582,22 +653,25 @@ async def apply_scenario_endpoint(req: ScenarioRequest):
         market_supply_loss_bbl_day=market_supply_loss,
     )
 
-    # Update current graph state
-    APP_STATE["G_current"] = G_disrupted
-    APP_STATE["current_scenario"] = scenario_dict
-    APP_STATE["scenario_result"] = {
-        "scenario_name": scenario_name,
-        "scenario_dict": scenario_dict,
-        "disrupted_flow": disrupted_flow,
-        "cascade": cascade,
-    }
+    # Persist the disrupted graph state and invalidate the N-1 cache so
+    # the vulnerability ranking reflects the updated network topology.
+    async with APP_STATE["state_lock"]:
+        APP_STATE["G_current"] = G_disrupted
+        APP_STATE["current_scenario"] = scenario_dict
+        APP_STATE["scenario_result"] = {
+            "scenario_name": scenario_name,
+            "scenario_dict": scenario_dict,
+            "disrupted_flow": disrupted_flow,
+            "cascade": cascade,
+        }
+        APP_STATE["n1_ranking"] = None
 
     await broadcast_update({
         "kind": "scenario_apply", "origin": "manual",
         "label": scenario_name, "flow_loss_pct": flow_loss_pct,
     })
 
-    return {
+    payload = {
         "scenario_name": scenario_name,
         "scenario_dict": scenario_dict,
         "baseline_flow_bbl_day": baseline_flow,
@@ -614,6 +688,7 @@ async def apply_scenario_endpoint(req: ScenarioRequest):
                     "total_volume": value.get("total_volume"),
                     "fulfillment": value.get("fulfillment"),
                     "path_allocations": value.get("path_allocations", []),
+                    "policy_breaches": value.get("policy_breaches", {}),
                 }
                 for key, value in pareto_routes.items()
                 if key != "pareto_comparison"
@@ -624,6 +699,8 @@ async def apply_scenario_endpoint(req: ScenarioRequest):
             G_disrupted, pareto_routes.get("cost_optimal", {}).get("flow_dict")
         ),
     }
+    APP_STATE["last_brief"] = {"kind": "disruption", "res": payload}
+    return payload
 
 
 @app.post("/api/signal")
@@ -645,7 +722,8 @@ async def process_signal_endpoint(req: SignalRequest):
     sim_state = APP_STATE["sim_state"]
     params = APP_STATE["params"]
 
-    result = process_signal(
+    result = await asyncio.to_thread(
+        process_signal,
         raw_text=req.text,
         G_current=G_current,
         sim_state=sim_state,
@@ -654,17 +732,19 @@ async def process_signal_endpoint(req: SignalRequest):
         timestamp_override=timestamp_dt,
     )
 
-    # Persist the exact state produced by orchestration; rebuilding it from the
-    # event would discard risk decay and event-type-specific transitions.
     updated_graph = result.pop("_updated_graph", None)
     if result.get("recompute_triggered") and updated_graph is not None:
-        APP_STATE["G_current"] = updated_graph
+        async with APP_STATE["state_lock"]:
+            APP_STATE["G_current"] = updated_graph
+            APP_STATE["n1_ranking"] = None
 
     await broadcast_update({
         "kind": "custom_signal", "origin": "custom",
         "label": req.text[:120], "recompute_triggered": result.get("recompute_triggered"),
     })
 
+    if result.get("recompute_triggered"):
+        APP_STATE["last_brief"] = {"kind": "pipeline", "res": result}
     return result
 
 
@@ -690,7 +770,6 @@ async def run_replay():
     event_data = timeline[idx]
     APP_STATE["replay_index"] = idx + 1
 
-    # Process this event through the full pipeline
     G_current = APP_STATE.get("G_current", APP_STATE["G_baseline"])
     sim_state = APP_STATE["sim_state"]
     params = APP_STATE["params"]
@@ -698,25 +777,8 @@ async def run_replay():
     timestamp_dt = datetime.fromisoformat(event_data["original_timestamp"])
     curated_event = event_from_curated_timeline(event_data)
 
-    # Compressed "narrative clock" for risk decay ONLY (see apply_event_to_graph's
-    # decay_as_of docstring) — the real headline date (timestamp_dt) is still
-    # used for display/audit everywhere else. The 12 curated events span real
-    # calendar gaps up to 224 days; replaying those verbatim decays each
-    # corridor's risk almost to zero between events, making one continuous,
-    # still-live crisis look like a series of disconnected incidents that keep
-    # "resolving" themselves before the next one starts, instead of building on
-    # each other the way the PS's own narrative (and the curated data) intends.
-    # REPLAY_NARRATIVE_STEP_DAYS keeps the whole 12-step arc within
-    # schema.py's decay cap (30 days), so even the last event still carries the
-    # accumulated weight of everything before it.
-    REPLAY_NARRATIVE_STEP_DAYS = 2
-    if idx == 0 or "replay_narrative_clock" not in APP_STATE or APP_STATE["replay_narrative_clock"] is None:
-        narrative_clock = timestamp_dt
-    else:
-        narrative_clock = APP_STATE["replay_narrative_clock"] + timedelta(days=REPLAY_NARRATIVE_STEP_DAYS)
-    APP_STATE["replay_narrative_clock"] = narrative_clock
-
-    result = process_signal(
+    result = await asyncio.to_thread(
+        process_signal,
         raw_text=f"{event_data['headline']}\n\n{event_data['body_excerpt']}",
         G_current=G_current,
         sim_state=sim_state,
@@ -724,24 +786,17 @@ async def run_replay():
         source_override=event_data.get("source"),
         timestamp_override=timestamp_dt,
         event_override=curated_event,
-        decay_as_of=narrative_clock,
     )
 
     updated_graph = result.pop("_updated_graph", None)
 
-    # Log replay step
     APP_STATE["replay_log"].append({
         "replay_step": idx + 1,
         "event_id": event_data["id"],
         "headline": event_data["headline"],
+        "event_timestamp": event_data["original_timestamp"],
         "result_summary": {
             "recompute_triggered": result.get("recompute_triggered"),
-            # "unrelated" vs "below_threshold" vs "relevant" — the curated
-            # timeline deliberately includes two unrelated test cases (a
-            # cricket headline, a chip-maker announcement) to demonstrate the
-            # extraction agent correctly ignores non-energy news; this lets
-            # the UI label those as filtered noise instead of listing them
-            # identically alongside genuine supply chain signals.
             "reason": result.get("reason", "relevant" if result.get("recompute_triggered") else "below_threshold"),
             "latency_ms": result.get("latency_ms") or result.get("latency", {}).get("total_pipeline_ms"),
             "ingestion_mode": "curated_replay",
@@ -749,12 +804,17 @@ async def run_replay():
     })
 
     if result.get("recompute_triggered") and updated_graph is not None:
-        APP_STATE["G_current"] = updated_graph
+        async with APP_STATE["state_lock"]:
+            APP_STATE["G_current"] = updated_graph
+            APP_STATE["n1_ranking"] = None
 
     await broadcast_update({
         "kind": "replay_step", "origin": "replay",
         "label": event_data["headline"], "recompute_triggered": result.get("recompute_triggered"),
     })
+
+    if result.get("recompute_triggered"):
+        APP_STATE["last_brief"] = {"kind": "pipeline", "res": result}
 
     return {
         "replay_step": idx + 1,
@@ -784,29 +844,30 @@ async def replay_status():
 @app.post("/api/replay/reset")
 async def reset_replay():
     """Reset graph state and replay to baseline."""
-    APP_STATE["G_current"] = APP_STATE["G_baseline"]
+    async with APP_STATE["state_lock"]:
+        APP_STATE["G_current"] = APP_STATE["G_baseline"]
+        APP_STATE["n1_ranking"] = None
     APP_STATE["replay_index"] = 0
     APP_STATE["replay_log"] = []
-    APP_STATE["replay_narrative_clock"] = None
     APP_STATE["live_signal_log"] = []
     APP_STATE["current_scenario"] = None
     APP_STATE["scenario_result"] = None
+    APP_STATE["last_brief"] = None
     APP_STATE["sim_state"] = build_initial_state(APP_STATE["G_baseline"])
     return {"status": "reset", "message": "Graph and replay reset to baseline."}
 
 
 @app.get("/api/live/status")
 async def live_status():
-    """Whether the background live-sensing loop is currently running, and its
-    recent log.
+    """Whether the background live-sensing loop is running, plus its recent log.
 
-    ``enabled`` reflects the loop's actual runtime state (it can be flipped by
-    POST /api/live/enable or /api/live/disable at any point in the session),
-    not just the LIVE_INGESTION_ENABLED startup default.
+    ``enabled`` reflects the loop's runtime state, which the enable and disable
+    endpoints can change at any point in a session, rather than the startup
+    default.
 
-    Distinguishes LIVE-detected signals (sanctions/news/weather) from the
-    curated replay and manually-submitted custom signals, so the UI can label
-    each one honestly instead of implying everything came from a live feed.
+    Live signals from sanctions, news and weather stay distinguishable from
+    curated replay events and manually submitted ones, so the interface can
+    label each by where it came from.
     """
     from agents.live_sensing_scheduler import LIVE_POLL_INTERVAL_S, is_running
     return {
@@ -857,10 +918,29 @@ async def live_poll_now():
     }
 
 
+@app.get("/api/brief/current")
+async def brief_current():
+    """The most recently produced decision brief, or null if nothing has been
+    processed yet. Held server side so a page reload keeps the analysis."""
+    return APP_STATE.get("last_brief")
+
+
 @app.get("/api/spr/status")
 async def spr_status():
-    """Current SPR inventory levels and draw status."""
-    return get_spr_status_summary(APP_STATE["sim_state"], APP_STATE["params"])
+    """Reserve inventory, the draw the live plan commits to, and how long the
+    caverns last at that rate.
+
+    The planned draw comes from the same solve that produces the
+    recommendations, so the reserve panel tracks whatever is currently
+    disrupted rather than reporting a static stock figure.
+    """
+    G_current = APP_STATE.get("G_current", APP_STATE["G_baseline"])
+    d = deliverable_state(G_current, APP_STATE["params"])
+    return get_spr_status_summary(
+        APP_STATE["sim_state"],
+        APP_STATE["params"],
+        planned_draw=planned_draw_from_allocations(d["path_allocations"]),
+    )
 
 
 @app.get("/api/economic/cascade")
@@ -874,15 +954,11 @@ async def economic_cascade(days_elapsed: int = 0):
     gap = d["gap_bbl_day"]
 
     # Cost + market channels so a volume-neutral cost shock still registers here too.
-    premium = reroute_cost_premium(
-        APP_STATE.get("baseline_cost_route", {}),
+    premium = reroute_premium_vs_baseline(
+        G_current, params,
         {"path_allocations": d["path_allocations"], "total_volume": d["flow_value"]},
     )
-    market_supply_loss = sum(
-        (data.get("capacity_bbl_day") or 0) * (1.0 - data.get("openness", 1.0))
-        for _, data in G_current.nodes(data=True)
-        if data.get("type") == "source"
-    )
+    market_supply_loss = global_supply_loss_bbl_day(G_current, params)
     return compute_cascade(
         gap, total_demand, days_elapsed, params,
         reroute_cost_premium_usd_per_bbl=premium,
@@ -894,17 +970,23 @@ async def economic_cascade(days_elapsed: int = 0):
 @app.get("/api/backtest/april2025")
 async def backtest_april2025():
     """
-    Backtest the economic model against the April 14, 2025 US-Iran standoff.
-    Brent rose +8% in a single session. This endpoint shows what the model predicts
-    vs. what actually happened, with error metrics.
+    Decompose the April 2025 US-Iran standoff into the part the physical model
+    explains and the implied risk premium.
+
+    Brent rose 8% in a single session. The standoff was an escalation rather
+    than a supply loss: no production was shut and no egress closed, so no
+    barrels left the world market. The benchmark channel therefore prices it at
+    zero and the whole observed move resolves as risk premium, which is the
+    result this endpoint exists to show.
     """
     params = APP_STATE["params"]
-    # Estimated India-relevant supply gap from the April 2025 threat event:
-    # ~40% of India's 2.574 Mb/d modeled imports × 30% risk probability = ~308 kb/d implied gap
-    estimated_gap = 308_000  # bbl/day implied gap from threat pricing
 
     return compute_backtest_cascade(
-        actual_gap_bbl_day=estimated_gap,
+        # No barrels left the world market during the standoff.
+        market_supply_loss_bbl_day=0.0,
+        # India-relevant exposure at the time, carried for shortfall context. It
+        # never reaches the benchmark channel.
+        actual_gap_bbl_day=308_000,
         baseline_brent_price_usd=78.0,  # approximate Brent before the event
         actual_brent_change_pct=8.0,    # actual observed +8% spike per PS
         days_elapsed=1,
@@ -932,7 +1014,7 @@ async def simulate_twin(req: SimulateRequest):
     else:
         scenario_dict = {}  # baseline simulation
 
-    horizon = min(req.horizon_days, 60)  # cap at 60 days
+    horizon = min(req.horizon_days, 90)
     snapshots = run_digital_twin(
         G_baseline=G_baseline,
         scenario_dict=scenario_dict,
@@ -961,38 +1043,59 @@ async def simulate_twin(req: SimulateRequest):
             enable_live_weather=req.enable_live_weather,
             disable_rerouting=True,
         )
+        # The ceiling this disrupted network can actually reach, from the same
+        # solver that produces the plan — the yardstick for "stabilised".
+        from graph_engine.disruption import apply_scenario as _apply
+        ceiling_state = deliverable_state(_apply(G_baseline, scenario_dict), params)
+        ceiling_pct = ceiling_state["flow_value"] / max(ceiling_state["total_demand"], 1.0) * 100.0
+        landed = params.get("assumed_landed_crude_cost_usd_per_bbl", {}).get("value", 86.0)
+
         response["no_reroute_snapshots"] = no_reroute_snapshots
-        response["summary"]["days_to_stabilize_with_reroute"] = _days_to_stabilize(snapshots)
-        response["summary"]["days_to_stabilize_without_reroute"] = _days_to_stabilize(no_reroute_snapshots)
-        response["summary"]["total_cost_with_reroute_usd"] = _total_reroute_cost(snapshots)
-        response["summary"]["total_cost_without_reroute_usd"] = _total_reroute_cost(no_reroute_snapshots)
+        response["summary"]["feasible_ceiling_pct"] = round(ceiling_pct, 1)
+        response["summary"]["days_to_stabilize_with_reroute"] = _days_to_stabilize(snapshots, ceiling_pct)
+        response["summary"]["days_to_stabilize_without_reroute"] = _days_to_stabilize(no_reroute_snapshots, ceiling_pct)
+        response["summary"]["total_cost_with_reroute_usd"] = _total_reroute_cost(snapshots, landed)
+        response["summary"]["total_cost_without_reroute_usd"] = _total_reroute_cost(no_reroute_snapshots, landed)
 
     return response
 
 
-def _days_to_stabilize(snapshots: list[dict]) -> Optional[int]:
-    """First day fulfillment recovers to >= 99% *after* the shock's trough.
+def _days_to_stabilize(snapshots: list[dict], ceiling_pct: float) -> Optional[int]:
+    """First day from which supply holds at the network's feasible ceiling for
+    the rest of the horizon.
 
-    Pipeline inertia (cargoes already in transit when a scenario starts) keeps
-    fulfillment near 100% for the first few days regardless of the disruption
-    — scanning from day 0 would misreport that pre-shock grace period as
-    "already stabilized." Instead find the day of minimum fulfillment (the
-    trough), then look forward from there. Returns None if recovery to 99%
-    never happens within the simulated horizon (reported as "not stabilized"
-    by the caller, not a misleading number).
+    The ceiling is what the disrupted network can reach, so arriving there marks
+    the end of the decline rather than a return to normal, and the interface
+    words it that way. A closure that permanently removes a third of supply sits
+    near 67%, where a fixed target such as 99% could never be met.
+
+    The condition has to hold to the end of the horizon. Accepting the first day
+    that merely touches the ceiling would report a transient dip as the settling
+    point.
     """
     if not snapshots:
         return None
-    trough_idx = min(range(len(snapshots)), key=lambda i: snapshots[i]["fulfillment_pct_overall"])
-    for s in snapshots[trough_idx:]:
-        if s["fulfillment_pct_overall"] >= 99.0:
-            return s["day"]
-    return None
+    target = max(0.0, ceiling_pct - 1.0)
+    settled_from = None
+    for s in reversed(snapshots):
+        if s["fulfillment_pct_overall"] >= target:
+            settled_from = s["day"]
+        else:
+            break
+    return settled_from
 
 
-def _total_reroute_cost(snapshots: list[dict]) -> float:
-    """Sum of each day's reroute cost premium over undisrupted baseline routing."""
-    return sum(s["cascade"].get("daily_reroute_cost_premium_usd", 0.0) for s in snapshots)
+def _total_reroute_cost(snapshots: list[dict], landed_cost_per_bbl: float) -> float:
+    """Total economic cost of a scenario, combining what rerouting costs with
+    what going short costs.
+
+    Pricing the reroute premium alone would make inaction look cheap, since the
+    arm that never reroutes pays almost no premium precisely because it fails to
+    deliver. Unserved barrels are charged at landed replacement cost.
+    """
+    premium = sum(s["cascade"].get("daily_reroute_cost_premium_usd", 0.0) for s in snapshots)
+    unserved = sum(s.get("gap_bbl_day", 0.0) for s in snapshots) * landed_cost_per_bbl
+    return premium + unserved
 
 
 @app.post("/api/nl-ops")

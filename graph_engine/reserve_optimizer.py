@@ -17,61 +17,6 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-def optimize_spr_draw(
-    state: dict,
-    params: dict,
-) -> dict[str, float]:
-    """
-    Compute SPR drawdown amounts for the current day across all SPR facilities.
-
-    Policy: draw only as much as needed to maintain safety floor across all refineries.
-    Draws are sourced from SPR facilities in order of proximity to under-served refineries.
-    Total draw per facility is capped at its max_discharge_bbl_day.
-
-    Args:
-        state: Current simulation state (refineries, spr dicts).
-        params: Parameters dict with spr_safety_floor_days and spr_max_discharge_rate.
-
-    Returns:
-        Dict mapping spr node IDs to draw amounts (bbl/day) for today.
-        Returns {spr_id: 0} for all if no draw is needed.
-    """
-    floor_days = params.get("spr_safety_floor_days", {}).get("value", 3.0)
-    draws: dict[str, float] = {spr_id: 0.0 for spr_id in state["spr"]}
-
-    # State is expected to represent projected end-of-day inventory. Allocate
-    # only to physically connected refineries and never draw more than their
-    # remaining safety-floor deficit.
-    remaining_need = {
-        ref_id: max(0.0, (floor_days - ref.days_of_cover) * ref.consumption_rate_bbl_day)
-        for ref_id, ref in state["refineries"].items()
-        if ref.consumption_rate_bbl_day > 0
-    }
-
-    for spr_id, facility in state["spr"].items():
-        facility_max = min(
-            facility["inventory_bbl"], facility["max_discharge_bbl_day"]
-        )
-        connected = facility.get("connected_refineries", [])
-        connected_need = sum(remaining_need.get(ref_id, 0.0) for ref_id in connected)
-        draw = min(facility_max, connected_need)
-        draws[spr_id] = draw
-
-        if draw <= 0 or connected_need <= 0:
-            continue
-        for ref_id in connected:
-            need = remaining_need.get(ref_id, 0.0)
-            remaining_need[ref_id] = max(0.0, need - draw * need / connected_need)
-
-    logger.debug(
-        f"SPR draw: total={sum(draws.values()):,.0f} bbl/day across "
-        f"{len([d for d in draws.values() if d > 0])} facilities. "
-        f"Remaining connected safety-floor need is {sum(remaining_need.values()):,.0f} bbl/day."
-    )
-
-    return draws
-
-
 def compute_refill_allocation(
     state: dict,
     params: dict,
@@ -137,16 +82,42 @@ def compute_refill_allocation(
     return refills
 
 
-def get_spr_status_summary(state: dict, params: dict) -> dict:
+def planned_draw_from_allocations(allocations: list[dict]) -> dict[str, float]:
+    """Per-facility daily reserve draw implied by a solved routing plan."""
+    draw: dict[str, float] = {}
+    for allocation in allocations or []:
+        if allocation.get("is_spr"):
+            facility = allocation["source_id"]
+            draw[facility] = draw.get(facility, 0.0) + float(allocation.get("volume_bbl_day", 0.0))
+    return draw
+
+
+def get_spr_status_summary(
+    state: dict,
+    params: dict,
+    planned_draw: Optional[dict[str, float]] = None,
+) -> dict:
     """
     Generate a human-readable SPR status summary for the UI reserve panel.
 
+    ``planned_draw`` is the per-facility daily drawdown the CURRENT routing plan
+    proposes (see planned_draw_from_allocations). Without it this summary is a
+    function of stored inventory alone, which never changes until the reserve is
+    physically drawn — so the dashboard's reserve tile sat at one constant value
+    no matter what was disrupted, which is precisely the moment it needs to move.
+    What actually changes the instant a corridor closes is the RATE the reserve
+    is committed to, and therefore how long it lasts. That is what days_to_floor
+    reports, and what escalates the status flag.
+
     Returns:
         Dict with total_inventory_bbl, total_days_remaining, per_facility details,
-        and status flag (HEALTHY / WARNING / CRITICAL).
+        the planned draw, days_to_floor, and status (HEALTHY / WARNING / CRITICAL).
     """
     national_consumption = params.get("national_consumption_bbl_day", {}).get("value", 5_000_000)
     target_days = params.get("spr_target_days", {}).get("value", 9.5)
+    floor_fraction = params.get("spr_structural_floor_fraction", {}).get("value", 0.10)
+    projection_days = params.get("spr_draw_projection_days", {}).get("value", 90)
+    planned_draw = planned_draw or {}
 
     total_inventory = sum(s["inventory_bbl"] for s in state["spr"].values())
     total_capacity = sum(s.get("storage_capacity_bbl", 0.0) for s in state["spr"].values())
@@ -154,15 +125,33 @@ def get_spr_status_summary(state: dict, params: dict) -> dict:
     total_days = total_inventory / max(national_consumption, 1)
 
     per_facility = {}
+    facility_days_to_floor = []
     for spr_id, s in state["spr"].items():
+        storage = s.get("storage_capacity_bbl", 0.0)
+        draw = float(planned_draw.get(spr_id, 0.0))
+        # Barrels available above the structural floor, at the committed rate.
+        headroom = max(0.0, s["inventory_bbl"] - storage * floor_fraction)
+        days_to_floor = (headroom / draw) if draw > 0 else None
+        if days_to_floor is not None:
+            facility_days_to_floor.append(days_to_floor)
         per_facility[spr_id] = {
             "inventory_bbl": s["inventory_bbl"],
             "days_remaining": s["inventory_bbl"] / max(national_consumption, 1),
-            "storage_capacity_bbl": s.get("storage_capacity_bbl", 0.0),
-            "fill_pct": s["inventory_bbl"] / max(s.get("storage_capacity_bbl", 0.0), 1) * 100,
+            "storage_capacity_bbl": storage,
+            "fill_pct": s["inventory_bbl"] / max(storage, 1) * 100,
+            "planned_draw_bbl_day": round(draw),
+            "days_to_floor": round(days_to_floor, 1) if days_to_floor is not None else None,
         }
 
-    if total_inventory >= target_inventory * 0.8:
+    days_to_floor = min(facility_days_to_floor) if facility_days_to_floor else None
+
+    if days_to_floor is not None and days_to_floor < projection_days / 3:
+        # The committed rate empties a cavern well inside the planning horizon;
+        # that outranks a comfortable fill level.
+        status = "CRITICAL"
+    elif days_to_floor is not None and days_to_floor < projection_days:
+        status = "WARNING"
+    elif total_inventory >= target_inventory * 0.8:
         status = "HEALTHY"
     elif total_inventory >= target_inventory * 0.4:
         status = "WARNING"
@@ -176,6 +165,9 @@ def get_spr_status_summary(state: dict, params: dict) -> dict:
         "target_days_effective": target_inventory / max(national_consumption, 1),
         "total_storage_capacity_bbl": total_capacity,
         "fill_pct": total_inventory / max(total_capacity, 1) * 100,
+        "planned_draw_bbl_day": round(sum(planned_draw.values())),
+        "days_to_floor": round(days_to_floor, 1) if days_to_floor is not None else None,
+        "planning_horizon_days": projection_days,
         "status": status,
         "per_facility": per_facility,
     }

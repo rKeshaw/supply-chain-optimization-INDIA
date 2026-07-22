@@ -1,181 +1,271 @@
 [
   {
-    "_comment": "=== VIRTUAL EDGES: super_source \u2192 all source nodes (unconstrained) ==="
+    "id": "e_spr_vizag_refinery",
+    "from_id": "spr_vizag",
+    "to_id": "ref_vizag_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 85000,
+    "cost_per_bbl": 8.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "ISPRL Vizag to HPCL Vizag refinery: direct pipeline link (emergency release). Max flow = SPR max discharge 85,000 bbl/day [ESTIMATED]. High cost $8.00/bbl ensures solver only uses SPR when cheaper routes cannot meet demand — serves as last-resort cost signal, not an economic value."
+  },
+  {
+    "id": "e_spr_mangalore_refinery",
+    "from_id": "spr_mangalore",
+    "to_id": "ref_mangalore_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 95000,
+    "cost_per_bbl": 8.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "ISPRL Mangalore to MRPL Mangalore: pipeline link. 95,000 bbl/day [ESTIMATED]."
+  },
+  {
+    "id": "e_spr_padur_kochi",
+    "from_id": "spr_padur",
+    "to_id": "ref_kochi_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 160000,
+    "cost_per_bbl": 8.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "ISPRL Padur to BPCL Kochi: pipeline (Padur is ~200km north of Kochi, pipeline exists per MoPNG). 160,000 bbl/day [ESTIMATED]."
+  },
+  {
+    "id": "e_spr_padur_mangalore",
+    "from_id": "spr_padur",
+    "to_id": "ref_mangalore_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 80000,
+    "cost_per_bbl": 8.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "risk_multiplier": 1.0,
+    "grade": null,
+    "_source": "ISPRL Padur can also feed MRPL Mangalore (closer facility). Shared capacity with Kochi pipe; total Padur discharge capped at 160,000 bbl/day across both edges combined."
   },
   {
     "id": "e_ss_russia_urals",
     "from_id": "super_source",
     "to_id": "src_russia_urals",
     "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
+    "base_capacity_bbl_day": 750000.0,
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Virtual edge \u2014 must never be the bottleneck. Capacity set to 10M bbl/day."
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
   },
   {
     "id": "e_ss_russia_espo",
     "from_id": "super_source",
     "to_id": "src_russia_espo",
     "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
+    "base_capacity_bbl_day": 1100000.0,
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Virtual edge \u2014 must never be the bottleneck. Capacity set to 10M bbl/day."
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
+  },
+  {
+    "id": "e_ss_iran",
+    "from_id": "super_source",
+    "to_id": "src_iran",
+    "mode": "internal",
+    "base_capacity_bbl_day": 500000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
   },
   {
     "id": "e_ss_iraq",
     "from_id": "super_source",
     "to_id": "src_iraq",
     "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
+    "base_capacity_bbl_day": 950000.0,
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Virtual edge."
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
   },
   {
     "id": "e_ss_saudi",
     "from_id": "super_source",
     "to_id": "src_saudi",
     "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
+    "base_capacity_bbl_day": 800000.0,
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Virtual edge."
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
   },
   {
     "id": "e_ss_uae",
     "from_id": "super_source",
     "to_id": "src_uae",
     "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
+    "base_capacity_bbl_day": 550000.0,
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Virtual edge."
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
   },
   {
     "id": "e_ss_kuwait",
     "from_id": "super_source",
     "to_id": "src_kuwait",
     "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
+    "base_capacity_bbl_day": 250000.0,
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Virtual edge."
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
   },
   {
     "id": "e_ss_nigeria",
     "from_id": "super_source",
     "to_id": "src_nigeria",
     "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
+    "base_capacity_bbl_day": 200000.0,
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Virtual edge."
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
   },
   {
     "id": "e_ss_usa",
     "from_id": "super_source",
     "to_id": "src_usa",
     "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
+    "base_capacity_bbl_day": 150000.0,
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Virtual edge."
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
   },
   {
-    "_comment": "=== INTERNAL REFINERY EDGES: refinery_in \u2192 refinery_out (capacity = processing limit) ==="
+    "id": "e_ss_oman",
+    "from_id": "super_source",
+    "to_id": "src_oman",
+    "mode": "internal",
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
   },
   {
-    "id": "e_int_jamnagar",
+    "id": "e_ss_qatar",
+    "from_id": "super_source",
+    "to_id": "src_qatar",
+    "mode": "internal",
+    "base_capacity_bbl_day": 90000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
+  },
+  {
+    "id": "e_ss_kazakhstan",
+    "from_id": "super_source",
+    "to_id": "src_kazakhstan",
+    "mode": "internal",
+    "base_capacity_bbl_day": 60000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
+  },
+  {
+    "id": "e_ss_venezuela",
+    "from_id": "super_source",
+    "to_id": "src_venezuela",
+    "mode": "internal",
+    "base_capacity_bbl_day": 180000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
+  },
+  {
+    "id": "e_ss_brazil",
+    "from_id": "super_source",
+    "to_id": "src_brazil",
+    "mode": "internal",
+    "base_capacity_bbl_day": 170000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
+  },
+  {
+    "id": "e_ss_angola",
+    "from_id": "super_source",
+    "to_id": "src_angola",
+    "mode": "internal",
+    "base_capacity_bbl_day": 130000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
+  },
+  {
+    "id": "e_ss_mumbai_high",
+    "from_id": "super_source",
+    "to_id": "src_mumbai_high",
+    "mode": "internal",
+    "base_capacity_bbl_day": 131000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
+  },
+  {
+    "id": "e_ss_gujarat_onshore",
+    "from_id": "super_source",
+    "to_id": "src_gujarat_onshore",
+    "mode": "internal",
+    "base_capacity_bbl_day": 87000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual connector. Capacity = this source's export ceiling, so that the max-flow baseline respects it (NetworkX max-flow reads edge capacities only, never node capacity_bbl_day)."
+  },
+  {
+    "id": "e_jamnagar_internal",
     "from_id": "ref_jamnagar_in",
     "to_id": "ref_jamnagar_out",
     "mode": "internal",
-    "base_capacity_bbl_day": 1364000,
-    "cost_per_bbl": 3.0,
+    "base_capacity_bbl_day": 1364000.0,
+    "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Reliance Industries 68.2 MMTPA \u00d7 20,000 = 1,364,000 bbl/day. Refinery processing cost (not crude cost): ~$3/bbl [ESTIMATED] representative of complex refinery operating cost."
-  },
-  {
-    "id": "e_int_paradip",
-    "from_id": "ref_paradip_in",
-    "to_id": "ref_paradip_out",
-    "mode": "internal",
-    "base_capacity_bbl_day": 300000,
-    "cost_per_bbl": 3.5,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "PPAC: 15.0 MMTPA = 300,000 bbl/day."
-  },
-  {
-    "id": "e_int_vizag",
-    "from_id": "ref_vizag_in",
-    "to_id": "ref_vizag_out",
-    "mode": "internal",
-    "base_capacity_bbl_day": 300000,
-    "cost_per_bbl": 3.5,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "PPAC: 15.0 MMTPA = 300,000 bbl/day."
-  },
-  {
-    "id": "e_int_mangalore",
-    "from_id": "ref_mangalore_in",
-    "to_id": "ref_mangalore_out",
-    "mode": "internal",
-    "base_capacity_bbl_day": 300000,
-    "cost_per_bbl": 3.5,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "PPAC: 15.0 MMTPA = 300,000 bbl/day."
-  },
-  {
-    "id": "e_int_kochi",
-    "from_id": "ref_kochi_in",
-    "to_id": "ref_kochi_out",
-    "mode": "internal",
-    "base_capacity_bbl_day": 310000,
-    "cost_per_bbl": 3.5,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "PPAC: 15.5 MMTPA = 310,000 bbl/day."
-  },
-  {
-    "_comment": "=== VIRTUAL EDGES: refinery_out \u2192 super_sink (unconstrained) ==="
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
   },
   {
     "id": "e_jamnagar_sk",
@@ -186,9 +276,20 @@
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
     "_source": "Virtual edge."
+  },
+  {
+    "id": "e_paradip_internal",
+    "from_id": "ref_paradip_in",
+    "to_id": "ref_paradip_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
   },
   {
     "id": "e_paradip_sk",
@@ -199,9 +300,20 @@
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
     "_source": "Virtual edge."
+  },
+  {
+    "id": "e_vizag_internal",
+    "from_id": "ref_vizag_in",
+    "to_id": "ref_vizag_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
   },
   {
     "id": "e_vizag_sk",
@@ -212,9 +324,20 @@
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
     "_source": "Virtual edge."
+  },
+  {
+    "id": "e_mangalore_internal",
+    "from_id": "ref_mangalore_in",
+    "to_id": "ref_mangalore_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
   },
   {
     "id": "e_mangalore_sk",
@@ -225,9 +348,20 @@
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
     "_source": "Virtual edge."
+  },
+  {
+    "id": "e_kochi_internal",
+    "from_id": "ref_kochi_in",
+    "to_id": "ref_kochi_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 310000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
   },
   {
     "id": "e_kochi_sk",
@@ -238,25 +372,453 @@
     "cost_per_bbl": 0.0,
     "transit_time_days": 0,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
     "_source": "Virtual edge."
   },
   {
-    "_comment": "=== MIDDLE EAST SOURCES \u2192 STRAIT OF HORMUZ ==="
+    "id": "e_vadinar_internal",
+    "from_id": "ref_vadinar_in",
+    "to_id": "ref_vadinar_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 400000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_vadinar_sk",
+    "from_id": "ref_vadinar_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_mumbai_bpcl_internal",
+    "from_id": "ref_mumbai_bpcl_in",
+    "to_id": "ref_mumbai_bpcl_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 240000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_mumbai_bpcl_sk",
+    "from_id": "ref_mumbai_bpcl_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_chennai_cpcl_internal",
+    "from_id": "ref_chennai_cpcl_in",
+    "to_id": "ref_chennai_cpcl_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 210000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_chennai_cpcl_sk",
+    "from_id": "ref_chennai_cpcl_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_mumbai_hpcl_internal",
+    "from_id": "ref_mumbai_hpcl_in",
+    "to_id": "ref_mumbai_hpcl_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 190000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_mumbai_hpcl_sk",
+    "from_id": "ref_mumbai_hpcl_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_haldia_internal",
+    "from_id": "ref_haldia_in",
+    "to_id": "ref_haldia_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 160000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_haldia_sk",
+    "from_id": "ref_haldia_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_panipat_internal",
+    "from_id": "ref_panipat_in",
+    "to_id": "ref_panipat_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_panipat_sk",
+    "from_id": "ref_panipat_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_koyali_internal",
+    "from_id": "ref_koyali_in",
+    "to_id": "ref_koyali_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 274000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_koyali_sk",
+    "from_id": "ref_koyali_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_bathinda_internal",
+    "from_id": "ref_bathinda_in",
+    "to_id": "ref_bathinda_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 226000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_bathinda_sk",
+    "from_id": "ref_bathinda_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_mathura_internal",
+    "from_id": "ref_mathura_in",
+    "to_id": "ref_mathura_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 160000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_mathura_sk",
+    "from_id": "ref_mathura_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_bina_internal",
+    "from_id": "ref_bina_in",
+    "to_id": "ref_bina_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 156000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_bina_sk",
+    "from_id": "ref_bina_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_barauni_internal",
+    "from_id": "ref_barauni_in",
+    "to_id": "ref_barauni_out",
+    "mode": "internal",
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Refinery processing edge. Capacity = installed crude throughput; this is the binding constraint on how much crude the refinery can absorb."
+  },
+  {
+    "id": "e_barauni_sk",
+    "from_id": "ref_barauni_out",
+    "to_id": "super_sink",
+    "mode": "internal",
+    "base_capacity_bbl_day": 9999999,
+    "cost_per_bbl": 0.0,
+    "transit_time_days": 0,
+    "openness": 1.0,
+    "grade": null,
+    "_source": "Virtual edge."
+  },
+  {
+    "id": "e_pl_salaya_koyali",
+    "from_id": "port_salaya",
+    "to_id": "ref_koyali_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 274000.0,
+    "cost_per_bbl": 0.8475,
+    "transit_time_days": 8.69,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1130.0,
+    "_geometry": "schematic",
+    "_source": "Salaya-Mathura crude pipeline (SMPL), IndianOil. 2,663 km total / 25 MMTPA installed; Koyali is the first delivery point. Capacity is shared with the Mathura and Panipat offtakes and is enforced at the port_salaya node. Tariff = $0.75/1000km x 1,130 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 1,130 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_salaya_mathura",
+    "from_id": "port_salaya",
+    "to_id": "ref_mathura_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 160000.0,
+    "cost_per_bbl": 1.425,
+    "transit_time_days": 14.62,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1900.0,
+    "_geometry": "schematic",
+    "_source": "Salaya-Mathura crude pipeline (SMPL), IndianOil. Mathura is the pipeline's namesake terminus at roughly 1,900 km along the route. Tariff = $0.75/1000km x 1,900 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 1,900 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_salaya_panipat",
+    "from_id": "port_salaya",
+    "to_id": "ref_panipat_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 1.9972,
+    "transit_time_days": 20.48,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 2663.0,
+    "_geometry": "schematic",
+    "_source": "Salaya-Mathura crude pipeline (SMPL) extension to Panipat, IndianOil. 2,663 km end to end. Tariff = $0.75/1000km x 2,663 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 2,663 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_mundra_panipat",
+    "from_id": "port_mundra",
+    "to_id": "ref_panipat_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 168000.0,
+    "cost_per_bbl": 0.8955,
+    "transit_time_days": 9.18,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1194.0,
+    "_geometry": "schematic",
+    "_source": "Mundra-Panipat crude pipeline (MPPL), IndianOil. 1,194 km / 8.4 MMTPA. A second 17.5 MMTPA line is under construction and is NOT modelled. Tariff = $0.75/1000km x 1,194 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 1,194 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_mundra_bathinda",
+    "from_id": "port_mundra",
+    "to_id": "ref_bathinda_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 226000.0,
+    "cost_per_bbl": 0.7628,
+    "transit_time_days": 7.82,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1017.0,
+    "_geometry": "schematic",
+    "_source": "Mundra-Bathinda crude pipeline, HPCL-Mittal Pipelines. 1,017 km, published capacity 11.25 MMTPA and expandable to 18 MMTPA; carried here at the refinery's own 11.3 MMTPA because the 0.05 MMTPA difference is below the precision of either published figure and would otherwise strand the refinery at 99.6% in perpetuity. Sole crude supply to the Guru Gobind Singh refinery. Tariff = $0.75/1000km x 1,017 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 1,017 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_mumbai_high_bpcl",
+    "from_id": "src_mumbai_high",
+    "to_id": "ref_mumbai_bpcl_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 131000.0,
+    "cost_per_bbl": 0.135,
+    "transit_time_days": 1.38,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 180.0,
+    "_geometry": "schematic",
+    "_source": "Mumbai High (ONGC Western Offshore) to the BPCL Mumbai refinery via the Uran terminal. Domestic crude. Tariff = $0.75/1000km x 180 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 180 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_mumbai_high_hpcl",
+    "from_id": "src_mumbai_high",
+    "to_id": "ref_mumbai_hpcl_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 131000.0,
+    "cost_per_bbl": 0.135,
+    "transit_time_days": 1.38,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 180.0,
+    "_geometry": "schematic",
+    "_source": "Mumbai High (ONGC Western Offshore) to the HPCL Mumbai refinery via the Uran terminal. Domestic crude. Field capacity is shared with the adjacent BPCL offtake and is enforced at the source node. Tariff = $0.75/1000km x 180 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 180 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_gujarat_koyali",
+    "from_id": "src_gujarat_onshore",
+    "to_id": "ref_koyali_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 87000.0,
+    "cost_per_bbl": 0.09,
+    "transit_time_days": 0.92,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 120.0,
+    "_geometry": "schematic",
+    "_source": "ONGC Gujarat onshore fields (Ankleshwar / Gandhar / Kalol) to the Koyali refinery, which was originally built around this production. Domestic crude. Tariff = $0.75/1000km x 120 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 120 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_vadinar_bina",
+    "from_id": "port_vadinar",
+    "to_id": "ref_bina_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 156000.0,
+    "cost_per_bbl": 0.7027,
+    "transit_time_days": 7.21,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 937.0,
+    "_geometry": "schematic",
+    "_source": "Vadinar-Bina crude pipeline, BORL/BPCL. 937 km / 7.8 MMTPA. Sole crude supply to the Bina refinery. Tariff = $0.75/1000km x 937 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 937 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_paradip_refinery",
+    "from_id": "port_paradip",
+    "to_id": "ref_paradip_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.0075,
+    "transit_time_days": 0.08,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 10.0,
+    "_geometry": "schematic",
+    "_source": "Short in-port connection from the Paradip crude terminal to the adjacent IOCL Paradip refinery. Tariff = $0.75/1000km x 10 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 10 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_paradip_haldia",
+    "from_id": "port_paradip",
+    "to_id": "ref_haldia_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 160000.0,
+    "cost_per_bbl": 0.2475,
+    "transit_time_days": 2.54,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 330.0,
+    "_geometry": "schematic",
+    "_source": "Paradip-Haldia-Barauni crude pipeline (PHBPL), IndianOil. 1,465 km / 20.4 MMTPA; Haldia is the first inland delivery point. Haldia also receives crude directly by sea at Haldia Dock, so both routes exist. Tariff = $0.75/1000km x 330 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 330 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
+  },
+  {
+    "id": "e_pl_paradip_barauni",
+    "from_id": "port_paradip",
+    "to_id": "ref_barauni_in",
+    "mode": "pipeline",
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.0987,
+    "transit_time_days": 11.27,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1465.0,
+    "_geometry": "schematic",
+    "_source": "Paradip-Haldia-Barauni crude pipeline (PHBPL), IndianOil. Barauni is the terminus at 1,465 km. Tariff = $0.75/1000km x 1,465 km [ESTIMATED from PNGRB-regulated long-haul crude tariffs]. Transit = 1,465 km at 130 km/day (~1.5 m/s design velocity) [ESTIMATED]. Generated by scripts/build_network.py -- do not hand-edit."
   },
   {
     "id": "e_iraq_hormuz",
     "from_id": "src_iraq",
     "to_id": "chk_hormuz",
     "mode": "sea",
-    "base_capacity_bbl_day": 950000,
-    "cost_per_bbl": 0.3,
-    "transit_time_days": 1,
+    "base_capacity_bbl_day": 950000.0,
+    "cost_per_bbl": 1.3465,
+    "transit_time_days": 1.61,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SOUR",
-    "_source": "Basrah to Hormuz transit: ~1 day. Freight from Basrah terminal to Hormuz entrance is minimal \u2014 essentially a pipeline to offshore anchorage. Cost represents terminal fees [ESTIMATED].",
+    "distance_km": 933.0,
+    "_source": "Basrah Oil Terminal to the Strait of Hormuz. Distance 933 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 933 km. Transit = 933 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         48.793109,
@@ -301,13 +863,13 @@
     "from_id": "src_saudi",
     "to_id": "chk_hormuz",
     "mode": "sea",
-    "base_capacity_bbl_day": 800000,
-    "cost_per_bbl": 0.3,
-    "transit_time_days": 1,
+    "base_capacity_bbl_day": 800000.0,
+    "cost_per_bbl": 1.312,
+    "transit_time_days": 1.17,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SOUR",
-    "_source": "Ras Tanura/Ju'aymah terminals to Hormuz: ~1 day.",
+    "distance_km": 675.3,
+    "_source": "Ras Tanura / Ju'aymah to the Strait of Hormuz. Distance 675 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 675 km. Transit = 675 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         50.19104,
@@ -352,13 +914,13 @@
     "from_id": "src_uae",
     "to_id": "chk_hormuz",
     "mode": "sea",
-    "base_capacity_bbl_day": 550000,
-    "cost_per_bbl": 0.3,
-    "transit_time_days": 1,
+    "base_capacity_bbl_day": 550000.0,
+    "cost_per_bbl": 1.2766,
+    "transit_time_days": 0.71,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SWEET",
-    "_source": "Ruwais/Jebel Ali to Hormuz: ~1 day.",
+    "distance_km": 411.4,
+    "_source": "Ruwais / Das Island to the Strait of Hormuz. Distance 411 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 411 km. Transit = 411 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         53.184814,
@@ -399,13 +961,13 @@
     "from_id": "src_kuwait",
     "to_id": "chk_hormuz",
     "mode": "sea",
-    "base_capacity_bbl_day": 250000,
-    "cost_per_bbl": 0.3,
-    "transit_time_days": 1,
+    "base_capacity_bbl_day": 250000.0,
+    "cost_per_bbl": 1.3469,
+    "transit_time_days": 1.62,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SOUR",
-    "_source": "Mina Abdulla/Shuaiba to Hormuz: ~1 day.",
+    "distance_km": 936.1,
+    "_source": "Mina Al Ahmadi to the Strait of Hormuz. Distance 936 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 936 km. Transit = 936 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         48.154587,
@@ -450,20 +1012,115 @@
     ]
   },
   {
-    "_comment": "=== HORMUZ \u2192 WEST COAST INDIAN REFINERIES (direct, via Arabian Sea) ==="
+    "id": "e_qatar_hormuz",
+    "from_id": "src_qatar",
+    "to_id": "chk_hormuz",
+    "mode": "sea",
+    "base_capacity_bbl_day": 90000.0,
+    "cost_per_bbl": 1.2886,
+    "transit_time_days": 0.87,
+    "openness": 1.0,
+    "grade": "SOUR",
+    "distance_km": 501.1,
+    "_source": "Ras Laffan to the Strait of Hormuz. Distance 501 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 501 km. Transit = 501 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        51.6,
+        26.3
+      ],
+      [
+        53.148966,
+        26.25488
+      ],
+      [
+        54.399148,
+        26.194877
+      ],
+      [
+        55.064332,
+        26.151124
+      ],
+      [
+        55.345025,
+        26.132657
+      ],
+      [
+        56.343384,
+        26.441066
+      ],
+      [
+        56.547226,
+        26.511054
+      ]
+    ]
+  },
+  {
+    "id": "e_iran_hormuz",
+    "from_id": "src_iran",
+    "to_id": "chk_hormuz",
+    "mode": "sea",
+    "base_capacity_bbl_day": 500000.0,
+    "cost_per_bbl": 1.3248,
+    "transit_time_days": 1.33,
+    "openness": 1.0,
+    "grade": "SOUR",
+    "distance_km": 771.0,
+    "_source": "Kharg Island to the Strait of Hormuz. src_iran is sanctions_restricted; India has lifted no Iranian crude since the US waiver expired in May 2019. Distance 771 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 771 km. Transit = 771 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        50.3649,
+        29.2472
+      ],
+      [
+        50.73761,
+        28.932449
+      ],
+      [
+        51.4475,
+        27.5435
+      ],
+      [
+        52.366752,
+        27.08314
+      ],
+      [
+        53.3693,
+        26.5789
+      ],
+      [
+        54.399148,
+        26.194877
+      ],
+      [
+        55.064332,
+        26.151124
+      ],
+      [
+        55.345025,
+        26.132657
+      ],
+      [
+        56.343384,
+        26.441066
+      ],
+      [
+        56.547226,
+        26.511054
+      ]
+    ]
   },
   {
     "id": "e_hormuz_jamnagar",
     "from_id": "chk_hormuz",
     "to_id": "ref_jamnagar_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 1100000,
-    "cost_per_bbl": 1.5,
-    "transit_time_days": 6,
+    "base_capacity_bbl_day": 1364000.0,
+    "cost_per_bbl": 0.2084,
+    "transit_time_days": 2.69,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Hormuz to Jamnagar (Sikka terminal, Gujarat): ~6 days. Freight rate $1.50/bbl [ESTIMATED based on Baltic Dirty Tanker Index, VLCC Ras Tanura-West India route]. Capacity set to Jamnagar's intake + buffer; binding constraint is the internal refinery edge.",
+    "distance_km": 1553.8,
+    "_source": "Hormuz to Jamnagar (Sikka / Gulf of Kutch SPM). Distance 1,554 km (searoute). Cost = $0.1341/1000km x 1,554 km. Transit = 1,554 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         56.547226,
@@ -508,13 +1165,13 @@
     "from_id": "chk_hormuz",
     "to_id": "ref_mangalore_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 350000,
-    "cost_per_bbl": 1.7,
-    "transit_time_days": 8,
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.3631,
+    "transit_time_days": 4.69,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Hormuz to Mangalore (Karnataka, west coast): ~8 days. Slightly higher cost due to longer transit south.",
+    "distance_km": 2707.8,
+    "_source": "Hormuz to New Mangalore. Distance 2,708 km (searoute). Cost = $0.1341/1000km x 2,708 km. Transit = 2,708 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         56.547226,
@@ -583,13 +1240,13 @@
     "from_id": "chk_hormuz",
     "to_id": "ref_kochi_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 370000,
-    "cost_per_bbl": 1.8,
-    "transit_time_days": 9,
+    "base_capacity_bbl_day": 310000.0,
+    "cost_per_bbl": 0.3834,
+    "transit_time_days": 4.95,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Hormuz to Kochi (Kerala, SPM facility): ~9 days.",
+    "distance_km": 2859.4,
+    "_source": "Hormuz to Kochi SPM. Distance 2,859 km (searoute). Cost = $0.1341/1000km x 2,859 km. Transit = 2,859 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         56.547226,
@@ -658,20 +1315,17 @@
     ]
   },
   {
-    "_comment": "=== HORMUZ \u2192 MALACCA (for east coast routing of Middle East crude) ==="
-  },
-  {
-    "id": "e_hormuz_malacca",
+    "id": "e_hormuz_vizag",
     "from_id": "chk_hormuz",
-    "to_id": "chk_malacca",
+    "to_id": "ref_vizag_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 600000,
-    "cost_per_bbl": 1.2,
-    "transit_time_days": 7,
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.6675,
+    "transit_time_days": 8.61,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Hormuz to Malacca Strait (through Indian Ocean, around tip of Sri Lanka): ~7 days. Used when routing Gulf crude to east coast refineries (Paradip, Vizag). Cost lower than direct west-coast delivery as tankers avoid port congestion.",
+    "distance_km": 4977.5,
+    "_source": "Hormuz to Visakhapatnam, around Sri Lanka into the Bay of Bengal. Distance 4,977 km (searoute). Cost = $0.1341/1000km x 4,977 km. Transit = 4,977 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         56.547226,
@@ -750,149 +1404,16 @@
         5.9
       ],
       [
-        85.9479,
-        6.1983
+        82.25,
+        7.25
       ],
       [
-        90,
-        6.4664
+        82.998315,
+        12.032454
       ],
       [
-        94.326449,
-        6.157121
-      ],
-      [
-        98.128129,
-        5.811729
-      ],
-      [
-        99.763807,
-        4.084523
-      ],
-      [
-        100.6,
-        3.2
-      ],
-      [
-        101.316415,
-        2.586072
-      ],
-      [
-        102,
-        2
-      ],
-      [
-        102.247009,
-        2.159675
-      ]
-    ]
-  },
-  {
-    "_comment": "=== MALACCA \u2192 EAST COAST INDIAN REFINERIES ==="
-  },
-  {
-    "id": "e_malacca_paradip",
-    "from_id": "chk_malacca",
-    "to_id": "ref_paradip_in",
-    "mode": "sea",
-    "base_capacity_bbl_day": 320000,
-    "cost_per_bbl": 1.6,
-    "transit_time_days": 8,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Malacca to Paradip Port (Odisha): ~8 days across Bay of Bengal. Capacity slightly above refinery capacity to avoid artificial bottleneck here.",
-    "path": [
-      [
-        102.247009,
-        2.159675
-      ],
-      [
-        102,
-        2
-      ],
-      [
-        101.316415,
-        2.586072
-      ],
-      [
-        100.6,
-        3.2
-      ],
-      [
-        99.763807,
-        4.084523
-      ],
-      [
-        98.128129,
-        5.811729
-      ],
-      [
-        93.638649,
-        14.549165
-      ],
-      [
-        89.727407,
-        18.84889
-      ],
-      [
-        88,
-        21
-      ]
-    ]
-  },
-  {
-    "id": "e_malacca_vizag",
-    "from_id": "chk_malacca",
-    "to_id": "ref_vizag_in",
-    "mode": "sea",
-    "base_capacity_bbl_day": 320000,
-    "cost_per_bbl": 1.55,
-    "transit_time_days": 7,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Malacca to Visakhapatnam Port (Andhra Pradesh): ~7 days. Slightly closer to Malacca than Paradip.",
-    "path": [
-      [
-        102.247009,
-        2.159675
-      ],
-      [
-        102,
-        2
-      ],
-      [
-        101.316415,
-        2.586072
-      ],
-      [
-        100.6,
-        3.2
-      ],
-      [
-        99.763807,
-        4.084523
-      ],
-      [
-        98.128129,
-        5.811729
-      ],
-      [
-        92.334595,
-        10.136524
-      ],
-      [
-        88.973316,
-        13.264437
-      ],
-      [
-        87.079924,
-        14.742137
-      ],
-      [
-        85.735114,
-        15.791697
+        83.45929,
+        15.271825
       ],
       [
         83.656463,
@@ -905,227 +1426,293 @@
     ]
   },
   {
-    "_comment": "=== RUSSIA ROUTES ==="
-  },
-  {
-    "id": "e_russia_malacca",
-    "from_id": "src_russia_espo",
-    "to_id": "chk_malacca",
+    "id": "e_oman_jamnagar",
+    "from_id": "src_oman",
+    "to_id": "ref_jamnagar_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 1100000,
-    "cost_per_bbl": 2.8,
-    "transit_time_days": 14,
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.4005,
+    "transit_time_days": 2.31,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SOUR",
-    "_source": "Russia ESPO: Kozmino (Pacific) to Malacca ~14 days. Path regenerated via searoute from the correct Pacific origin.",
+    "distance_km": 1335.4,
+    "_source": "Mina Al Fahal to Jamnagar. Oman loads outside the Strait of Hormuz, so this lane bypasses it entirely. Distance 1,335 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 1,335 km. Transit = 1,335 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
-        133.7,
-        42.7
+        58.566943,
+        23.626782
       ],
       [
-        132,
-        42.3
+        59,
+        24
       ],
       [
-        130.735565,
-        38.960326
+        61.55539,
+        23.45698
       ],
       [
-        130.506264,
-        38.317111
+        63.3,
+        24.6
       ],
       [
-        129.740295,
-        36.184442
+        66.6,
+        24.3
       ],
       [
-        129.597473,
-        35.429344
+        68.719482,
+        22.543001
       ],
       [
-        129.2,
-        35
+        69.44458,
+        22.573438
       ],
       [
-        128.916321,
-        34.761923
-      ],
-      [
-        128.16925,
-        34.40691
-      ],
-      [
-        127.444583,
-        34.104419
-      ],
-      [
-        126.643151,
-        33.735423
-      ],
-      [
-        126.035156,
-        33.45436
-      ],
-      [
-        125.34383,
-        32.983736
-      ],
-      [
-        122.9,
-        31.3
-      ],
-      [
-        122.891141,
-        30.901897
-      ],
-      [
-        122.878907,
-        30.349364
-      ],
-      [
-        122.875214,
-        30.181935
-      ],
-      [
-        122.652515,
-        29.623632
-      ],
-      [
-        122.557297,
-        29.38397
-      ],
-      [
-        122.23938,
-        28.579698
-      ],
-      [
-        121.3,
-        27.8
-      ],
-      [
-        120.787503,
-        26.976762
-      ],
-      [
-        120.232569,
-        26.078521
-      ],
-      [
-        120,
-        25.7
-      ],
-      [
-        119.820497,
-        25.236972
-      ],
-      [
-        119.761963,
-        25.085599
-      ],
-      [
-        119.523707,
-        24.707707
-      ],
-      [
-        119.33882,
-        24.448861
-      ],
-      [
-        118.980046,
-        23.949944
-      ],
-      [
-        118.724128,
-        23.582665
-      ],
-      [
-        118.203464,
-        22.930938
-      ],
-      [
-        118.030487,
-        22.691517
-      ],
-      [
-        117.437994,
-        21.922538
-      ],
-      [
-        116.5017,
-        20.601113
-      ],
-      [
-        115.841059,
-        19.666279
-      ],
-      [
-        114.338334,
-        17.570129
-      ],
-      [
-        112.965,
-        15.7278
-      ],
-      [
-        111.478346,
-        12.523981
-      ],
-      [
-        111.0534,
-        11.6082
-      ],
-      [
-        110.80697,
-        11.263464
-      ],
-      [
-        110.027598,
-        10.173186
-      ],
-      [
-        108.7023,
-        8.3192
-      ],
-      [
-        104.482294,
-        1.341312
-      ],
-      [
-        104.145848,
-        1.249295
-      ],
-      [
-        103.861103,
-        1.171415
-      ],
-      [
-        103.6,
-        1.1
-      ],
-      [
-        102,
-        2
-      ],
-      [
-        102.247009,
-        2.159675
+        70.246582,
+        22.857195
       ]
     ]
   },
   {
-    "id": "e_russia_bab",
-    "from_id": "src_russia_urals",
-    "to_id": "chk_bab",
+    "id": "e_oman_mangalore",
+    "from_id": "src_oman",
+    "to_id": "ref_mangalore_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 750000,
-    "cost_per_bbl": 3.5,
-    "transit_time_days": 20,
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.5409,
+    "transit_time_days": 4.12,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SOUR",
-    "_source": "Russia Urals: Novorossiysk (Black Sea) via Med/Suez/Red Sea to Bab-el-Mandeb ~20 days. Path regenerated via searoute.",
+    "distance_km": 2382.6,
+    "_source": "Mina Al Fahal to New Mangalore, outside Hormuz. Distance 2,383 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 2,383 km. Transit = 2,383 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        58.566943,
+        23.626782
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        61.55539,
+        23.45698
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        65.725774,
+        22.570773
+      ],
+      [
+        67,
+        22.3
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        74.778442,
+        12.817158
+      ]
+    ]
+  },
+  {
+    "id": "e_oman_kochi",
+    "from_id": "src_oman",
+    "to_id": "ref_kochi_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.5612,
+    "transit_time_days": 4.39,
+    "openness": 1.0,
+    "grade": "SOUR",
+    "distance_km": 2534.1,
+    "_source": "Mina Al Fahal to Kochi, outside Hormuz. Distance 2,534 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 2,534 km. Transit = 2,534 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        58.566943,
+        23.626782
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        60.4,
+        22.7
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.5005,
+        20.0838
+      ],
+      [
+        64.952594,
+        19.426191
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        76.195679,
+        9.876864
+      ]
+    ]
+  },
+  {
+    "id": "e_oman_vizag",
+    "from_id": "src_oman",
+    "to_id": "ref_vizag_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.8453,
+    "transit_time_days": 8.05,
+    "openness": 1.0,
+    "grade": "SOUR",
+    "distance_km": 4652.2,
+    "_source": "Mina Al Fahal to Visakhapatnam, outside Hormuz, around Sri Lanka. Distance 4,652 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 4,652 km. Transit = 4,652 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        58.566943,
+        23.626782
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        60.4,
+        22.7
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.5005,
+        20.0838
+      ],
+      [
+        64.952594,
+        19.426191
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        82.998315,
+        12.032454
+      ],
+      [
+        83.45929,
+        15.271825
+      ],
+      [
+        83.656463,
+        17.413983
+      ],
+      [
+        83.3898,
+        17.6221
+      ]
+    ]
+  },
+  {
+    "id": "e_russia_suez",
+    "from_id": "src_russia_urals",
+    "to_id": "chk_suez",
+    "mode": "sea",
+    "base_capacity_bbl_day": 750000.0,
+    "cost_per_bbl": 1.5438,
+    "transit_time_days": 4.16,
+    "openness": 1.0,
+    "grade": "SOUR",
+    "distance_km": 2403.8,
+    "_source": "Novorossiysk to the Suez Canal via the Bosphorus and Mediterranean. Distance 2,404 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 2,404 km. Transit = 2,404 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         37.8295,
@@ -1326,693 +1913,232 @@
       [
         32.382202,
         30.318359
-      ],
-      [
-        32.557983,
-        30.213982
-      ],
-      [
-        32.6,
-        29.7
-      ],
-      [
-        33.233643,
-        28.444544
-      ],
-      [
-        34.5,
-        27
-      ],
-      [
-        37,
-        23.6
-      ],
-      [
-        37.786499,
-        22.210682
-      ],
-      [
-        38.572998,
-        20.807472
-      ],
-      [
-        41.000977,
-        17.098792
-      ],
-      [
-        42.341309,
-        14.509144
-      ],
-      [
-        42.541058,
-        13.676089
-      ],
-      [
-        43.3,
-        12.7
-      ],
-      [
-        43.746586,
-        12.40439
       ]
     ]
   },
   {
-    "_comment": "=== BAB-EL-MANDEB \u2192 SUEZ CANAL (serial connection for westbound routes) ==="
-  },
-  {
-    "id": "e_bab_suez",
-    "from_id": "chk_bab",
+    "id": "e_kazakhstan_suez",
+    "from_id": "src_kazakhstan",
     "to_id": "chk_suez",
     "mode": "sea",
-    "base_capacity_bbl_day": 950000,
-    "cost_per_bbl": 0.6,
-    "transit_time_days": 2,
+    "base_capacity_bbl_day": 60000.0,
+    "cost_per_bbl": 1.5394,
+    "transit_time_days": 4.1,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Bab-el-Mandeb to Suez Canal transit: ~2 days (Red Sea crossing). Canal fees approx. $0.60/bbl for oil tankers [ESTIMATED based on Suez Canal Authority published tariffs for Suezmax class].",
-    "path": [
-      [
-        43.746586,
-        12.40439
-      ],
-      [
-        43.3,
-        12.7
-      ],
-      [
-        42.541058,
-        13.676089
-      ],
-      [
-        42.341309,
-        14.509144
-      ],
-      [
-        41.000977,
-        17.098792
-      ],
-      [
-        38.572998,
-        20.807472
-      ],
-      [
-        37.786499,
-        22.210682
-      ],
-      [
-        37,
-        23.6
-      ],
-      [
-        34.5,
-        27
-      ],
-      [
-        33.233643,
-        28.444544
-      ],
-      [
-        32.6,
-        29.7
-      ],
-      [
-        32.557983,
-        30.213982
-      ],
-      [
-        32.382202,
-        30.318359
-      ]
-    ]
-  },
-  {
-    "_comment": "=== SUEZ \u2192 INDIAN REFINERIES (via Arabian Sea, southbound exit from canal) ==="
-  },
-  {
-    "id": "e_suez_jamnagar",
-    "from_id": "chk_suez",
-    "to_id": "ref_jamnagar_in",
-    "mode": "sea",
-    "base_capacity_bbl_day": 500000,
-    "cost_per_bbl": 2.0,
-    "transit_time_days": 8,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Suez exit to Jamnagar via Arabian Sea: ~8 days. Higher cost than Hormuz route ($2.00 vs $1.50/bbl) reflecting Suez canal fees and longer transit. Capacity constrained: primarily Russia Urals + Nigeria SWEET for Jamnagar.",
-    "path": [
-      [
-        32.382202,
-        30.318359
-      ],
-      [
-        32.557983,
-        30.213982
-      ],
-      [
-        32.6,
-        29.7
-      ],
-      [
-        33.233643,
-        28.444544
-      ],
-      [
-        34.5,
-        27
-      ],
-      [
-        37,
-        23.6
-      ],
-      [
-        37.786499,
-        22.210682
-      ],
-      [
-        38.572998,
-        20.807472
-      ],
-      [
-        41.000977,
-        17.098792
-      ],
-      [
-        42.341309,
-        14.509144
-      ],
-      [
-        42.541058,
-        13.676089
-      ],
-      [
-        43.3,
-        12.7
-      ],
-      [
-        43.746586,
-        12.40439
-      ],
-      [
-        45,
-        12
-      ],
-      [
-        49.5581,
-        14.1436
-      ],
-      [
-        54.2,
-        16.2
-      ],
-      [
-        56.876033,
-        17.38386
-      ],
-      [
-        58.191833,
-        18.742507
-      ],
-      [
-        59,
-        20
-      ],
-      [
-        62.375976,
-        21.440441
-      ],
-      [
-        64.447045,
-        22.842503
-      ],
-      [
-        66.6,
-        24.3
-      ],
-      [
-        68.719482,
-        22.543001
-      ],
-      [
-        69.44458,
-        22.573438
-      ],
-      [
-        70.246582,
-        22.857195
-      ]
-    ]
-  },
-  {
-    "id": "e_suez_mangalore",
-    "from_id": "chk_suez",
-    "to_id": "ref_mangalore_in",
-    "mode": "sea",
-    "base_capacity_bbl_day": 300000,
-    "cost_per_bbl": 2.2,
-    "transit_time_days": 10,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Suez to Mangalore: ~10 days. $2.20/bbl [ESTIMATED].",
-    "path": [
-      [
-        32.382202,
-        30.318359
-      ],
-      [
-        32.557983,
-        30.213982
-      ],
-      [
-        32.6,
-        29.7
-      ],
-      [
-        33.233643,
-        28.444544
-      ],
-      [
-        34.5,
-        27
-      ],
-      [
-        37,
-        23.6
-      ],
-      [
-        37.786499,
-        22.210682
-      ],
-      [
-        38.572998,
-        20.807472
-      ],
-      [
-        41.000977,
-        17.098792
-      ],
-      [
-        42.341309,
-        14.509144
-      ],
-      [
-        42.541058,
-        13.676089
-      ],
-      [
-        43.3,
-        12.7
-      ],
-      [
-        43.746586,
-        12.40439
-      ],
-      [
-        45,
-        12
-      ],
-      [
-        50.856149,
-        12.884027
-      ],
-      [
-        53.61885,
-        13.300009
-      ],
-      [
-        55.041504,
-        12.747516
-      ],
-      [
-        59.894005,
-        11.083455
-      ],
-      [
-        60.825733,
-        10.866984
-      ],
-      [
-        62.0601,
-        10.5802
-      ],
-      [
-        64.303249,
-        10.031585
-      ],
-      [
-        64.696861,
-        10.034474
-      ],
-      [
-        65.0002,
-        10.0367
-      ],
-      [
-        65.126773,
-        10.035771
-      ],
-      [
-        70,
-        10
-      ],
-      [
-        75.3,
-        9.7
-      ],
-      [
-        74.133516,
-        12.773359
-      ],
-      [
-        74.778442,
-        12.817158
-      ]
-    ]
-  },
-  {
-    "id": "e_suez_kochi",
-    "from_id": "chk_suez",
-    "to_id": "ref_kochi_in",
-    "mode": "sea",
-    "base_capacity_bbl_day": 250000,
-    "cost_per_bbl": 2.3,
-    "transit_time_days": 11,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Suez to Kochi: ~11 days. Southernmost west coast refinery, longest transit from Suez.",
-    "path": [
-      [
-        32.382202,
-        30.318359
-      ],
-      [
-        32.557983,
-        30.213982
-      ],
-      [
-        32.6,
-        29.7
-      ],
-      [
-        33.233643,
-        28.444544
-      ],
-      [
-        34.5,
-        27
-      ],
-      [
-        37,
-        23.6
-      ],
-      [
-        37.786499,
-        22.210682
-      ],
-      [
-        38.572998,
-        20.807472
-      ],
-      [
-        41.000977,
-        17.098792
-      ],
-      [
-        42.341309,
-        14.509144
-      ],
-      [
-        42.541058,
-        13.676089
-      ],
-      [
-        43.3,
-        12.7
-      ],
-      [
-        43.746586,
-        12.40439
-      ],
-      [
-        45,
-        12
-      ],
-      [
-        50.856149,
-        12.884027
-      ],
-      [
-        53.61885,
-        13.300009
-      ],
-      [
-        55.041504,
-        12.747516
-      ],
-      [
-        59.894005,
-        11.083455
-      ],
-      [
-        60.825733,
-        10.866984
-      ],
-      [
-        62.0601,
-        10.5802
-      ],
-      [
-        64.303249,
-        10.031585
-      ],
-      [
-        64.696861,
-        10.034474
-      ],
-      [
-        65.0002,
-        10.0367
-      ],
-      [
-        65.126773,
-        10.035771
-      ],
-      [
-        70,
-        10
-      ],
-      [
-        75.3,
-        9.7
-      ],
-      [
-        76.195679,
-        9.876864
-      ]
-    ]
-  },
-  {
-    "id": "e_suez_malacca",
-    "from_id": "chk_suez",
-    "to_id": "chk_malacca",
-    "mode": "sea",
-    "base_capacity_bbl_day": 200000,
-    "cost_per_bbl": 2.5,
-    "transit_time_days": 14,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Suez to Malacca (for routing Russia Urals to east coast refineries via Indian Ocean): ~14 days.",
-    "path": [
-      [
-        32.382202,
-        30.318359
-      ],
-      [
-        32.557983,
-        30.213982
-      ],
-      [
-        32.6,
-        29.7
-      ],
-      [
-        33.233643,
-        28.444544
-      ],
-      [
-        34.5,
-        27
-      ],
-      [
-        37,
-        23.6
-      ],
-      [
-        37.786499,
-        22.210682
-      ],
-      [
-        38.572998,
-        20.807472
-      ],
-      [
-        41.000977,
-        17.098792
-      ],
-      [
-        42.341309,
-        14.509144
-      ],
-      [
-        42.541058,
-        13.676089
-      ],
-      [
-        43.3,
-        12.7
-      ],
-      [
-        43.746586,
-        12.40439
-      ],
-      [
-        45,
-        12
-      ],
-      [
-        50.856149,
-        12.884027
-      ],
-      [
-        53.61885,
-        13.300009
-      ],
-      [
-        55.041504,
-        12.747516
-      ],
-      [
-        59.894005,
-        11.083455
-      ],
-      [
-        60.825733,
-        10.866984
-      ],
-      [
-        62.0601,
-        10.5802
-      ],
-      [
-        64.303249,
-        10.031585
-      ],
-      [
-        64.698862,
-        9.934828
-      ],
-      [
-        64.992809,
-        9.862937
-      ],
-      [
-        65.7044,
-        9.6889
-      ],
-      [
-        68.858995,
-        8.881605
-      ],
-      [
-        69.3291,
-        8.7613
-      ],
-      [
-        69.671733,
-        8.6701
-      ],
-      [
-        69.999915,
-        8.582747
-      ],
-      [
-        70.817426,
-        8.365148
-      ],
-      [
-        75.966807,
-        6.966807
-      ],
-      [
-        78.019032,
-        6.387793
-      ],
-      [
-        80.1,
-        5.8
-      ],
-      [
-        81.9,
-        5.9
-      ],
-      [
-        85.9479,
-        6.1983
-      ],
-      [
-        90,
-        6.4664
-      ],
-      [
-        94.326449,
-        6.157121
-      ],
-      [
-        98.128129,
-        5.811729
-      ],
-      [
-        99.763807,
-        4.084523
-      ],
-      [
-        100.6,
-        3.2
-      ],
-      [
-        101.316415,
-        2.586072
-      ],
-      [
-        102,
-        2
-      ],
-      [
-        102.247009,
-        2.159675
-      ]
-    ]
-  },
-  {
-    "_comment": "=== NIGERIA ROUTES ==="
-  },
-  {
-    "id": "e_nigeria_bab",
-    "from_id": "src_nigeria",
-    "to_id": "chk_bab",
-    "mode": "sea",
-    "base_capacity_bbl_day": 200000,
-    "cost_per_bbl": 2.5,
-    "transit_time_days": 15,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SWEET",
-    "_source": "Nigeria (Bonny terminal) to Bab-el-Mandeb via Gulf of Guinea, around Horn of Africa or via Suez: ~15 days. Primary route before Houthi attacks. $2.50/bbl [ESTIMATED, West Africa-India Aframax rate].",
+    "distance_km": 2371.5,
+    "_source": "CPC Terminal, Novorossiysk, to the Suez Canal via the Bosphorus and Mediterranean. Distance 2,372 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 2,372 km. Transit = 2,372 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        37.470601,
+        44.45157
+      ],
+      [
+        37.301242,
+        44.386389
+      ],
+      [
+        37.016592,
+        44.276835
+      ],
+      [
+        36.846449,
+        44.211352
+      ],
+      [
+        36.397403,
+        44.038527
+      ],
+      [
+        35.952304,
+        43.867221
+      ],
+      [
+        33.847733,
+        43.057232
+      ],
+      [
+        33.50474,
+        42.925224
+      ],
+      [
+        29.132431,
+        41.242447
+      ],
+      [
+        29.096026,
+        41.186306
+      ],
+      [
+        29.050519,
+        41.15205
+      ],
+      [
+        29.070542,
+        41.117776
+      ],
+      [
+        29.042328,
+        41.050547
+      ],
+      [
+        28.995,
+        41.027893
+      ],
+      [
+        28.977708,
+        40.971568
+      ],
+      [
+        28.501542,
+        40.82216
+      ],
+      [
+        28.449481,
+        40.805825
+      ],
+      [
+        27.277634,
+        40.60495
+      ],
+      [
+        26.768188,
+        40.440676
+      ],
+      [
+        26.2,
+        40.1
+      ],
+      [
+        26.143615,
+        39.992927
+      ],
+      [
+        26.097501,
+        39.784356
+      ],
+      [
+        25.953472,
+        39.494984
+      ],
+      [
+        25.825253,
+        39.237374
+      ],
+      [
+        25.830528,
+        39.136019
+      ],
+      [
+        26.022956,
+        38.889479
+      ],
+      [
+        26.157985,
+        38.716479
+      ],
+      [
+        26.308653,
+        38.523442
+      ],
+      [
+        26.269821,
+        38.437945
+      ],
+      [
+        26.184875,
+        38.339023
+      ],
+      [
+        26.172739,
+        38.253308
+      ],
+      [
+        26.366219,
+        37.813395
+      ],
+      [
+        26.430146,
+        37.266748
+      ],
+      [
+        26.635875,
+        37.008989
+      ],
+      [
+        27.002784,
+        36.547109
+      ],
+      [
+        27.030399,
+        36.498505
+      ],
+      [
+        27.2,
+        36.2
+      ],
+      [
+        27.548237,
+        35.88019
+      ],
+      [
+        28.180712,
+        35.299346
+      ],
+      [
+        28.881234,
+        34.656009
+      ],
+      [
+        28.964326,
+        34.5797
+      ],
+      [
+        29.595152,
+        34.000371
+      ],
+      [
+        29.703004,
+        33.901323
+      ],
+      [
+        30.699385,
+        32.986279
+      ],
+      [
+        30.765996,
+        32.925106
+      ],
+      [
+        32.1,
+        31.7
+      ],
+      [
+        32.359877,
+        31.336373
+      ],
+      [
+        32.310104,
+        31.102922
+      ],
+      [
+        32.382202,
+        30.318359
+      ]
+    ]
+  },
+  {
+    "id": "e_nigeria_suez",
+    "from_id": "src_nigeria",
+    "to_id": "chk_suez",
+    "mode": "sea",
+    "base_capacity_bbl_day": 200000.0,
+    "cost_per_bbl": 2.5521,
+    "transit_time_days": 17.17,
+    "openness": 1.0,
+    "grade": "SWEET",
+    "distance_km": 9923.3,
+    "_source": "Bonny to the Suez Canal via Gibraltar and the Mediterranean. Longer and dearer than the Cape route for India-bound cargoes, so the optimizer only reaches for it when the Cape is constrained. Distance 9,923 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 9,923 km. Transit = 9,923 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         7.095795,
@@ -2233,6 +2359,25 @@
       [
         32.382202,
         30.318359
+      ]
+    ]
+  },
+  {
+    "id": "e_suez_bab",
+    "from_id": "chk_suez",
+    "to_id": "chk_bab",
+    "mode": "sea",
+    "base_capacity_bbl_day": 1010000.0,
+    "cost_per_bbl": 0.913,
+    "transit_time_days": 5.04,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 2334.3,
+    "_source": "Suez Canal transit and Red Sea crossing to Bab-el-Mandeb. Carries the Suez Canal Authority toll and one day of scheduled convoy transit. Distance 2,334 km (searoute). Cost = $0.1341/1000km x 2,334 km + $0.60 Suez Canal toll. Transit = 2,334 km at 13 kn laden + 1 d canal transit. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        32.382202,
+        30.318359
       ],
       [
         32.557983,
@@ -2285,17 +2430,357 @@
     ]
   },
   {
+    "id": "e_bab_jamnagar",
+    "from_id": "chk_bab",
+    "to_id": "ref_jamnagar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 1364000.0,
+    "cost_per_bbl": 0.4424,
+    "transit_time_days": 5.71,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3299.4,
+    "_source": "Bab-el-Mandeb to Jamnagar across the Arabian Sea. Distance 3,299 km (searoute). Cost = $0.1341/1000km x 3,299 km. Transit = 3,299 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        49.5581,
+        14.1436
+      ],
+      [
+        54.2,
+        16.2
+      ],
+      [
+        56.876033,
+        17.38386
+      ],
+      [
+        58.191833,
+        18.742507
+      ],
+      [
+        59,
+        20
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ],
+      [
+        70.246582,
+        22.857195
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_mangalore",
+    "from_id": "chk_bab",
+    "to_id": "ref_mangalore_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.5298,
+    "transit_time_days": 6.84,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3951.1,
+    "_source": "Bab-el-Mandeb to New Mangalore. Distance 3,951 km (searoute). Cost = $0.1341/1000km x 3,951 km. Transit = 3,951 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        55.041504,
+        12.747516
+      ],
+      [
+        59.894005,
+        11.083455
+      ],
+      [
+        60.825733,
+        10.866984
+      ],
+      [
+        62.0601,
+        10.5802
+      ],
+      [
+        64.303249,
+        10.031585
+      ],
+      [
+        64.696861,
+        10.034474
+      ],
+      [
+        65.0002,
+        10.0367
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        70,
+        10
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        74.778442,
+        12.817158
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_kochi",
+    "from_id": "chk_bab",
+    "to_id": "ref_kochi_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 310000.0,
+    "cost_per_bbl": 0.485,
+    "transit_time_days": 6.26,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3616.4,
+    "_source": "Bab-el-Mandeb to Kochi. Distance 3,616 km (searoute). Cost = $0.1341/1000km x 3,616 km. Transit = 3,616 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        55.041504,
+        12.747516
+      ],
+      [
+        59.894005,
+        11.083455
+      ],
+      [
+        60.825733,
+        10.866984
+      ],
+      [
+        62.0601,
+        10.5802
+      ],
+      [
+        64.303249,
+        10.031585
+      ],
+      [
+        64.696861,
+        10.034474
+      ],
+      [
+        65.0002,
+        10.0367
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        70,
+        10
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        76.195679,
+        9.876864
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_vizag",
+    "from_id": "chk_bab",
+    "to_id": "ref_vizag_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.7569,
+    "transit_time_days": 9.77,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 5644.5,
+    "_source": "Bab-el-Mandeb to Visakhapatnam, around Sri Lanka. Distance 5,645 km (searoute). Cost = $0.1341/1000km x 5,645 km. Transit = 5,645 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        55.041504,
+        12.747516
+      ],
+      [
+        59.894005,
+        11.083455
+      ],
+      [
+        60.825733,
+        10.866984
+      ],
+      [
+        62.0601,
+        10.5802
+      ],
+      [
+        64.303249,
+        10.031585
+      ],
+      [
+        64.698862,
+        9.934828
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.7044,
+        9.6889
+      ],
+      [
+        68.858995,
+        8.881605
+      ],
+      [
+        69.3291,
+        8.7613
+      ],
+      [
+        69.671733,
+        8.6701
+      ],
+      [
+        69.999915,
+        8.582747
+      ],
+      [
+        70.817426,
+        8.365148
+      ],
+      [
+        75.966807,
+        6.966807
+      ],
+      [
+        78.019032,
+        6.387793
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        82.998315,
+        12.032454
+      ],
+      [
+        83.45929,
+        15.271825
+      ],
+      [
+        83.656463,
+        17.413983
+      ],
+      [
+        83.3898,
+        17.6221
+      ]
+    ]
+  },
+  {
     "id": "e_nigeria_cog",
     "from_id": "src_nigeria",
     "to_id": "chk_cog",
     "mode": "sea",
-    "base_capacity_bbl_day": 200000,
-    "cost_per_bbl": 3.8,
-    "transit_time_days": 22,
+    "base_capacity_bbl_day": 200000.0,
+    "cost_per_bbl": 1.8423,
+    "transit_time_days": 8.01,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SWEET",
-    "_source": "Nigeria to Cape of Good Hope: ~22 days (bypass route, actively used in 2024 due to Houthi attacks). $3.80/bbl [ESTIMATED, adds ~$1.30/bbl over primary route]. EIA 2024 data confirms this rerouting actually happened.",
+    "distance_km": 4629.9,
+    "_source": "Bonny to the Cape of Good Hope. EIA 2024 confirms West African cargoes rerouted around the Cape during the Red Sea disruption. Distance 4,630 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 4,630 km. Transit = 4,630 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         7.095795,
@@ -2356,20 +2841,64 @@
     ]
   },
   {
-    "_comment": "=== USA ROUTE ==="
+    "id": "e_angola_cog",
+    "from_id": "src_angola",
+    "to_id": "chk_cog",
+    "mode": "sea",
+    "base_capacity_bbl_day": 130000.0,
+    "cost_per_bbl": 1.6355,
+    "transit_time_days": 5.34,
+    "openness": 1.0,
+    "grade": "SWEET",
+    "distance_km": 3087.9,
+    "_source": "Luanda / Cabinda to the Cape of Good Hope. Distance 3,088 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 3,088 km. Transit = 3,088 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        13.07373,
+        -8.559294
+      ],
+      [
+        12,
+        -9
+      ],
+      [
+        11,
+        -15.5
+      ],
+      [
+        11,
+        -19
+      ],
+      [
+        13.80944,
+        -22.909209
+      ],
+      [
+        14.534912,
+        -26.863281
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18.428192,
+        -33.862433
+      ]
+    ]
   },
   {
     "id": "e_usa_cog",
     "from_id": "src_usa",
     "to_id": "chk_cog",
     "mode": "sea",
-    "base_capacity_bbl_day": 150000,
-    "cost_per_bbl": 4.5,
-    "transit_time_days": 28,
+    "base_capacity_bbl_day": 150000.0,
+    "cost_per_bbl": 3.0923,
+    "transit_time_days": 24.14,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SWEET",
-    "_source": "US Gulf Coast (Houston) to Cape of Good Hope: ~28 days (VLCC Atlantic crossing). $4.50/bbl [ESTIMATED, long-haul VLCC rate]. US crude to India is a relatively recent and growing trade flow.",
+    "distance_km": 13951.5,
+    "_source": "US Gulf Coast to the Cape of Good Hope. Fully laden VLCCs cannot transit Suez, so the Cape is the standard routing. Distance 13,952 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 13,952 km. Transit = 13,952 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         -93.8617,
@@ -2670,20 +3199,275 @@
     ]
   },
   {
-    "_comment": "=== CAPE OF GOOD HOPE \u2192 INDIAN REFINERIES (bypass route, higher cost) ==="
+    "id": "e_venezuela_cog",
+    "from_id": "src_venezuela",
+    "to_id": "chk_cog",
+    "mode": "sea",
+    "base_capacity_bbl_day": 180000.0,
+    "cost_per_bbl": 2.6229,
+    "transit_time_days": 18.09,
+    "openness": 1.0,
+    "grade": "SOUR",
+    "distance_km": 10451.3,
+    "_source": "Jose Terminal to the Cape of Good Hope. Distance 10,451 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 10,451 km. Transit = 10,451 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        -64.702263,
+        10.271006
+      ],
+      [
+        -64.812697,
+        11.316062
+      ],
+      [
+        -64.039307,
+        11.350797
+      ],
+      [
+        -61.817065,
+        10.845292
+      ],
+      [
+        -61,
+        11
+      ],
+      [
+        -56.4243,
+        8.2122
+      ],
+      [
+        -51.9,
+        5.4
+      ],
+      [
+        -48.44,
+        3.2798
+      ],
+      [
+        -46.399027,
+        2.021526
+      ],
+      [
+        -44.9917,
+        1.1539
+      ],
+      [
+        -43.123942,
+        -2e-05
+      ],
+      [
+        -42.984139,
+        -0.086392
+      ],
+      [
+        -42.781385,
+        -0.211655
+      ],
+      [
+        -41.5476,
+        -0.9739
+      ],
+      [
+        -38.1,
+        -3.1
+      ],
+      [
+        -34.860393,
+        -4.720374
+      ],
+      [
+        -33.8,
+        -5.25
+      ],
+      [
+        -31.063081,
+        -7.186164
+      ],
+      [
+        -29.999876,
+        -7.933805
+      ],
+      [
+        -28.772132,
+        -8.796464
+      ],
+      [
+        -27.018677,
+        -10.021884
+      ],
+      [
+        -22.806528,
+        -12.935362
+      ],
+      [
+        -19.999225,
+        -14.844666
+      ],
+      [
+        -16.822275,
+        -16.967419
+      ],
+      [
+        -12.088665,
+        -20.028905
+      ],
+      [
+        -10.796127,
+        -20.843889
+      ],
+      [
+        -9.999624,
+        -21.343395
+      ],
+      [
+        -7.024709,
+        -23.154038
+      ],
+      [
+        -4.412459,
+        -24.677177
+      ],
+      [
+        0.00081,
+        -27.123985
+      ],
+      [
+        2.015382,
+        -28.169477
+      ],
+      [
+        5.891411,
+        -30.076823
+      ],
+      [
+        8.741211,
+        -31.368532
+      ],
+      [
+        10.000809,
+        -31.926949
+      ],
+      [
+        14.0806,
+        -33.5827
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18.428192,
+        -33.862433
+      ]
+    ]
+  },
+  {
+    "id": "e_brazil_cog",
+    "from_id": "src_brazil",
+    "to_id": "chk_cog",
+    "mode": "sea",
+    "base_capacity_bbl_day": 170000.0,
+    "cost_per_bbl": 2.0287,
+    "transit_time_days": 10.42,
+    "openness": 1.0,
+    "grade": "SWEET",
+    "distance_km": 6020.3,
+    "_source": "Porto do Acu to the Cape of Good Hope. Distance 6,020 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 6,020 km. Transit = 6,020 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        -41.3,
+        -23.5
+      ],
+      [
+        -39.757078,
+        -23.820415
+      ],
+      [
+        -39.682975,
+        -23.835804
+      ],
+      [
+        -35.226199,
+        -24.761333
+      ],
+      [
+        -34.612152,
+        -24.88885
+      ],
+      [
+        -29.998837,
+        -25.846887
+      ],
+      [
+        -26.395817,
+        -26.595118
+      ],
+      [
+        -22.817834,
+        -27.338149
+      ],
+      [
+        -19.999418,
+        -27.923443
+      ],
+      [
+        -18.197878,
+        -28.297565
+      ],
+      [
+        -10,
+        -30
+      ],
+      [
+        -1.410786,
+        -31.533788
+      ],
+      [
+        0.000756,
+        -31.785849
+      ],
+      [
+        1.96521,
+        -32.136645
+      ],
+      [
+        7.178416,
+        -33.067574
+      ],
+      [
+        10.001499,
+        -33.571696
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18.428192,
+        -33.862433
+      ]
+    ]
   },
   {
     "id": "e_cog_jamnagar",
     "from_id": "chk_cog",
     "to_id": "ref_jamnagar_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 400000,
-    "cost_per_bbl": 3.0,
-    "transit_time_days": 12,
+    "base_capacity_bbl_day": 1364000.0,
+    "cost_per_bbl": 1.2254,
+    "transit_time_days": 15.81,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Cape of Good Hope to Jamnagar (Gujarat west coast): ~12 days further transit after rounding the cape. $3.00/bbl from Cape to Jamnagar [ESTIMATED]. Capacity 400,000: constrained by port and vessel scheduling availability, not the route per se. EIA confirmed 9.3 Mb/d globally rerouted via Cape in 2024; India's share estimated.",
+    "distance_km": 9138.2,
+    "_source": "Cape of Good Hope to Jamnagar. Distance 9,138 km (searoute). Cost = $0.1341/1000km x 9,138 km. Transit = 9,138 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         18.428192,
@@ -2856,13 +3640,13 @@
     "from_id": "chk_cog",
     "to_id": "ref_mangalore_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 250000,
-    "cost_per_bbl": 3.2,
-    "transit_time_days": 13,
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 1.1722,
+    "transit_time_days": 15.13,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Cape to Mangalore: ~13 days. $3.20/bbl. Capacity 250,000 [ESTIMATED].",
+    "distance_km": 8741.6,
+    "_source": "Cape of Good Hope to New Mangalore. Distance 8,742 km (searoute). Cost = $0.1341/1000km x 8,742 km. Transit = 8,742 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         18.428192,
@@ -2991,13 +3775,13 @@
     "from_id": "chk_cog",
     "to_id": "ref_kochi_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 200000,
-    "cost_per_bbl": 3.2,
-    "transit_time_days": 14,
+    "base_capacity_bbl_day": 310000.0,
+    "cost_per_bbl": 1.1274,
+    "transit_time_days": 14.55,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Cape to Kochi: ~14 days. $3.20/bbl.",
+    "distance_km": 8406.9,
+    "_source": "Cape of Good Hope to Kochi. Distance 8,407 km (searoute). Cost = $0.1341/1000km x 8,407 km. Transit = 8,407 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         18.428192,
@@ -3118,17 +3902,17 @@
     ]
   },
   {
-    "id": "e_cog_malacca",
+    "id": "e_cog_vizag",
     "from_id": "chk_cog",
-    "to_id": "chk_malacca",
+    "to_id": "ref_vizag_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 200000,
-    "cost_per_bbl": 2.5,
-    "transit_time_days": 15,
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 1.2942,
+    "transit_time_days": 16.7,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "Cape to Malacca Strait (for east coast refineries via Cape bypass): ~15 days across Indian Ocean.",
+    "distance_km": 9650.7,
+    "_source": "Cape of Good Hope to Visakhapatnam, around Sri Lanka. Distance 9,651 km (searoute). Cost = $0.1341/1000km x 9,651 km. Transit = 9,651 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         18.428192,
@@ -3179,64 +3963,271 @@
         -20.7
       ],
       [
-        65.531132,
-        -15.683496
+        59.204526,
+        -19.379363
       ],
       [
-        70,
-        -12.726084
+        63.938262,
+        -14.090889
       ],
       [
-        71.547878,
-        -11.611559
+        67.59807,
+        -10.017629
       ],
       [
-        73.630427,
-        -10.016558
+        68.731224,
+        -8.756462
       ],
       [
-        74.86096,
-        -9.062149
+        70.000159,
+        -7.344174
       ],
       [
-        75.615874,
-        -8.45337
+        71.143256,
+        -6.071941
       ],
       [
-        80,
-        -4.954142
+        71.799355,
+        -5.341722
       ],
       [
-        82.695228,
-        -2.733196
+        72.84758,
+        -4.175078
       ],
       [
-        86.112347,
-        -1e-05
+        76.598856,
+        -1.8e-05
       ],
       [
-        88.040723,
-        1.4295
+        77.754316,
+        1.285975
       ],
       [
-        94.326449,
-        6.157121
+        79.102865,
+        2.786871
       ],
       [
-        98.128129,
-        5.811729
+        81.9,
+        5.9
       ],
       [
-        99.763807,
-        4.084523
+        82.25,
+        7.25
       ],
       [
-        100.6,
-        3.2
+        82.998315,
+        12.032454
       ],
       [
-        101.316415,
-        2.586072
+        83.45929,
+        15.271825
+      ],
+      [
+        83.656463,
+        17.413983
+      ],
+      [
+        83.3898,
+        17.6221
+      ]
+    ]
+  },
+  {
+    "id": "e_russia_malacca",
+    "from_id": "src_russia_espo",
+    "to_id": "chk_malacca",
+    "mode": "sea",
+    "base_capacity_bbl_day": 1100000.0,
+    "cost_per_bbl": 2.0191,
+    "transit_time_days": 10.29,
+    "openness": 1.0,
+    "grade": "SOUR",
+    "distance_km": 5948.6,
+    "_source": "Kozmino (Pacific) to the Strait of Malacca. This is the only crude flow to India that genuinely transits Malacca. Distance 5,949 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 5,949 km. Transit = 5,949 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        133.7,
+        42.7
+      ],
+      [
+        132,
+        42.3
+      ],
+      [
+        130.735565,
+        38.960326
+      ],
+      [
+        130.506264,
+        38.317111
+      ],
+      [
+        129.740295,
+        36.184442
+      ],
+      [
+        129.597473,
+        35.429344
+      ],
+      [
+        129.2,
+        35
+      ],
+      [
+        128.916321,
+        34.761923
+      ],
+      [
+        128.16925,
+        34.40691
+      ],
+      [
+        127.444583,
+        34.104419
+      ],
+      [
+        126.643151,
+        33.735423
+      ],
+      [
+        126.035156,
+        33.45436
+      ],
+      [
+        125.34383,
+        32.983736
+      ],
+      [
+        122.9,
+        31.3
+      ],
+      [
+        122.891141,
+        30.901897
+      ],
+      [
+        122.878907,
+        30.349364
+      ],
+      [
+        122.875214,
+        30.181935
+      ],
+      [
+        122.652515,
+        29.623632
+      ],
+      [
+        122.557297,
+        29.38397
+      ],
+      [
+        122.23938,
+        28.579698
+      ],
+      [
+        121.3,
+        27.8
+      ],
+      [
+        120.787503,
+        26.976762
+      ],
+      [
+        120.232569,
+        26.078521
+      ],
+      [
+        120,
+        25.7
+      ],
+      [
+        119.820497,
+        25.236972
+      ],
+      [
+        119.761963,
+        25.085599
+      ],
+      [
+        119.523707,
+        24.707707
+      ],
+      [
+        119.33882,
+        24.448861
+      ],
+      [
+        118.980046,
+        23.949944
+      ],
+      [
+        118.724128,
+        23.582665
+      ],
+      [
+        118.203464,
+        22.930938
+      ],
+      [
+        118.030487,
+        22.691517
+      ],
+      [
+        117.437994,
+        21.922538
+      ],
+      [
+        116.5017,
+        20.601113
+      ],
+      [
+        115.841059,
+        19.666279
+      ],
+      [
+        114.338334,
+        17.570129
+      ],
+      [
+        112.965,
+        15.7278
+      ],
+      [
+        111.478346,
+        12.523981
+      ],
+      [
+        111.0534,
+        11.6082
+      ],
+      [
+        110.80697,
+        11.263464
+      ],
+      [
+        110.027598,
+        10.173186
+      ],
+      [
+        108.7023,
+        8.3192
+      ],
+      [
+        104.482294,
+        1.341312
+      ],
+      [
+        104.145848,
+        1.249295
+      ],
+      [
+        103.861103,
+        1.171415
+      ],
+      [
+        103.6,
+        1.1
       ],
       [
         102,
@@ -3249,84 +4240,3981 @@
     ]
   },
   {
-    "_comment": "=== SPR \u2192 REFINERY EMERGENCY RELEASE EDGES ==="
-  },
-  {
-    "id": "e_spr_vizag_refinery",
-    "from_id": "spr_vizag",
+    "id": "e_malacca_vizag",
+    "from_id": "chk_malacca",
     "to_id": "ref_vizag_in",
-    "mode": "pipeline",
-    "base_capacity_bbl_day": 85000,
-    "cost_per_bbl": 8.0,
-    "transit_time_days": 0,
+    "mode": "sea",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.3635,
+    "transit_time_days": 4.69,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": null,
-    "_source": "ISPRL Vizag to HPCL Vizag refinery: direct pipeline link (emergency release). Max flow = SPR max discharge 85,000 bbl/day [ESTIMATED]. High cost $8.00/bbl ensures solver only uses SPR when cheaper routes cannot meet demand \u2014 serves as last-resort cost signal, not an economic value."
+    "distance_km": 2710.4,
+    "_source": "Malacca to Visakhapatnam across the Bay of Bengal. Distance 2,710 km (searoute). Cost = $0.1341/1000km x 2,710 km. Transit = 2,710 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        92.334595,
+        10.136524
+      ],
+      [
+        88.973316,
+        13.264437
+      ],
+      [
+        87.079924,
+        14.742137
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        83.656463,
+        17.413983
+      ],
+      [
+        83.3898,
+        17.6221
+      ]
+    ]
   },
   {
-    "id": "e_spr_mangalore_refinery",
-    "from_id": "spr_mangalore",
-    "to_id": "ref_mangalore_in",
-    "mode": "pipeline",
-    "base_capacity_bbl_day": 95000,
-    "cost_per_bbl": 8.0,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "ISPRL Mangalore to MRPL Mangalore: pipeline link. 95,000 bbl/day [ESTIMATED]."
-  },
-  {
-    "id": "e_spr_padur_kochi",
-    "from_id": "spr_padur",
-    "to_id": "ref_kochi_in",
-    "mode": "pipeline",
-    "base_capacity_bbl_day": 160000,
-    "cost_per_bbl": 8.0,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "ISPRL Padur to BPCL Kochi: pipeline (Padur is ~200km north of Kochi, pipeline exists per MoPNG). 160,000 bbl/day [ESTIMATED]."
-  },
-  {
-    "id": "e_spr_padur_mangalore",
-    "from_id": "spr_padur",
-    "to_id": "ref_mangalore_in",
-    "mode": "pipeline",
-    "base_capacity_bbl_day": 80000,
-    "cost_per_bbl": 8.0,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "ISPRL Padur can also feed MRPL Mangalore (closer facility). Shared capacity with Kochi pipe; total Padur discharge capped at 160,000 bbl/day across both edges combined."
-  },
-  {
-    "id": "e_ss_oman",
-    "from_id": "super_source",
-    "to_id": "src_oman",
-    "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
-    "cost_per_bbl": 0.0,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Virtual edge."
-  },
-  {
-    "id": "e_oman_jamnagar",
-    "from_id": "src_oman",
+    "id": "e_malacca_jamnagar",
+    "from_id": "chk_malacca",
     "to_id": "ref_jamnagar_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 120000,
-    "cost_per_bbl": 0.68,
-    "transit_time_days": 4,
+    "base_capacity_bbl_day": 1364000.0,
+    "cost_per_bbl": 0.6919,
+    "transit_time_days": 8.93,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
+    "grade": null,
+    "distance_km": 5159.3,
+    "_source": "Malacca to Jamnagar around Sri Lanka. ESPO crude to west-coast India is an established trade flow. Distance 5,159 km (searoute). Cost = $0.1341/1000km x 5,159 km. Transit = 5,159 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ],
+      [
+        70.246582,
+        22.857195
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_mangalore",
+    "from_id": "chk_malacca",
+    "to_id": "ref_mangalore_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 300000.0,
+    "cost_per_bbl": 0.5038,
+    "transit_time_days": 6.5,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3756.6,
+    "_source": "Malacca to New Mangalore around Sri Lanka. Distance 3,757 km (searoute). Cost = $0.1341/1000km x 3,757 km. Transit = 3,757 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        74.778442,
+        12.817158
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_kochi",
+    "from_id": "chk_malacca",
+    "to_id": "ref_kochi_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 310000.0,
+    "cost_per_bbl": 0.4589,
+    "transit_time_days": 5.92,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3422.0,
+    "_source": "Malacca to Kochi around Sri Lanka. Distance 3,422 km (searoute). Cost = $0.1341/1000km x 3,422 km. Transit = 3,422 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        76.195679,
+        9.876864
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_vadinar",
+    "from_id": "chk_hormuz",
+    "to_id": "ref_vadinar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 400000.0,
+    "cost_per_bbl": 0.1965,
+    "transit_time_days": 2.54,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1465.7,
+    "_source": "Strait of Hormuz to Vadinar. Distance 1,466 km (searoute). Cost = $0.1341/1000km x 1,466 km. Transit = 1,466 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        63.3,
+        24.6
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_mumbai_bpcl",
+    "from_id": "chk_hormuz",
+    "to_id": "ref_mumbai_bpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 240000.0,
+    "cost_per_bbl": 0.2626,
+    "transit_time_days": 3.39,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1958.4,
+    "_source": "Strait of Hormuz to Mumbai Bpcl. Distance 1,958 km (searoute). Cost = $0.1341/1000km x 1,958 km. Transit = 1,958 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        61.55539,
+        23.45698
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        65.725774,
+        22.570773
+      ],
+      [
+        67,
+        22.3
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        72.80777,
+        18.941361
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_mumbai_hpcl",
+    "from_id": "chk_hormuz",
+    "to_id": "ref_mumbai_hpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 190000.0,
+    "cost_per_bbl": 0.2626,
+    "transit_time_days": 3.39,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1958.4,
+    "_source": "Strait of Hormuz to Mumbai Hpcl. Distance 1,958 km (searoute). Cost = $0.1341/1000km x 1,958 km. Transit = 1,958 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        61.55539,
+        23.45698
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        65.725774,
+        22.570773
+      ],
+      [
+        67,
+        22.3
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        72.80777,
+        18.941361
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_chennai_cpcl",
+    "from_id": "chk_hormuz",
+    "to_id": "ref_chennai_cpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 210000.0,
+    "cost_per_bbl": 0.6058,
+    "transit_time_days": 7.82,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 4517.5,
+    "_source": "Strait of Hormuz to Chennai Cpcl. Distance 4,517 km (searoute). Cost = $0.1341/1000km x 4,517 km. Transit = 4,517 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        60.4,
+        22.7
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.5005,
+        20.0838
+      ],
+      [
+        64.952594,
+        19.426191
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        81,
+        13
+      ],
+      [
+        80.414429,
+        12.977795
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_haldia",
+    "from_id": "chk_hormuz",
+    "to_id": "ref_haldia_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 160000.0,
+    "cost_per_bbl": 0.7478,
+    "transit_time_days": 9.65,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 5576.3,
+    "_source": "Strait of Hormuz to Haldia. Distance 5,576 km (searoute). Cost = $0.1341/1000km x 5,576 km. Transit = 5,576 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        60.4,
+        22.7
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.5005,
+        20.0838
+      ],
+      [
+        64.952594,
+        19.426191
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        83.6282,
+        10.7006
+      ],
+      [
+        83.978619,
+        11.556515
+      ],
+      [
+        85.038,
+        14.1441
+      ],
+      [
+        85.155655,
+        14.422172
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        86.491,
+        17.5782
+      ],
+      [
+        88,
+        21
+      ],
+      [
+        87.93869,
+        21.684229
+      ],
+      [
+        88.206482,
+        22.065278
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_pt_salaya",
+    "from_id": "chk_hormuz",
+    "to_id": "port_salaya",
+    "mode": "sea",
+    "base_capacity_bbl_day": 500000.0,
+    "cost_per_bbl": 0.1965,
+    "transit_time_days": 2.54,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1465.7,
+    "_source": "Strait of Hormuz to Salaya crude terminal. Distance 1,466 km (searoute). Cost = $0.1341/1000km x 1,466 km. Transit = 1,466 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        63.3,
+        24.6
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_pt_vadinar",
+    "from_id": "chk_hormuz",
+    "to_id": "port_vadinar",
+    "mode": "sea",
+    "base_capacity_bbl_day": 156000.0,
+    "cost_per_bbl": 0.1965,
+    "transit_time_days": 2.54,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1465.7,
+    "_source": "Strait of Hormuz to Vadinar crude terminal. Distance 1,466 km (searoute). Cost = $0.1341/1000km x 1,466 km. Transit = 1,466 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        63.3,
+        24.6
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_pt_mundra",
+    "from_id": "chk_hormuz",
+    "to_id": "port_mundra",
+    "mode": "sea",
+    "base_capacity_bbl_day": 393000.0,
+    "cost_per_bbl": 0.1965,
+    "transit_time_days": 2.54,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 1465.7,
+    "_source": "Strait of Hormuz to Mundra crude terminal. Distance 1,466 km (searoute). Cost = $0.1341/1000km x 1,466 km. Transit = 1,466 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        63.3,
+        24.6
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_hormuz_pt_paradip",
+    "from_id": "chk_hormuz",
+    "to_id": "port_paradip",
+    "mode": "sea",
+    "base_capacity_bbl_day": 708000.0,
+    "cost_per_bbl": 0.7308,
+    "transit_time_days": 9.43,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 5449.3,
+    "_source": "Strait of Hormuz to Paradip crude terminal. Distance 5,449 km (searoute). Cost = $0.1341/1000km x 5,449 km. Transit = 5,449 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        56.547226,
+        26.511054
+      ],
+      [
+        56.763061,
+        26.422112
+      ],
+      [
+        56.931531,
+        25.961959
+      ],
+      [
+        57.1,
+        25.5
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        60.4,
+        22.7
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.5005,
+        20.0838
+      ],
+      [
+        64.952594,
+        19.426191
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        83.6282,
+        10.7006
+      ],
+      [
+        83.978619,
+        11.556515
+      ],
+      [
+        85.038,
+        14.1441
+      ],
+      [
+        85.155655,
+        14.422172
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        86.491,
+        17.5782
+      ],
+      [
+        88,
+        21
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_vadinar",
+    "from_id": "chk_bab",
+    "to_id": "ref_vadinar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 400000.0,
+    "cost_per_bbl": 0.4306,
+    "transit_time_days": 5.56,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3211.3,
+    "_source": "Bab-el-Mandeb to Vadinar. Distance 3,211 km (searoute). Cost = $0.1341/1000km x 3,211 km. Transit = 3,211 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        49.5581,
+        14.1436
+      ],
+      [
+        54.2,
+        16.2
+      ],
+      [
+        56.876033,
+        17.38386
+      ],
+      [
+        58.191833,
+        18.742507
+      ],
+      [
+        59,
+        20
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_mumbai_bpcl",
+    "from_id": "chk_bab",
+    "to_id": "ref_mumbai_bpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 240000.0,
+    "cost_per_bbl": 0.434,
+    "transit_time_days": 5.6,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3236.7,
+    "_source": "Bab-el-Mandeb to Mumbai Bpcl. Distance 3,237 km (searoute). Cost = $0.1341/1000km x 3,237 km. Transit = 3,237 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        56.810303,
+        14.567634
+      ],
+      [
+        59.44496,
+        15.644932
+      ],
+      [
+        61.54,
+        16.2661
+      ],
+      [
+        62.6071,
+        16.551398
+      ],
+      [
+        64.766386,
+        17.128701
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        67.795105,
+        17.911613
+      ],
+      [
+        69.999749,
+        18.43269
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        72.80777,
+        18.941361
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_mumbai_hpcl",
+    "from_id": "chk_bab",
+    "to_id": "ref_mumbai_hpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 190000.0,
+    "cost_per_bbl": 0.434,
+    "transit_time_days": 5.6,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3236.7,
+    "_source": "Bab-el-Mandeb to Mumbai Hpcl. Distance 3,237 km (searoute). Cost = $0.1341/1000km x 3,237 km. Transit = 3,237 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        56.810303,
+        14.567634
+      ],
+      [
+        59.44496,
+        15.644932
+      ],
+      [
+        61.54,
+        16.2661
+      ],
+      [
+        62.6071,
+        16.551398
+      ],
+      [
+        64.766386,
+        17.128701
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        67.795105,
+        17.911613
+      ],
+      [
+        69.999749,
+        18.43269
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        72.80777,
+        18.941361
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_chennai_cpcl",
+    "from_id": "chk_bab",
+    "to_id": "ref_chennai_cpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 210000.0,
+    "cost_per_bbl": 0.6952,
+    "transit_time_days": 8.97,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 5184.5,
+    "_source": "Bab-el-Mandeb to Chennai Cpcl. Distance 5,184 km (searoute). Cost = $0.1341/1000km x 5,184 km. Transit = 5,184 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        55.041504,
+        12.747516
+      ],
+      [
+        59.894005,
+        11.083455
+      ],
+      [
+        60.825733,
+        10.866984
+      ],
+      [
+        62.0601,
+        10.5802
+      ],
+      [
+        64.303249,
+        10.031585
+      ],
+      [
+        64.698862,
+        9.934828
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.7044,
+        9.6889
+      ],
+      [
+        68.858995,
+        8.881605
+      ],
+      [
+        69.3291,
+        8.7613
+      ],
+      [
+        69.671733,
+        8.6701
+      ],
+      [
+        69.999915,
+        8.582747
+      ],
+      [
+        70.817426,
+        8.365148
+      ],
+      [
+        75.966807,
+        6.966807
+      ],
+      [
+        78.019032,
+        6.387793
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        81,
+        13
+      ],
+      [
+        80.414429,
+        12.977795
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_haldia",
+    "from_id": "chk_bab",
+    "to_id": "ref_haldia_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 160000.0,
+    "cost_per_bbl": 0.8372,
+    "transit_time_days": 10.8,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 6243.3,
+    "_source": "Bab-el-Mandeb to Haldia. Distance 6,243 km (searoute). Cost = $0.1341/1000km x 6,243 km. Transit = 6,243 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        55.041504,
+        12.747516
+      ],
+      [
+        59.894005,
+        11.083455
+      ],
+      [
+        60.825733,
+        10.866984
+      ],
+      [
+        62.0601,
+        10.5802
+      ],
+      [
+        64.303249,
+        10.031585
+      ],
+      [
+        64.698862,
+        9.934828
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.7044,
+        9.6889
+      ],
+      [
+        68.858995,
+        8.881605
+      ],
+      [
+        69.3291,
+        8.7613
+      ],
+      [
+        69.671733,
+        8.6701
+      ],
+      [
+        69.999915,
+        8.582747
+      ],
+      [
+        70.817426,
+        8.365148
+      ],
+      [
+        75.966807,
+        6.966807
+      ],
+      [
+        78.019032,
+        6.387793
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        83.6282,
+        10.7006
+      ],
+      [
+        83.978619,
+        11.556515
+      ],
+      [
+        85.038,
+        14.1441
+      ],
+      [
+        85.155655,
+        14.422172
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        86.491,
+        17.5782
+      ],
+      [
+        88,
+        21
+      ],
+      [
+        87.93869,
+        21.684229
+      ],
+      [
+        88.206482,
+        22.065278
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_pt_salaya",
+    "from_id": "chk_bab",
+    "to_id": "port_salaya",
+    "mode": "sea",
+    "base_capacity_bbl_day": 500000.0,
+    "cost_per_bbl": 0.4306,
+    "transit_time_days": 5.56,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3211.3,
+    "_source": "Bab-el-Mandeb to Salaya crude terminal. Distance 3,211 km (searoute). Cost = $0.1341/1000km x 3,211 km. Transit = 3,211 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        49.5581,
+        14.1436
+      ],
+      [
+        54.2,
+        16.2
+      ],
+      [
+        56.876033,
+        17.38386
+      ],
+      [
+        58.191833,
+        18.742507
+      ],
+      [
+        59,
+        20
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_pt_vadinar",
+    "from_id": "chk_bab",
+    "to_id": "port_vadinar",
+    "mode": "sea",
+    "base_capacity_bbl_day": 156000.0,
+    "cost_per_bbl": 0.4306,
+    "transit_time_days": 5.56,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3211.3,
+    "_source": "Bab-el-Mandeb to Vadinar crude terminal. Distance 3,211 km (searoute). Cost = $0.1341/1000km x 3,211 km. Transit = 3,211 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        49.5581,
+        14.1436
+      ],
+      [
+        54.2,
+        16.2
+      ],
+      [
+        56.876033,
+        17.38386
+      ],
+      [
+        58.191833,
+        18.742507
+      ],
+      [
+        59,
+        20
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_pt_mundra",
+    "from_id": "chk_bab",
+    "to_id": "port_mundra",
+    "mode": "sea",
+    "base_capacity_bbl_day": 393000.0,
+    "cost_per_bbl": 0.4306,
+    "transit_time_days": 5.56,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 3211.3,
+    "_source": "Bab-el-Mandeb to Mundra crude terminal. Distance 3,211 km (searoute). Cost = $0.1341/1000km x 3,211 km. Transit = 3,211 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        49.5581,
+        14.1436
+      ],
+      [
+        54.2,
+        16.2
+      ],
+      [
+        56.876033,
+        17.38386
+      ],
+      [
+        58.191833,
+        18.742507
+      ],
+      [
+        59,
+        20
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        66.6,
+        24.3
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_bab_pt_paradip",
+    "from_id": "chk_bab",
+    "to_id": "port_paradip",
+    "mode": "sea",
+    "base_capacity_bbl_day": 708000.0,
+    "cost_per_bbl": 0.8202,
+    "transit_time_days": 10.59,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 6116.3,
+    "_source": "Bab-el-Mandeb to Paradip crude terminal. Distance 6,116 km (searoute). Cost = $0.1341/1000km x 6,116 km. Transit = 6,116 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        43.746586,
+        12.40439
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        50.856149,
+        12.884027
+      ],
+      [
+        53.61885,
+        13.300009
+      ],
+      [
+        55.041504,
+        12.747516
+      ],
+      [
+        59.894005,
+        11.083455
+      ],
+      [
+        60.825733,
+        10.866984
+      ],
+      [
+        62.0601,
+        10.5802
+      ],
+      [
+        64.303249,
+        10.031585
+      ],
+      [
+        64.698862,
+        9.934828
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.7044,
+        9.6889
+      ],
+      [
+        68.858995,
+        8.881605
+      ],
+      [
+        69.3291,
+        8.7613
+      ],
+      [
+        69.671733,
+        8.6701
+      ],
+      [
+        69.999915,
+        8.582747
+      ],
+      [
+        70.817426,
+        8.365148
+      ],
+      [
+        75.966807,
+        6.966807
+      ],
+      [
+        78.019032,
+        6.387793
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        83.6282,
+        10.7006
+      ],
+      [
+        83.978619,
+        11.556515
+      ],
+      [
+        85.038,
+        14.1441
+      ],
+      [
+        85.155655,
+        14.422172
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        86.491,
+        17.5782
+      ],
+      [
+        88,
+        21
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_vadinar",
+    "from_id": "chk_cog",
+    "to_id": "ref_vadinar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 400000.0,
+    "cost_per_bbl": 1.2136,
+    "transit_time_days": 15.66,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 9050.1,
+    "_source": "Cape of Good Hope to Vadinar. Distance 9,050 km (searoute). Cost = $0.1341/1000km x 9,050 km. Transit = 9,050 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        32,
+        -30
+      ],
+      [
+        32.920532,
+        -28.449374
+      ],
+      [
+        34.437034,
+        -25.749552
+      ],
+      [
+        35.142957,
+        -24.861024
+      ],
+      [
+        36,
+        -24
+      ],
+      [
+        42.51709,
+        -16.678293
+      ],
+      [
+        46.9055,
+        -12.783871
+      ],
+      [
+        50,
+        -10
+      ],
+      [
+        52.7787,
+        -6.3666
+      ],
+      [
+        53.822013,
+        -4.977305
+      ],
+      [
+        54.576753,
+        -3.97228
+      ],
+      [
+        55.5186,
+        -2.7181
+      ],
+      [
+        57.544015,
+        -2e-05
+      ],
+      [
+        58.2421,
+        0.9368
+      ],
+      [
+        58.890657,
+        1.804845
+      ],
+      [
+        59.999803,
+        3.289356
+      ],
+      [
+        60.528485,
+        3.996958
+      ],
+      [
+        60.9712,
+        4.5895
+      ],
+      [
+        62.906023,
+        7.145333
+      ],
+      [
+        63.7282,
+        8.2314
+      ],
+      [
+        63.989529,
+        8.568554
+      ],
+      [
+        64.707692,
+        9.495093
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        66.5357,
+        11.8535
+      ],
+      [
+        67.182637,
+        12.660039
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.4177,
+        15.4465
+      ],
+      [
+        69.999382,
+        16.139592
+      ],
+      [
+        69.999749,
+        18.43269
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_mumbai_bpcl",
+    "from_id": "chk_cog",
+    "to_id": "ref_mumbai_bpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 240000.0,
+    "cost_per_bbl": 1.1646,
+    "transit_time_days": 15.03,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 8684.6,
+    "_source": "Cape of Good Hope to Mumbai Bpcl. Distance 8,685 km (searoute). Cost = $0.1341/1000km x 8,685 km. Transit = 8,685 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        32,
+        -30
+      ],
+      [
+        32.920532,
+        -28.449374
+      ],
+      [
+        34.437034,
+        -25.749552
+      ],
+      [
+        35.142957,
+        -24.861024
+      ],
+      [
+        36,
+        -24
+      ],
+      [
+        42.51709,
+        -16.678293
+      ],
+      [
+        46.9055,
+        -12.783871
+      ],
+      [
+        50,
+        -10
+      ],
+      [
+        52.7787,
+        -6.3666
+      ],
+      [
+        53.822013,
+        -4.977305
+      ],
+      [
+        54.576753,
+        -3.97228
+      ],
+      [
+        55.5186,
+        -2.7181
+      ],
+      [
+        57.544015,
+        -2e-05
+      ],
+      [
+        58.2421,
+        0.9368
+      ],
+      [
+        58.890657,
+        1.804845
+      ],
+      [
+        59.999803,
+        3.289356
+      ],
+      [
+        60.528485,
+        3.996958
+      ],
+      [
+        60.9712,
+        4.5895
+      ],
+      [
+        62.906023,
+        7.145333
+      ],
+      [
+        63.7282,
+        8.2314
+      ],
+      [
+        63.989529,
+        8.568554
+      ],
+      [
+        64.707692,
+        9.495093
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        66.5357,
+        11.8535
+      ],
+      [
+        67.182637,
+        12.660039
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.4177,
+        15.4465
+      ],
+      [
+        69.999382,
+        16.139592
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        72.80777,
+        18.941361
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_mumbai_hpcl",
+    "from_id": "chk_cog",
+    "to_id": "ref_mumbai_hpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 190000.0,
+    "cost_per_bbl": 1.1646,
+    "transit_time_days": 15.03,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 8684.6,
+    "_source": "Cape of Good Hope to Mumbai Hpcl. Distance 8,685 km (searoute). Cost = $0.1341/1000km x 8,685 km. Transit = 8,685 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        32,
+        -30
+      ],
+      [
+        32.920532,
+        -28.449374
+      ],
+      [
+        34.437034,
+        -25.749552
+      ],
+      [
+        35.142957,
+        -24.861024
+      ],
+      [
+        36,
+        -24
+      ],
+      [
+        42.51709,
+        -16.678293
+      ],
+      [
+        46.9055,
+        -12.783871
+      ],
+      [
+        50,
+        -10
+      ],
+      [
+        52.7787,
+        -6.3666
+      ],
+      [
+        53.822013,
+        -4.977305
+      ],
+      [
+        54.576753,
+        -3.97228
+      ],
+      [
+        55.5186,
+        -2.7181
+      ],
+      [
+        57.544015,
+        -2e-05
+      ],
+      [
+        58.2421,
+        0.9368
+      ],
+      [
+        58.890657,
+        1.804845
+      ],
+      [
+        59.999803,
+        3.289356
+      ],
+      [
+        60.528485,
+        3.996958
+      ],
+      [
+        60.9712,
+        4.5895
+      ],
+      [
+        62.906023,
+        7.145333
+      ],
+      [
+        63.7282,
+        8.2314
+      ],
+      [
+        63.989529,
+        8.568554
+      ],
+      [
+        64.707692,
+        9.495093
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        66.5357,
+        11.8535
+      ],
+      [
+        67.182637,
+        12.660039
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.4177,
+        15.4465
+      ],
+      [
+        69.999382,
+        16.139592
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        72.80777,
+        18.941361
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_chennai_cpcl",
+    "from_id": "chk_cog",
+    "to_id": "ref_chennai_cpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 210000.0,
+    "cost_per_bbl": 1.2325,
+    "transit_time_days": 15.91,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 9190.6,
+    "_source": "Cape of Good Hope to Chennai Cpcl. Distance 9,191 km (searoute). Cost = $0.1341/1000km x 9,191 km. Transit = 9,191 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        34.3579,
+        -31.8789
+      ],
+      [
+        40,
+        -30
+      ],
+      [
+        44.1176,
+        -28.2595
+      ],
+      [
+        48.1,
+        -26.4
+      ],
+      [
+        56.119753,
+        -21.767695
+      ],
+      [
+        58,
+        -20.7
+      ],
+      [
+        59.204526,
+        -19.379363
+      ],
+      [
+        63.938262,
+        -14.090889
+      ],
+      [
+        67.59807,
+        -10.017629
+      ],
+      [
+        68.731224,
+        -8.756462
+      ],
+      [
+        70.000159,
+        -7.344174
+      ],
+      [
+        71.143256,
+        -6.071941
+      ],
+      [
+        71.799355,
+        -5.341722
+      ],
+      [
+        72.84758,
+        -4.175078
+      ],
+      [
+        76.598856,
+        -1.8e-05
+      ],
+      [
+        77.754316,
+        1.285975
+      ],
+      [
+        79.102865,
+        2.786871
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        81,
+        13
+      ],
+      [
+        80.414429,
+        12.977795
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_haldia",
+    "from_id": "chk_cog",
+    "to_id": "ref_haldia_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 160000.0,
+    "cost_per_bbl": 1.3744,
+    "transit_time_days": 17.74,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 10249.4,
+    "_source": "Cape of Good Hope to Haldia. Distance 10,249 km (searoute). Cost = $0.1341/1000km x 10,249 km. Transit = 10,249 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        34.3579,
+        -31.8789
+      ],
+      [
+        40,
+        -30
+      ],
+      [
+        44.1176,
+        -28.2595
+      ],
+      [
+        48.1,
+        -26.4
+      ],
+      [
+        56.119753,
+        -21.767695
+      ],
+      [
+        58,
+        -20.7
+      ],
+      [
+        59.204526,
+        -19.379363
+      ],
+      [
+        63.938262,
+        -14.090889
+      ],
+      [
+        67.59807,
+        -10.017629
+      ],
+      [
+        68.731224,
+        -8.756462
+      ],
+      [
+        70.000159,
+        -7.344174
+      ],
+      [
+        71.143256,
+        -6.071941
+      ],
+      [
+        71.799355,
+        -5.341722
+      ],
+      [
+        72.84758,
+        -4.175078
+      ],
+      [
+        76.598856,
+        -1.8e-05
+      ],
+      [
+        77.754316,
+        1.285975
+      ],
+      [
+        79.102865,
+        2.786871
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        83.6282,
+        10.7006
+      ],
+      [
+        83.978619,
+        11.556515
+      ],
+      [
+        85.038,
+        14.1441
+      ],
+      [
+        85.155655,
+        14.422172
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        86.491,
+        17.5782
+      ],
+      [
+        88,
+        21
+      ],
+      [
+        87.93869,
+        21.684229
+      ],
+      [
+        88.206482,
+        22.065278
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_pt_salaya",
+    "from_id": "chk_cog",
+    "to_id": "port_salaya",
+    "mode": "sea",
+    "base_capacity_bbl_day": 500000.0,
+    "cost_per_bbl": 1.2136,
+    "transit_time_days": 15.66,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 9050.1,
+    "_source": "Cape of Good Hope to Salaya crude terminal. Distance 9,050 km (searoute). Cost = $0.1341/1000km x 9,050 km. Transit = 9,050 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        32,
+        -30
+      ],
+      [
+        32.920532,
+        -28.449374
+      ],
+      [
+        34.437034,
+        -25.749552
+      ],
+      [
+        35.142957,
+        -24.861024
+      ],
+      [
+        36,
+        -24
+      ],
+      [
+        42.51709,
+        -16.678293
+      ],
+      [
+        46.9055,
+        -12.783871
+      ],
+      [
+        50,
+        -10
+      ],
+      [
+        52.7787,
+        -6.3666
+      ],
+      [
+        53.822013,
+        -4.977305
+      ],
+      [
+        54.576753,
+        -3.97228
+      ],
+      [
+        55.5186,
+        -2.7181
+      ],
+      [
+        57.544015,
+        -2e-05
+      ],
+      [
+        58.2421,
+        0.9368
+      ],
+      [
+        58.890657,
+        1.804845
+      ],
+      [
+        59.999803,
+        3.289356
+      ],
+      [
+        60.528485,
+        3.996958
+      ],
+      [
+        60.9712,
+        4.5895
+      ],
+      [
+        62.906023,
+        7.145333
+      ],
+      [
+        63.7282,
+        8.2314
+      ],
+      [
+        63.989529,
+        8.568554
+      ],
+      [
+        64.707692,
+        9.495093
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        66.5357,
+        11.8535
+      ],
+      [
+        67.182637,
+        12.660039
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.4177,
+        15.4465
+      ],
+      [
+        69.999382,
+        16.139592
+      ],
+      [
+        69.999749,
+        18.43269
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_pt_vadinar",
+    "from_id": "chk_cog",
+    "to_id": "port_vadinar",
+    "mode": "sea",
+    "base_capacity_bbl_day": 156000.0,
+    "cost_per_bbl": 1.2136,
+    "transit_time_days": 15.66,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 9050.1,
+    "_source": "Cape of Good Hope to Vadinar crude terminal. Distance 9,050 km (searoute). Cost = $0.1341/1000km x 9,050 km. Transit = 9,050 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        32,
+        -30
+      ],
+      [
+        32.920532,
+        -28.449374
+      ],
+      [
+        34.437034,
+        -25.749552
+      ],
+      [
+        35.142957,
+        -24.861024
+      ],
+      [
+        36,
+        -24
+      ],
+      [
+        42.51709,
+        -16.678293
+      ],
+      [
+        46.9055,
+        -12.783871
+      ],
+      [
+        50,
+        -10
+      ],
+      [
+        52.7787,
+        -6.3666
+      ],
+      [
+        53.822013,
+        -4.977305
+      ],
+      [
+        54.576753,
+        -3.97228
+      ],
+      [
+        55.5186,
+        -2.7181
+      ],
+      [
+        57.544015,
+        -2e-05
+      ],
+      [
+        58.2421,
+        0.9368
+      ],
+      [
+        58.890657,
+        1.804845
+      ],
+      [
+        59.999803,
+        3.289356
+      ],
+      [
+        60.528485,
+        3.996958
+      ],
+      [
+        60.9712,
+        4.5895
+      ],
+      [
+        62.906023,
+        7.145333
+      ],
+      [
+        63.7282,
+        8.2314
+      ],
+      [
+        63.989529,
+        8.568554
+      ],
+      [
+        64.707692,
+        9.495093
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        66.5357,
+        11.8535
+      ],
+      [
+        67.182637,
+        12.660039
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.4177,
+        15.4465
+      ],
+      [
+        69.999382,
+        16.139592
+      ],
+      [
+        69.999749,
+        18.43269
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_pt_mundra",
+    "from_id": "chk_cog",
+    "to_id": "port_mundra",
+    "mode": "sea",
+    "base_capacity_bbl_day": 393000.0,
+    "cost_per_bbl": 1.2136,
+    "transit_time_days": 15.66,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 9050.1,
+    "_source": "Cape of Good Hope to Mundra crude terminal. Distance 9,050 km (searoute). Cost = $0.1341/1000km x 9,050 km. Transit = 9,050 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        32,
+        -30
+      ],
+      [
+        32.920532,
+        -28.449374
+      ],
+      [
+        34.437034,
+        -25.749552
+      ],
+      [
+        35.142957,
+        -24.861024
+      ],
+      [
+        36,
+        -24
+      ],
+      [
+        42.51709,
+        -16.678293
+      ],
+      [
+        46.9055,
+        -12.783871
+      ],
+      [
+        50,
+        -10
+      ],
+      [
+        52.7787,
+        -6.3666
+      ],
+      [
+        53.822013,
+        -4.977305
+      ],
+      [
+        54.576753,
+        -3.97228
+      ],
+      [
+        55.5186,
+        -2.7181
+      ],
+      [
+        57.544015,
+        -2e-05
+      ],
+      [
+        58.2421,
+        0.9368
+      ],
+      [
+        58.890657,
+        1.804845
+      ],
+      [
+        59.999803,
+        3.289356
+      ],
+      [
+        60.528485,
+        3.996958
+      ],
+      [
+        60.9712,
+        4.5895
+      ],
+      [
+        62.906023,
+        7.145333
+      ],
+      [
+        63.7282,
+        8.2314
+      ],
+      [
+        63.989529,
+        8.568554
+      ],
+      [
+        64.707692,
+        9.495093
+      ],
+      [
+        64.992809,
+        9.862937
+      ],
+      [
+        65.126773,
+        10.035771
+      ],
+      [
+        66.5357,
+        11.8535
+      ],
+      [
+        67.182637,
+        12.660039
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.4177,
+        15.4465
+      ],
+      [
+        69.999382,
+        16.139592
+      ],
+      [
+        69.999749,
+        18.43269
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_cog_pt_paradip",
+    "from_id": "chk_cog",
+    "to_id": "port_paradip",
+    "mode": "sea",
+    "base_capacity_bbl_day": 708000.0,
+    "cost_per_bbl": 1.3574,
+    "transit_time_days": 17.52,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 10122.5,
+    "_source": "Cape of Good Hope to Paradip crude terminal. Distance 10,122 km (searoute). Cost = $0.1341/1000km x 10,122 km. Transit = 10,122 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        18.428192,
+        -33.862433
+      ],
+      [
+        18.237305,
+        -33.840764
+      ],
+      [
+        18,
+        -35
+      ],
+      [
+        22,
+        -35
+      ],
+      [
+        26,
+        -34.5
+      ],
+      [
+        28.5,
+        -33.5
+      ],
+      [
+        34.3579,
+        -31.8789
+      ],
+      [
+        40,
+        -30
+      ],
+      [
+        44.1176,
+        -28.2595
+      ],
+      [
+        48.1,
+        -26.4
+      ],
+      [
+        56.119753,
+        -21.767695
+      ],
+      [
+        58,
+        -20.7
+      ],
+      [
+        59.204526,
+        -19.379363
+      ],
+      [
+        63.938262,
+        -14.090889
+      ],
+      [
+        67.59807,
+        -10.017629
+      ],
+      [
+        68.731224,
+        -8.756462
+      ],
+      [
+        70.000159,
+        -7.344174
+      ],
+      [
+        71.143256,
+        -6.071941
+      ],
+      [
+        71.799355,
+        -5.341722
+      ],
+      [
+        72.84758,
+        -4.175078
+      ],
+      [
+        76.598856,
+        -1.8e-05
+      ],
+      [
+        77.754316,
+        1.285975
+      ],
+      [
+        79.102865,
+        2.786871
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        83.6282,
+        10.7006
+      ],
+      [
+        83.978619,
+        11.556515
+      ],
+      [
+        85.038,
+        14.1441
+      ],
+      [
+        85.155655,
+        14.422172
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        86.491,
+        17.5782
+      ],
+      [
+        88,
+        21
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_vadinar",
+    "from_id": "chk_malacca",
+    "to_id": "ref_vadinar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 400000.0,
+    "cost_per_bbl": 0.68,
+    "transit_time_days": 8.78,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 5071.2,
+    "_source": "Strait of Malacca to Vadinar. Distance 5,071 km (searoute). Cost = $0.1341/1000km x 5,071 km. Transit = 5,071 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_mumbai_bpcl",
+    "from_id": "chk_malacca",
+    "to_id": "ref_mumbai_bpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 240000.0,
+    "cost_per_bbl": 0.5971,
+    "transit_time_days": 7.71,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 4452.6,
+    "_source": "Strait of Malacca to Mumbai Bpcl. Distance 4,453 km (searoute). Cost = $0.1341/1000km x 4,453 km. Transit = 4,453 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        72.80777,
+        18.941361
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_mumbai_hpcl",
+    "from_id": "chk_malacca",
+    "to_id": "ref_mumbai_hpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 190000.0,
+    "cost_per_bbl": 0.5971,
+    "transit_time_days": 7.71,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 4452.6,
+    "_source": "Strait of Malacca to Mumbai Hpcl. Distance 4,453 km (searoute). Cost = $0.1341/1000km x 4,453 km. Transit = 4,453 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        72.80777,
+        18.941361
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_chennai_cpcl",
+    "from_id": "chk_malacca",
+    "to_id": "ref_chennai_cpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 210000.0,
+    "cost_per_bbl": 0.3713,
+    "transit_time_days": 4.79,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 2769.1,
+    "_source": "Strait of Malacca to Chennai Cpcl. Distance 2,769 km (searoute). Cost = $0.1341/1000km x 2,769 km. Transit = 2,769 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        85.694628,
+        10.724911
+      ],
+      [
+        84.776876,
+        11.169668
+      ],
+      [
+        83.978619,
+        11.556515
+      ],
+      [
+        82.998315,
+        12.032454
+      ],
+      [
+        81,
+        13
+      ],
+      [
+        80.414429,
+        12.977795
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_haldia",
+    "from_id": "chk_malacca",
+    "to_id": "ref_haldia_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 160000.0,
+    "cost_per_bbl": 0.3736,
+    "transit_time_days": 4.82,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 2786.0,
+    "_source": "Strait of Malacca to Haldia. Distance 2,786 km (searoute). Cost = $0.1341/1000km x 2,786 km. Transit = 2,786 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        93.638649,
+        14.549165
+      ],
+      [
+        89.727407,
+        18.84889
+      ],
+      [
+        88,
+        21
+      ],
+      [
+        87.93869,
+        21.684229
+      ],
+      [
+        88.206482,
+        22.065278
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_pt_salaya",
+    "from_id": "chk_malacca",
+    "to_id": "port_salaya",
+    "mode": "sea",
+    "base_capacity_bbl_day": 500000.0,
+    "cost_per_bbl": 0.68,
+    "transit_time_days": 8.78,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 5071.2,
+    "_source": "Strait of Malacca to Salaya crude terminal. Distance 5,071 km (searoute). Cost = $0.1341/1000km x 5,071 km. Transit = 5,071 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_pt_vadinar",
+    "from_id": "chk_malacca",
+    "to_id": "port_vadinar",
+    "mode": "sea",
+    "base_capacity_bbl_day": 156000.0,
+    "cost_per_bbl": 0.68,
+    "transit_time_days": 8.78,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 5071.2,
+    "_source": "Strait of Malacca to Vadinar crude terminal. Distance 5,071 km (searoute). Cost = $0.1341/1000km x 5,071 km. Transit = 5,071 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_pt_mundra",
+    "from_id": "chk_malacca",
+    "to_id": "port_mundra",
+    "mode": "sea",
+    "base_capacity_bbl_day": 393000.0,
+    "cost_per_bbl": 0.68,
+    "transit_time_days": 8.78,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 5071.2,
+    "_source": "Strait of Malacca to Mundra crude terminal. Distance 5,071 km (searoute). Cost = $0.1341/1000km x 5,071 km. Transit = 5,071 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        94.326449,
+        6.157121
+      ],
+      [
+        90,
+        6.4664
+      ],
+      [
+        85.9479,
+        6.1983
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        74.133516,
+        12.773359
+      ],
+      [
+        73,
+        15.3
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        68.719482,
+        22.543001
+      ],
+      [
+        69.44458,
+        22.573438
+      ]
+    ]
+  },
+  {
+    "id": "e_malacca_pt_paradip",
+    "from_id": "chk_malacca",
+    "to_id": "port_paradip",
+    "mode": "sea",
+    "base_capacity_bbl_day": 708000.0,
+    "cost_per_bbl": 0.3566,
+    "transit_time_days": 4.6,
+    "openness": 1.0,
+    "grade": null,
+    "distance_km": 2659.1,
+    "_source": "Strait of Malacca to Paradip crude terminal. Distance 2,659 km (searoute). Cost = $0.1341/1000km x 2,659 km. Transit = 2,659 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        102.247009,
+        2.159675
+      ],
+      [
+        102,
+        2
+      ],
+      [
+        101.316415,
+        2.586072
+      ],
+      [
+        100.6,
+        3.2
+      ],
+      [
+        99.763807,
+        4.084523
+      ],
+      [
+        98.128129,
+        5.811729
+      ],
+      [
+        93.638649,
+        14.549165
+      ],
+      [
+        89.727407,
+        18.84889
+      ],
+      [
+        88,
+        21
+      ]
+    ]
+  },
+  {
+    "id": "e_oman_vadinar",
+    "from_id": "src_oman",
+    "to_id": "ref_vadinar_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.3887,
+    "transit_time_days": 2.16,
+    "openness": 1.0,
     "grade": "SOUR",
+    "distance_km": 1247.3,
+    "_source": "Mina Al Fahal (outside Hormuz) to Vadinar. Distance 1,247 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 1,247 km. Transit = 1,247 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         58.566943,
@@ -3355,25 +8243,21 @@
       [
         69.44458,
         22.573438
-      ],
-      [
-        70.246582,
-        22.857195
       ]
-    ],
-    "_source": "Direct Oman (Mina Al Fahal) -> Jamnagar (Reliance) \u2014 Inlet (no chokepoint transit). Distance 1335 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+    ]
   },
   {
-    "id": "e_oman_mangalore",
+    "id": "e_oman_mumbai_bpcl",
     "from_id": "src_oman",
-    "to_id": "ref_mangalore_in",
+    "to_id": "ref_mumbai_bpcl_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 120000,
-    "cost_per_bbl": 1.22,
-    "transit_time_days": 7,
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.4404,
+    "transit_time_days": 2.83,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SOUR",
+    "distance_km": 1633.1,
+    "_source": "Mina Al Fahal (outside Hormuz) to Mumbai Bpcl. Distance 1,633 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 1,633 km. Transit = 1,633 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         58.566943,
@@ -3412,31 +8296,78 @@
         19
       ],
       [
-        73,
-        15.3
-      ],
-      [
-        74.133516,
-        12.773359
-      ],
-      [
-        74.778442,
-        12.817158
+        72.80777,
+        18.941361
       ]
-    ],
-    "_source": "Direct Oman (Mina Al Fahal) -> Mangalore (MRPL) \u2014 Inlet (no chokepoint transit). Distance 2383 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+    ]
   },
   {
-    "id": "e_oman_kochi",
+    "id": "e_oman_mumbai_hpcl",
     "from_id": "src_oman",
-    "to_id": "ref_kochi_in",
+    "to_id": "ref_mumbai_hpcl_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 120000,
-    "cost_per_bbl": 1.3,
-    "transit_time_days": 7,
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.4404,
+    "transit_time_days": 2.83,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SOUR",
+    "distance_km": 1633.1,
+    "_source": "Mina Al Fahal (outside Hormuz) to Mumbai Hpcl. Distance 1,633 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 1,633 km. Transit = 1,633 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        58.566943,
+        23.626782
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        61.55539,
+        23.45698
+      ],
+      [
+        64.447045,
+        22.842503
+      ],
+      [
+        65.725774,
+        22.570773
+      ],
+      [
+        67,
+        22.3
+      ],
+      [
+        69.592463,
+        20.809334
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        72.4,
+        19
+      ],
+      [
+        72.80777,
+        18.941361
+      ]
+    ]
+  },
+  {
+    "id": "e_oman_chennai_cpcl",
+    "from_id": "src_oman",
+    "to_id": "ref_chennai_cpcl_in",
+    "mode": "sea",
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.7836,
+    "transit_time_days": 7.26,
+    "openness": 1.0,
+    "grade": "SOUR",
+    "distance_km": 4192.2,
+    "_source": "Mina Al Fahal (outside Hormuz) to Chennai Cpcl. Distance 4,192 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 4,192 km. Transit = 4,192 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
         58.566943,
@@ -3487,682 +8418,392 @@
         9.7
       ],
       [
-        76.195679,
-        9.876864
+        77,
+        8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        81,
+        13
+      ],
+      [
+        80.414429,
+        12.977795
       ]
-    ],
-    "_source": "Direct Oman (Mina Al Fahal) -> Kochi (BPCL) \u2014 Inlet (no chokepoint transit). Distance 2534 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+    ]
   },
   {
-    "id": "e_ss_qatar",
-    "from_id": "super_source",
-    "to_id": "src_qatar",
-    "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
-    "cost_per_bbl": 0.0,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Virtual edge."
-  },
-  {
-    "id": "e_qatar_hormuz",
-    "from_id": "src_qatar",
-    "to_id": "chk_hormuz",
+    "id": "e_oman_haldia",
+    "from_id": "src_oman",
+    "to_id": "ref_haldia_in",
     "mode": "sea",
-    "base_capacity_bbl_day": 90000,
-    "cost_per_bbl": 0.26,
-    "transit_time_days": 1,
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.9256,
+    "transit_time_days": 9.09,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SOUR",
+    "distance_km": 5251.0,
+    "_source": "Mina Al Fahal (outside Hormuz) to Haldia. Distance 5,251 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 5,251 km. Transit = 5,251 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
-        51.6,
-        26.3
+        58.566943,
+        23.626782
       ],
       [
-        53.148966,
-        26.25488
+        59,
+        24
       ],
       [
-        54.399148,
-        26.194877
+        60.4,
+        22.7
       ],
       [
-        55.064332,
-        26.151124
+        62.375976,
+        21.440441
       ],
       [
-        55.345025,
-        26.132657
+        64.5005,
+        20.0838
       ],
       [
-        56.343384,
-        26.441066
+        64.952594,
+        19.426191
       ],
       [
-        56.547226,
-        26.511054
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        83.6282,
+        10.7006
+      ],
+      [
+        83.978619,
+        11.556515
+      ],
+      [
+        85.038,
+        14.1441
+      ],
+      [
+        85.155655,
+        14.422172
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        86.491,
+        17.5782
+      ],
+      [
+        88,
+        21
+      ],
+      [
+        87.93869,
+        21.684229
+      ],
+      [
+        88.206482,
+        22.065278
       ]
-    ],
-    "_source": "Qatar (Ras Laffan) -> Strait of Hormuz. Distance 501 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+    ]
   },
   {
-    "id": "e_ss_kazakhstan",
-    "from_id": "super_source",
-    "to_id": "src_kazakhstan",
-    "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
-    "cost_per_bbl": 0.0,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Virtual edge."
-  },
-  {
-    "id": "e_kazakhstan_bab",
-    "from_id": "src_kazakhstan",
-    "to_id": "chk_bab",
+    "id": "e_oman_pt_salaya",
+    "from_id": "src_oman",
+    "to_id": "port_salaya",
     "mode": "sea",
-    "base_capacity_bbl_day": 60000,
-    "cost_per_bbl": 2.41,
-    "transit_time_days": 14,
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.3887,
+    "transit_time_days": 2.16,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": "SWEET",
-    "path": [
-      [
-        37.470601,
-        44.45157
-      ],
-      [
-        37.301242,
-        44.386389
-      ],
-      [
-        37.016592,
-        44.276835
-      ],
-      [
-        36.846449,
-        44.211352
-      ],
-      [
-        36.397403,
-        44.038527
-      ],
-      [
-        35.952304,
-        43.867221
-      ],
-      [
-        33.847733,
-        43.057232
-      ],
-      [
-        33.50474,
-        42.925224
-      ],
-      [
-        29.132431,
-        41.242447
-      ],
-      [
-        29.096026,
-        41.186306
-      ],
-      [
-        29.050519,
-        41.15205
-      ],
-      [
-        29.070542,
-        41.117776
-      ],
-      [
-        29.042328,
-        41.050547
-      ],
-      [
-        28.995,
-        41.027893
-      ],
-      [
-        28.977708,
-        40.971568
-      ],
-      [
-        28.501542,
-        40.82216
-      ],
-      [
-        28.449481,
-        40.805825
-      ],
-      [
-        27.277634,
-        40.60495
-      ],
-      [
-        26.768188,
-        40.440676
-      ],
-      [
-        26.2,
-        40.1
-      ],
-      [
-        26.143615,
-        39.992927
-      ],
-      [
-        26.097501,
-        39.784356
-      ],
-      [
-        25.953472,
-        39.494984
-      ],
-      [
-        25.825253,
-        39.237374
-      ],
-      [
-        25.830528,
-        39.136019
-      ],
-      [
-        26.022956,
-        38.889479
-      ],
-      [
-        26.157985,
-        38.716479
-      ],
-      [
-        26.308653,
-        38.523442
-      ],
-      [
-        26.269821,
-        38.437945
-      ],
-      [
-        26.184875,
-        38.339023
-      ],
-      [
-        26.172739,
-        38.253308
-      ],
-      [
-        26.366219,
-        37.813395
-      ],
-      [
-        26.430146,
-        37.266748
-      ],
-      [
-        26.635875,
-        37.008989
-      ],
-      [
-        27.002784,
-        36.547109
-      ],
-      [
-        27.030399,
-        36.498505
-      ],
-      [
-        27.2,
-        36.2
-      ],
-      [
-        27.548237,
-        35.88019
-      ],
-      [
-        28.180712,
-        35.299346
-      ],
-      [
-        28.881234,
-        34.656009
-      ],
-      [
-        28.964326,
-        34.5797
-      ],
-      [
-        29.595152,
-        34.000371
-      ],
-      [
-        29.703004,
-        33.901323
-      ],
-      [
-        30.699385,
-        32.986279
-      ],
-      [
-        30.765996,
-        32.925106
-      ],
-      [
-        32.1,
-        31.7
-      ],
-      [
-        32.359877,
-        31.336373
-      ],
-      [
-        32.310104,
-        31.102922
-      ],
-      [
-        32.382202,
-        30.318359
-      ],
-      [
-        32.557983,
-        30.213982
-      ],
-      [
-        32.6,
-        29.7
-      ],
-      [
-        33.233643,
-        28.444544
-      ],
-      [
-        34.5,
-        27
-      ],
-      [
-        37,
-        23.6
-      ],
-      [
-        37.786499,
-        22.210682
-      ],
-      [
-        38.572998,
-        20.807472
-      ],
-      [
-        41.000977,
-        17.098792
-      ],
-      [
-        42.341309,
-        14.509144
-      ],
-      [
-        42.541058,
-        13.676089
-      ],
-      [
-        43.3,
-        12.7
-      ],
-      [
-        43.746586,
-        12.40439
-      ]
-    ],
-    "_source": "Kazakhstan (CPC Terminal, Novorossiysk) -> Bab-el-Mandeb / Red Sea. Distance 4706 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
-  },
-  {
-    "id": "e_ss_venezuela",
-    "from_id": "super_source",
-    "to_id": "src_venezuela",
-    "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
-    "cost_per_bbl": 0.0,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Virtual edge."
-  },
-  {
-    "id": "e_venezuela_cog",
-    "from_id": "src_venezuela",
-    "to_id": "chk_cog",
-    "mode": "sea",
-    "base_capacity_bbl_day": 180000,
-    "cost_per_bbl": 5.34,
-    "transit_time_days": 30,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
     "grade": "SOUR",
+    "distance_km": 1247.3,
+    "_source": "Mina Al Fahal (outside Hormuz) to Salaya crude terminal. Distance 1,247 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 1,247 km. Transit = 1,247 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
-        -64.702263,
-        10.271006
+        58.566943,
+        23.626782
       ],
       [
-        -64.812697,
-        11.316062
+        59,
+        24
       ],
       [
-        -64.039307,
-        11.350797
+        61.55539,
+        23.45698
       ],
       [
-        -61.817065,
-        10.845292
+        63.3,
+        24.6
       ],
       [
-        -61,
-        11
+        66.6,
+        24.3
       ],
       [
-        -56.4243,
-        8.2122
+        68.719482,
+        22.543001
       ],
       [
-        -51.9,
-        5.4
-      ],
-      [
-        -48.44,
-        3.2798
-      ],
-      [
-        -46.399027,
-        2.021526
-      ],
-      [
-        -44.9917,
-        1.1539
-      ],
-      [
-        -43.123942,
-        -2e-05
-      ],
-      [
-        -42.984139,
-        -0.086392
-      ],
-      [
-        -42.781385,
-        -0.211655
-      ],
-      [
-        -41.5476,
-        -0.9739
-      ],
-      [
-        -38.1,
-        -3.1
-      ],
-      [
-        -34.860393,
-        -4.720374
-      ],
-      [
-        -33.8,
-        -5.25
-      ],
-      [
-        -31.063081,
-        -7.186164
-      ],
-      [
-        -29.999876,
-        -7.933805
-      ],
-      [
-        -28.772132,
-        -8.796464
-      ],
-      [
-        -27.018677,
-        -10.021884
-      ],
-      [
-        -22.806528,
-        -12.935362
-      ],
-      [
-        -19.999225,
-        -14.844666
-      ],
-      [
-        -16.822275,
-        -16.967419
-      ],
-      [
-        -12.088665,
-        -20.028905
-      ],
-      [
-        -10.796127,
-        -20.843889
-      ],
-      [
-        -9.999624,
-        -21.343395
-      ],
-      [
-        -7.024709,
-        -23.154038
-      ],
-      [
-        -4.412459,
-        -24.677177
-      ],
-      [
-        0.00081,
-        -27.123985
-      ],
-      [
-        2.015382,
-        -28.169477
-      ],
-      [
-        5.891411,
-        -30.076823
-      ],
-      [
-        8.741211,
-        -31.368532
-      ],
-      [
-        10.000809,
-        -31.926949
-      ],
-      [
-        14.0806,
-        -33.5827
-      ],
-      [
-        18,
-        -35
-      ],
-      [
-        18.237305,
-        -33.840764
-      ],
-      [
-        18.428192,
-        -33.862433
+        69.44458,
+        22.573438
       ]
-    ],
-    "_source": "Venezuela (Jos\u00e9 Terminal) -> Cape of Good Hope. Distance 10451 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+    ]
   },
   {
-    "id": "e_ss_brazil",
-    "from_id": "super_source",
-    "to_id": "src_brazil",
-    "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
-    "cost_per_bbl": 0.0,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Virtual edge."
-  },
-  {
-    "id": "e_brazil_cog",
-    "from_id": "src_brazil",
-    "to_id": "chk_cog",
+    "id": "e_oman_pt_vadinar",
+    "from_id": "src_oman",
+    "to_id": "port_vadinar",
     "mode": "sea",
-    "base_capacity_bbl_day": 170000,
-    "cost_per_bbl": 3.08,
-    "transit_time_days": 18,
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.3887,
+    "transit_time_days": 2.16,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": "SWEET",
+    "grade": "SOUR",
+    "distance_km": 1247.3,
+    "_source": "Mina Al Fahal (outside Hormuz) to Vadinar crude terminal. Distance 1,247 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 1,247 km. Transit = 1,247 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
-        -41.3,
-        -23.5
+        58.566943,
+        23.626782
       ],
       [
-        -39.757078,
-        -23.820415
+        59,
+        24
       ],
       [
-        -39.682975,
-        -23.835804
+        61.55539,
+        23.45698
       ],
       [
-        -35.226199,
-        -24.761333
+        63.3,
+        24.6
       ],
       [
-        -34.612152,
-        -24.88885
+        66.6,
+        24.3
       ],
       [
-        -29.998837,
-        -25.846887
+        68.719482,
+        22.543001
       ],
       [
-        -26.395817,
-        -26.595118
-      ],
-      [
-        -22.817834,
-        -27.338149
-      ],
-      [
-        -19.999418,
-        -27.923443
-      ],
-      [
-        -18.197878,
-        -28.297565
-      ],
-      [
-        -10,
-        -30
-      ],
-      [
-        -1.410786,
-        -31.533788
-      ],
-      [
-        0.000756,
-        -31.785849
-      ],
-      [
-        1.96521,
-        -32.136645
-      ],
-      [
-        7.178416,
-        -33.067574
-      ],
-      [
-        10.001499,
-        -33.571696
-      ],
-      [
-        18,
-        -35
-      ],
-      [
-        18.237305,
-        -33.840764
-      ],
-      [
-        18.428192,
-        -33.862433
+        69.44458,
+        22.573438
       ]
-    ],
-    "_source": "Brazil (Porto do A\u00e7u) -> Cape of Good Hope. Distance 6020 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+    ]
   },
   {
-    "id": "e_ss_angola",
-    "from_id": "super_source",
-    "to_id": "src_angola",
-    "mode": "internal",
-    "base_capacity_bbl_day": 9999999,
-    "cost_per_bbl": 0.0,
-    "transit_time_days": 0,
-    "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": null,
-    "_source": "Virtual edge."
-  },
-  {
-    "id": "e_angola_cog",
-    "from_id": "src_angola",
-    "to_id": "chk_cog",
+    "id": "e_oman_pt_mundra",
+    "from_id": "src_oman",
+    "to_id": "port_mundra",
     "mode": "sea",
-    "base_capacity_bbl_day": 130000,
-    "cost_per_bbl": 1.58,
-    "transit_time_days": 9,
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.3887,
+    "transit_time_days": 2.16,
     "openness": 1.0,
-    "risk_multiplier": 1.0,
-    "grade": "SWEET",
+    "grade": "SOUR",
+    "distance_km": 1247.3,
+    "_source": "Mina Al Fahal (outside Hormuz) to Mundra crude terminal. Distance 1,247 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 1,247 km. Transit = 1,247 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
     "path": [
       [
-        13.07373,
-        -8.559294
+        58.566943,
+        23.626782
       ],
       [
-        12,
-        -9
+        59,
+        24
       ],
       [
-        11,
-        -15.5
+        61.55539,
+        23.45698
       ],
       [
-        11,
-        -19
+        63.3,
+        24.6
       ],
       [
-        13.80944,
-        -22.909209
+        66.6,
+        24.3
       ],
       [
-        14.534912,
-        -26.863281
+        68.719482,
+        22.543001
       ],
       [
-        18.237305,
-        -33.840764
-      ],
-      [
-        18.428192,
-        -33.862433
+        69.44458,
+        22.573438
       ]
-    ],
-    "_source": "Angola (Luanda / Cabinda) -> Cape of Good Hope. Distance 3088 km via searoute; cost/time derived from the 2.91 days/1000km, $0.51/1000km long-haul calibration (see script header)."
+    ]
+  },
+  {
+    "id": "e_oman_pt_paradip",
+    "from_id": "src_oman",
+    "to_id": "port_paradip",
+    "mode": "sea",
+    "base_capacity_bbl_day": 120000.0,
+    "cost_per_bbl": 1.9085,
+    "transit_time_days": 8.87,
+    "openness": 1.0,
+    "grade": "SOUR",
+    "distance_km": 5124.1,
+    "_source": "Mina Al Fahal (outside Hormuz) to Paradip crude terminal. Distance 5,124 km (searoute). Cost = fixed $1.2214 + $0.1341/1000km x 5,124 km. Transit = 5,124 km at 13 kn laden. Generated by scripts/build_network.py -- do not hand-edit.",
+    "path": [
+      [
+        58.566943,
+        23.626782
+      ],
+      [
+        59,
+        24
+      ],
+      [
+        60.4,
+        22.7
+      ],
+      [
+        62.375976,
+        21.440441
+      ],
+      [
+        64.5005,
+        20.0838
+      ],
+      [
+        64.952594,
+        19.426191
+      ],
+      [
+        66.257926,
+        17.527476
+      ],
+      [
+        66.688152,
+        16.901677
+      ],
+      [
+        67.653809,
+        15.718239
+      ],
+      [
+        68.801755,
+        14.678599
+      ],
+      [
+        69.999398,
+        13.765698
+      ],
+      [
+        75.3,
+        9.7
+      ],
+      [
+        77,
+        8
+      ],
+      [
+        78.868856,
+        6.674926
+      ],
+      [
+        80.1,
+        5.8
+      ],
+      [
+        81.9,
+        5.9
+      ],
+      [
+        82.25,
+        7.25
+      ],
+      [
+        83.6282,
+        10.7006
+      ],
+      [
+        83.978619,
+        11.556515
+      ],
+      [
+        85.038,
+        14.1441
+      ],
+      [
+        85.155655,
+        14.422172
+      ],
+      [
+        85.735114,
+        15.791697
+      ],
+      [
+        86.491,
+        17.5782
+      ],
+      [
+        88,
+        21
+      ]
+    ]
   }
 ]

@@ -1,14 +1,27 @@
-networkx
-pydantic
-fastapi
-uvicorn
-httpx
-python-dotenv
-pytest
-pytest-asyncio
-aiohttp
-groq
-ortools
-searoute
-langgraph
+# Pinned to the versions this was built and tested against. Loosen deliberately
+# rather than by accident: ortools and langgraph have both shipped behaviour
+# changes in minor releases.
 
+# Graph and optimisation
+networkx==3.6.1
+ortools==9.15.6755
+
+# Sea-route geometry. Only scripts/build_network.py needs it, to regenerate
+# data/edges.json; the running application does not import it.
+searoute==1.6.0
+
+# API
+fastapi==0.136.3
+uvicorn==0.48.0
+pydantic==2.13.4
+python-dotenv==1.2.2
+
+# Agents
+langgraph==1.2.2
+groq==0.37.1
+httpx==0.28.1
+aiohttp==3.13.5
+
+# Tests
+pytest==9.1.1
+pytest-asyncio==1.4.0

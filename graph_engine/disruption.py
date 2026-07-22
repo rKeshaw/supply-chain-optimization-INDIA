@@ -64,11 +64,9 @@ DEFAULT_SCENARIOS: dict[str, dict] = {
         "description": (
             "Both the Strait of Hormuz and Bab-el-Mandeb fully closed simultaneously — models "
             "a compounding regional crisis rather than an isolated single-corridor incident. "
-            "The mechanism already exists via the custom-scenario API (verified this session: "
-            "combining both closures correctly triggers non-linear SPR drawdown once the "
-            "network's remaining slack — the Cape of Good Hope bypass and diversified sources — "
-            "runs out); this is that same combination as a one-click named scenario instead of "
-            "only reachable through the raw custom-scenario request."
+            "Combining both closures exhausts the network's remaining slack, the Cape of Good "
+            "Hope bypass and the diversified sources, and drives the reserve drawdown "
+            "non-linearly."
         ),
         "scenario_dict": {"chk_hormuz": 0.0, "chk_bab": 0.0},
         "affected_element": "chk_hormuz",  # representative element for display
@@ -79,6 +77,7 @@ DEFAULT_SCENARIOS: dict[str, dict] = {
 def apply_scenario(
     G: nx.DiGraph,
     scenario_dict: dict[str, float],
+    mode: str = "layer",
 ) -> nx.DiGraph:
     """
     Apply a disruption scenario to the graph and return a new graph.
@@ -86,53 +85,49 @@ def apply_scenario(
 
     Args:
         G: The baseline (or current) graph.
-        scenario_dict: Dict mapping graph_element_id -> openness_multiplier in [0, 1].
-                       Can reference node IDs (adjusts all incident edges) or
-                       edge IDs via their 'edge_id' attribute.
+        scenario_dict: Dict mapping graph_element_id -> target openness in [0, 1].
+                       Can reference node IDs or edge IDs via 'edge_id'.
+        mode: "layer" (default) applies the target as a ceiling, so stacking a
+              second disruption can never make an element MORE open than it
+              already is — applying "Hormuz partial" after "Hormuz full" must not
+              reopen the strait. "set" assigns the value outright, which is what
+              a manual openness slider means.
 
     Returns:
-        A deep copy of G with adjusted edge capacities reflecting the disruption.
-        The original G is unchanged.
+        A deep copy of G with adjusted capacities. IDs that matched nothing are
+        recorded on the returned graph as ``graph["unresolved_scenario_elements"]``
+        so a caller can reject the request rather than silently disrupting less
+        than it asked for. The original G is unchanged.
     """
     G_disrupted = copy.deepcopy(G)
+    unresolved: list[str] = []
 
-    for element_id, openness_multiplier in scenario_dict.items():
-        openness_multiplier = max(0.0, min(1.0, float(openness_multiplier)))
+    for element_id, target in scenario_dict.items():
+        target = max(0.0, min(1.0, float(target)))
 
         if element_id in G_disrupted.nodes:
-            # Node disruption: update node openness, cascade to all incident edges
-            G_disrupted.nodes[element_id]["openness"] = openness_multiplier
-            G_disrupted.nodes[element_id]["risk_score"] = 1.0 - openness_multiplier
-
-            for u, v, data in G_disrupted.edges(element_id, data=True):
-                base_cap = data.get("base_capacity_bbl_day", 0)
-                other_openness = G_disrupted.nodes[v].get("openness", 1.0)
-                data["capacity"] = base_cap * openness_multiplier * other_openness
-
-            for u, v, data in G_disrupted.in_edges(element_id, data=True):
-                base_cap = data.get("base_capacity_bbl_day", 0)
-                other_openness = G_disrupted.nodes[u].get("openness", 1.0)
-                data["capacity"] = base_cap * openness_multiplier * other_openness
+            # A scenario is a known state, not a rumour: it sets structural
+            # openness and is left alone by risk decay.
+            current = float(G_disrupted.nodes[element_id].get("structural_openness", 1.0))
+            G_disrupted.nodes[element_id]["structural_openness"] = (
+                min(current, target) if mode == "layer" else target
+            )
 
         else:
             # Edge disruption: find the edge by its edge_id attribute
             found = False
             for u, v, data in G_disrupted.edges(data=True):
                 if data.get("edge_id") == element_id:
-                    base_cap = data.get("base_capacity_bbl_day", 0)
-                    data["capacity"] = base_cap * openness_multiplier
-                    data["openness"] = openness_multiplier
+                    current = float(data.get("structural_openness", 1.0))
+                    data["structural_openness"] = min(current, target) if mode == "layer" else target
                     found = True
                     break
             if not found:
-                # element_id not found in nodes or edge IDs — log and skip
-                import warnings
-                warnings.warn(
-                    f"apply_scenario: element_id '{element_id}' not found in graph. "
-                    "Check node/edge IDs in scenario_dict.",
-                    stacklevel=2,
-                )
+                unresolved.append(element_id)
 
+    from graph_engine.build_graph import refresh_openness
+    refresh_openness(G_disrupted)
+    G_disrupted.graph["unresolved_scenario_elements"] = unresolved
     return G_disrupted
 
 
@@ -141,37 +136,3 @@ def apply_scenario(
 # dumping all rerouted volume onto one backup corridor — is already enforced by the
 # routing LP's hard Cape-of-Good-Hope corridor cap.
 
-
-def get_flow_delta(
-    baseline: dict,
-    disrupted: dict,
-) -> dict:
-    """
-    Compute the difference between baseline and disrupted flow states.
-
-    Args:
-        baseline: Output of compute_baseline on the undisrupted graph.
-        disrupted: Output of compute_baseline on the disrupted graph.
-
-    Returns:
-        Dict with flow_loss, flow_loss_pct, per_refinery_delta.
-    """
-    flow_loss = baseline["flow_value"] - disrupted["flow_value"]
-    flow_loss_pct = flow_loss / max(baseline["flow_value"], 1) * 100
-
-    per_refinery_delta = {}
-    for ref_id in baseline.get("flow_per_refinery", {}):
-        base_flow = baseline["flow_per_refinery"].get(ref_id, 0)
-        dis_flow = disrupted.get("flow_per_refinery", {}).get(ref_id, 0)
-        per_refinery_delta[ref_id] = {
-            "base_flow": base_flow,
-            "disrupted_flow": dis_flow,
-            "loss": base_flow - dis_flow,
-            "loss_pct": (base_flow - dis_flow) / max(base_flow, 1) * 100,
-        }
-
-    return {
-        "flow_loss_bbl_day": flow_loss,
-        "flow_loss_pct": flow_loss_pct,
-        "per_refinery_delta": per_refinery_delta,
-    }

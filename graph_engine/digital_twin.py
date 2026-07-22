@@ -103,8 +103,7 @@ def run_digital_twin(
     (it's a domestic reserve mechanism, not an import-routing decision).
     """
     from graph_engine.economic_model import compute_cascade
-    from graph_engine.reserve_optimizer import optimize_spr_draw
-    from graph_engine.routing import avg_cost_per_bbl
+    from graph_engine.routing import reroute_premium_vs_baseline
 
     G_disrupted = apply_scenario(G_baseline, scenario_dict)
 
@@ -122,12 +121,13 @@ def run_digital_twin(
     demand = {nid: ref.consumption_rate_bbl_day for nid, ref in state["refineries"].items()}
     total_demand = sum(demand.values())
 
-    # Undisrupted baseline routing cost — reference for the daily reroute premium.
-    baseline_avg_cost = params.get("_baseline_routing_avg_cost_per_bbl", {}).get("value")
-    if baseline_avg_cost is None:
-        baseline_avg_cost = avg_cost_per_bbl(
-            compute_pareto_routes(G_baseline, demand, params).get("cost_optimal", {})
-        )
+    # Reference plan for the daily reroute premium. The application solves this
+    # once at startup; solving here covers standalone use from tests or scripts.
+    if not (params or {}).get("_baseline_cost_route", {}).get("value"):
+        params = dict(params or {})
+        params["_baseline_cost_route"] = {
+            "value": compute_pareto_routes(G_baseline, demand, params)["cost_optimal"]
+        }
 
     # At the start of a scenario, cargoes already ordered under normal routes
     # remain in the pipeline. Seed one daily arrival for every day of each
@@ -136,6 +136,8 @@ def run_digital_twin(
     baseline_routing = None
     if initial_state is None or disable_rerouting:
         baseline_routing = compute_pareto_routes(G_baseline, demand, params)["cost_optimal"]
+    # Seed the steady-state pipeline from the baseline plan (arrivals that were
+    # already en route when the disruption struck).
     if initial_state is None:
         state["shipments_in_transit"] = _seed_steady_state_pipeline(baseline_routing)
 
@@ -145,48 +147,55 @@ def run_digital_twin(
             baseline_routing.get("path_allocations", []), G_disrupted
         )
 
+    # The disrupted-network routing plan is re-solved on demand inside the daily
+    # loop whenever SPR inventory changes materially (see _spr_capacity_changed).
+    steady_routing = None
+    last_spr_inventory: dict[str, float] = {}
+
     results = []
     for day in range(horizon_days):
         arrivals = _advance_shipments(state)
         for refinery_out, volume in arrivals.items():
             state["refineries"][refinery_out].inventory_bbl += volume
 
-        # Decide today's future dispatches from the disrupted network — unless
-        # rerouting is disabled, in which case keep dispatching the same
-        # pre-disruption paths at whatever volume they can still carry.
-        try:
-            if disable_rerouting:
-                total_volume = sum(a["volume_bbl_day"] for a in no_reroute_allocations)
-                routing = {
-                    "total_volume": total_volume,
-                    "feasible": total_volume > 0,
-                    "path_allocations": no_reroute_allocations,
-                }
-            else:
-                routing = compute_pareto_routes(G_disrupted, demand, params)["cost_optimal"]
-            new_shipments = _shipments_from_path_allocations(routing.get("path_allocations", []))
-            state["shipments_in_transit"].extend(new_shipments)
-        except Exception:
-            routing = {"total_volume": 0.0, "fulfillment": {}, "feasible": False, "path_allocations": []}
+        if disable_rerouting:
+            total_volume = sum(a["volume_bbl_day"] for a in no_reroute_allocations)
+            routing = {
+                "total_volume": total_volume,
+                "feasible": total_volume > 0,
+                "path_allocations": no_reroute_allocations,
+            }
+        else:
+            # Re-solve whenever SPR inventory has shifted by more than 1% of
+            # daily discharge. The LP's SPR capacity ceiling is inventory-
+            # dependent, so a plan valid on day 0 may over-commit a partially-
+            # drained cavern on day N.
+            spr_changed = _spr_capacity_changed(
+                state["spr"], last_spr_inventory, threshold_fraction=0.01
+            )
+            if steady_routing is None or spr_changed:
+                G_day = _apply_current_spr_capacity(G_disrupted, state["spr"])
+                try:
+                    steady_routing = compute_pareto_routes(G_day, demand, params)["cost_optimal"]
+                except Exception:
+                    logger.exception(
+                        "Digital twin: routing re-solve failed on day %d; "
+                        "continuing with previous plan.", day
+                    )
+            last_spr_inventory = {sid: s["inventory_bbl"] for sid, s in state["spr"].items()}
+            routing = steady_routing
 
-        # SPR is assessed against projected end-of-day inventory, then released
-        # before consumption so an available same-day pipeline draw prevents a
-        # false stockout.
-        projected = copy.deepcopy(state)
-        for refinery in projected["refineries"].values():
-            refinery.inventory_bbl = max(0.0, refinery.inventory_bbl - refinery.consumption_rate_bbl_day)
-        spr_draws = optimize_spr_draw(projected, params)
-        spr_allocations = _allocate_spr_to_connected_refineries(state, spr_draws, params)
-        for spr_id, draw in spr_draws.items():
-            state["spr"][spr_id]["inventory_bbl"] = max(0.0, state["spr"][spr_id]["inventory_bbl"] - draw)
-        for refinery_out, volume in spr_allocations.items():
-            state["refineries"][refinery_out].inventory_bbl += volume
+        allocations = routing.get("path_allocations", [])
+
+        state["shipments_in_transit"].extend(
+            _shipments_from_path_allocations([a for a in allocations if not a.get("is_spr")])
+        )
+        spr_draws, spr_allocations = _execute_spr_draw(state, allocations)
 
         unmet = _consume_refineries(state)
         gap_bbl_day = sum(unmet.values())
         delivered_today = total_demand - gap_bbl_day
-        # Cost channel: today's reroute premium vs. undisrupted baseline routing.
-        day_premium = max(0.0, avg_cost_per_bbl(routing) - baseline_avg_cost)
+        day_premium = reroute_premium_vs_baseline(G_disrupted, params, routing)
         cascade = compute_cascade(
             gap_bbl_day, total_demand, day, params,
             reroute_cost_premium_usd_per_bbl=day_premium,
@@ -228,10 +237,58 @@ def run_digital_twin(
     return results
 
 
+def _spr_capacity_changed(
+    spr_state: dict,
+    prev_inventory: dict[str, float],
+    threshold_fraction: float = 0.01,
+) -> bool:
+    """Return True when any SPR facility's inventory has changed by more than
+    threshold_fraction of its maximum daily discharge rate since the last solve.
+
+    The comparison is against max_discharge_bbl_day rather than total storage
+    so that a tiny absolute change on a large cavern does not force a redundant
+    LP solve when the routing plan cannot meaningfully improve.
+    """
+    for sid, facility in spr_state.items():
+        prev = prev_inventory.get(sid, float("inf"))
+        current = facility["inventory_bbl"]
+        max_discharge = facility.get("max_discharge_bbl_day", 1.0) or 1.0
+        if abs(current - prev) > threshold_fraction * max_discharge:
+            return True
+    return False
+
+
+def _apply_current_spr_capacity(G: nx.DiGraph, spr_state: dict) -> nx.DiGraph:
+    """Return a shallow copy of G with each SPR node's capacity_bbl_day updated
+    to reflect the remaining inventory in the simulation state.
+
+    The LP uses capacity_bbl_day as the ceiling for daily discharge. Using the
+    static graph value after several days of drawdown would allow the solver to
+    commit more SPR volume than the cavern actually holds.
+    """
+    G_day = G.copy()
+    for sid, facility in spr_state.items():
+        if sid not in G_day:
+            continue
+        max_discharge = facility.get("max_discharge_bbl_day", 0.0) or 0.0
+        remaining = facility["inventory_bbl"]
+        # Cap daily supply at the lesser of the physical discharge rate and
+        # remaining inventory — the exact figure the LP's horizon constraint approximates.
+        G_day.nodes[sid]["capacity_bbl_day"] = min(max_discharge, remaining)
+    return G_day
+
+
 def _seed_steady_state_pipeline(routing: dict) -> list[ShipmentInTransit]:
-    """Seed cargoes already at different points along each baseline path."""
+    """Seed cargoes already at different points along each baseline path.
+
+    Reserve allocations are excluded. A barrel sitting in an Indian cavern is
+    not a cargo at sea, and seeding it as one would credit the simulation with
+    stock it has not drawn.
+    """
     shipments = []
     for allocation in routing.get("path_allocations", []):
+        if allocation.get("is_spr"):
+            continue
         transit_days = max(1, math.ceil(allocation["transit_time_days"]))
         for offset in range(transit_days):
             shipment = _shipment_from_allocation(allocation)
@@ -332,28 +389,39 @@ def _advance_shipments(state: dict) -> dict[str, float]:
     return arrivals
 
 
-def _allocate_spr_to_connected_refineries(state: dict, draws: dict[str, float], params: dict) -> dict[str, float]:
-    """Assign each facility's draw only to refineries with a physical link."""
-    floor_days = params.get("spr_safety_floor_days", {}).get("value", 3.0)
-    allocations = {nid: 0.0 for nid in state["refineries"]}
-    for spr_id, draw in draws.items():
-        if draw <= 0:
+def _execute_spr_draw(state: dict, allocations: list[dict]) -> tuple[dict[str, float], dict[str, float]]:
+    """Carry out the routing plan's reserve draw and deplete the caverns.
+
+    The routing solve owns the drawdown decision. It is aware of grade, of
+    discharge capacity and of each cavern's sustainable rate, and it is the plan
+    already shown in the routing panel, so the simulation executes it rather
+    than deciding a second time and risking two different accounts of the same
+    reserve.
+
+    Recapped against remaining stock every day, so a facility that empties part
+    way through the horizon stops delivering instead of going negative.
+
+    Returns draw per facility and delivery per refinery, both in barrels a day.
+    """
+    draws = {spr_id: 0.0 for spr_id in state["spr"]}
+    deliveries = {ref_id: 0.0 for ref_id in state["refineries"]}
+
+    for allocation in allocations:
+        if not allocation.get("is_spr"):
             continue
-        connected = state["spr"][spr_id].get("connected_refineries", [])
-        needs = {
-            ref_id: max(
-                0.0,
-                (floor_days + 1.0) * state["refineries"][ref_id].consumption_rate_bbl_day
-                - state["refineries"][ref_id].inventory_bbl,
-            )
-            for ref_id in connected
-        }
-        total_need = sum(needs.values())
-        if total_need <= 0:
+        facility = state["spr"].get(allocation["source_id"])
+        target = allocation.get("refinery_out")
+        if facility is None or target not in state["refineries"]:
             continue
-        for ref_id, need in needs.items():
-            allocations[ref_id] += draw * need / total_need
-    return allocations
+        volume = min(float(allocation.get("volume_bbl_day", 0.0)), facility["inventory_bbl"])
+        if volume <= 0:
+            continue
+        facility["inventory_bbl"] -= volume
+        draws[allocation["source_id"]] += volume
+        deliveries[target] += volume
+        state["refineries"][target].inventory_bbl += volume
+
+    return draws, deliveries
 
 
 def _consume_refineries(state: dict) -> dict[str, float]:

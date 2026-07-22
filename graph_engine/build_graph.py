@@ -13,11 +13,14 @@ Design contract:
 
 import json
 import copy
+import logging
 from pathlib import Path
 from typing import Optional
 from datetime import datetime, timezone
 
 import networkx as nx
+
+logger = logging.getLogger(__name__)
 
 from agents.schema import Node, Edge
 
@@ -106,7 +109,6 @@ def load_graph(data_dir: Path) -> tuple[nx.DiGraph, dict[str, Node], list[Edge]]
             cost_per_bbl=edge.cost_per_bbl,
             transit_time_days=edge.transit_time_days,
             openness=edge.openness,
-            risk_multiplier=edge.risk_multiplier,
             grade=edge.grade,
             mode=edge.mode,
             path=edge.path,
@@ -221,22 +223,10 @@ def apply_event_to_graph(
     target_id = event.affected_graph_element
 
     if target_id in G_updated.nodes:
-        node_data = G_updated.nodes[target_id]
-        current_risk = node_data.get("risk_score", 0.0)
-
-        if event.event_type == "reopening":
-            # Reopening is evidence that the operating risk has reduced.
-            risk_reduction = event.severity * event.confidence
-            new_risk = current_risk * (1.0 - risk_reduction)
-        else:
-            new_risk = update_risk_score(
-                current_risk, event.severity, event.confidence, decay
-            )
-
-        node_data["risk_score"] = new_risk
-        node_data["openness"] = 1.0 - new_risk
-        node_data["last_updated"] = decay_timestamp.isoformat()
-        _refresh_effective_capacities(G_updated)
+        _apply_event_to_element(
+            G_updated.nodes[target_id], event, decay, decay_timestamp.isoformat(), params
+        )
+        refresh_openness(G_updated)
         return G_updated
 
     # Events may target a canonical edge ID as specified by the Event schema.
@@ -244,18 +234,8 @@ def apply_event_to_graph(
         if edge_data.get("edge_id") != target_id:
             continue
 
-        current_risk = edge_data.get("risk_score", 0.0)
-        if event.event_type == "reopening":
-            new_risk = current_risk * (1.0 - event.severity * event.confidence)
-        else:
-            new_risk = update_risk_score(
-                current_risk, event.severity, event.confidence, decay
-            )
-
-        edge_data["risk_score"] = new_risk
-        edge_data["openness"] = 1.0 - new_risk
-        edge_data["last_updated"] = decay_timestamp.isoformat()
-        _refresh_effective_capacities(G_updated)
+        _apply_event_to_element(edge_data, event, decay, decay_timestamp.isoformat(), params)
+        refresh_openness(G_updated)
         return G_updated
 
     # Keep the time-decayed snapshot even when entity resolution was stale.
@@ -270,22 +250,82 @@ def _decay_graph_risk_to_timestamp(
 ) -> None:
     """Advance all node/edge risk values to ``as_of`` in place."""
     for _, data in G.nodes(data=True):
-        last_updated = _as_utc_datetime(data.get("last_updated"))
-        elapsed_days = (as_of - last_updated).total_seconds() / 86_400 if last_updated else 0.0
-        data["risk_score"] = decay_risk_score(
-            data.get("risk_score", 0.0), decay_factor_per_day, elapsed_days
-        )
-        data["openness"] = 1.0 - data["risk_score"]
+        _decay_element(data, as_of, decay_factor_per_day, decay_risk_score)
 
     for _, _, data in G.edges(data=True):
-        last_updated = _as_utc_datetime(data.get("last_updated"))
-        elapsed_days = (as_of - last_updated).total_seconds() / 86_400 if last_updated else 0.0
-        data["risk_score"] = decay_risk_score(
-            data.get("risk_score", 0.0), decay_factor_per_day, elapsed_days
-        )
-        data["openness"] = 1.0 - data["risk_score"]
+        _decay_element(data, as_of, decay_factor_per_day, decay_risk_score)
 
-    _refresh_effective_capacities(G)
+    refresh_openness(G)
+
+
+CONFIRMED_STATE_CONFIDENCE = 0.7
+
+
+def _capacity_impact(event, params: dict) -> float:
+    """Physical throughput impact of a signal, in [0, 1].
+
+    Signal strength (severity x confidence) measures how strongly something was
+    reported. How much capacity that actually removes depends on what kind of
+    event it is, which is what the per-type coefficient supplies.
+    """
+    coefficients = params.get("event_type_capacity_impact", {}).get("value", {})
+    factor = float(coefficients.get(event.event_type, 1.0))
+    return max(0.0, min(1.0, event.severity * event.confidence * factor))
+
+
+def _apply_event_to_element(data: dict, event, decay: float, stamp: str, params: dict) -> None:
+    """Route an event to structural state or to decaying risk.
+
+    A CONFIRMED closure is a known operating state — it holds until something
+    reopens the corridor, and must not fade just because the news cycle moved on.
+    An unconfirmed report of the same thing is exactly what risk is for, so the
+    confidence threshold decides which channel the event lands in. Everything
+    else (capacity cuts, sanctions, weather, price signals) is uncertain by
+    nature and always decays.
+    """
+    from agents.schema import update_risk_score
+
+    strength = _capacity_impact(event, params)
+
+    if event.event_type == "closure" and event.confidence >= CONFIRMED_STATE_CONFIDENCE:
+        data["structural_openness"] = min(
+            float(data.get("structural_openness", 1.0)), max(0.0, 1.0 - strength)
+        )
+    elif event.event_type == "reopening":
+        # Restores capacity and stands down the accumulated risk together.
+        data["structural_openness"] = min(
+            1.0, float(data.get("structural_openness", 1.0)) + strength
+        )
+        data["risk_score"] = float(data.get("risk_score", 0.0)) * (1.0 - strength)
+    else:
+        # Noisy-OR accumulation, scaled by how much this event type physically bites.
+        data["risk_score"] = max(0.0, min(1.0,
+            1.0 - (1.0 - float(data.get("risk_score", 0.0) or 0.0)) * (1.0 - strength)
+        ))
+
+    data["last_updated"] = stamp
+
+
+def _decay_element(data: dict, as_of: datetime, decay_factor_per_day: float, decay_risk_score) -> None:
+    """Decay one element's risk toward normal and reflect it in openness.
+
+    Elements carrying no risk are left untouched. Openness is not derived from
+    risk alone -- a scenario can close a lane without any signal having raised
+    its risk -- so rewriting it unconditionally would silently reopen whatever a
+    scenario had shut.
+    """
+    prior = data.get("risk_score", 0.0) or 0.0
+    if prior <= 0.0:
+        return
+    last_updated = _as_utc_datetime(data.get("last_updated"))
+    elapsed_days = (as_of - last_updated).total_seconds() / 86_400 if last_updated else 0.0
+    if elapsed_days < 0:
+        logger.warning(
+            "Risk decay ran backwards: element last updated %s but decaying to %s (%.0f days). "
+            "Treated as zero elapsed; check that the replay timeline starts after the graph's "
+            "last_updated stamps.", last_updated, as_of, elapsed_days,
+        )
+    data["risk_score"] = decay_risk_score(prior, decay_factor_per_day, elapsed_days)
 
 
 def _as_utc_datetime(value) -> Optional[datetime]:
@@ -300,6 +340,18 @@ def _as_utc_datetime(value) -> Optional[datetime]:
     if not isinstance(value, datetime):
         return None
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
+def refresh_openness(G: nx.DiGraph) -> None:
+    """Recompute effective openness from structural state and decaying risk, then
+    propagate to edge capacities. Call after changing either input."""
+    for _, data in G.nodes(data=True):
+        structural = float(data.get("structural_openness", 1.0))
+        data["openness"] = max(0.0, min(1.0, structural * (1.0 - float(data.get("risk_score", 0.0) or 0.0))))
+    for _, _, data in G.edges(data=True):
+        structural = float(data.get("structural_openness", 1.0))
+        data["openness"] = max(0.0, min(1.0, structural * (1.0 - float(data.get("risk_score", 0.0) or 0.0))))
+    _refresh_effective_capacities(G)
 
 
 def _refresh_effective_capacities(G: nx.DiGraph) -> None:

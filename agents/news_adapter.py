@@ -78,12 +78,9 @@ def fetch_recent_articles(query: str, max_records: int = 5) -> Optional[list[dic
         with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT_S) as response:
             body = response.read().decode("utf-8", errors="replace")
             if not body.strip():
-                # GDELT's DOC API returns an empty body (not {"articles": []})
-                # for a zero-result query — a normal, expected outcome, not a
-                # fetch failure. json.loads("") raises "Expecting value: line 1
-                # column 1 (char 0)", which previously got logged identically
-                # to a genuine failure (a 429, a timeout) and read as "this is
-                # broken" when it just meant "nothing matched this keyword".
+                # A zero-result query returns an empty body rather than an empty
+                # articles array, which is a normal outcome. Treating it as a
+                # fetch failure would report an ordinary quiet keyword as broken.
                 logger.debug(f"GDELT returned no results for query {query!r} (empty body).")
                 return []
             data = json.loads(body)
@@ -93,7 +90,7 @@ def fetch_recent_articles(query: str, max_records: int = 5) -> Optional[list[dic
         return None
 
 
-def check_news_signals(lookback_minutes: int = 30) -> list[dict]:
+def check_news_signals(lookback_minutes: Optional[int] = None) -> list[dict]:
     """Poll one rotating keyword for recent articles that resolve to a known
     graph element and fall within the lookback window.
 
@@ -105,6 +102,13 @@ def check_news_signals(lookback_minutes: int = 30) -> list[dict]:
     keywords = _rotating_keywords()
     if not keywords:
         return []
+    if lookback_minutes is None:
+        # One keyword is polled per cycle, so any given corridor is only revisited
+        # every (interval x keyword count). A shorter lookback than that leaves
+        # most of the window unobserved. Small overlap is fine: duplicates are
+        # filtered downstream by event id.
+        from agents.live_sensing_scheduler import LIVE_POLL_INTERVAL_S
+        lookback_minutes = int(LIVE_POLL_INTERVAL_S / 60 * len(keywords) * 1.2)
     idx = _KEYWORD_ROTATION_STATE["index"] % len(keywords)
     _KEYWORD_ROTATION_STATE["index"] = idx + 1
     keyword = keywords[idx]

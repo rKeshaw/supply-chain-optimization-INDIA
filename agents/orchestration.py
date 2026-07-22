@@ -18,9 +18,9 @@ from agents import scenario_agent
 from agents import policy_critic_agent
 from agents import explainer_agent
 from graph_engine.build_graph import apply_event_to_graph, get_graph_state_json
-from graph_engine.routing import compute_pareto_routes
-from graph_engine.reserve_optimizer import get_spr_status_summary
-from graph_engine.economic_model import compute_cascade
+from graph_engine.routing import compute_pareto_routes, refinery_demand
+from graph_engine.reserve_optimizer import get_spr_status_summary, planned_draw_from_allocations
+from graph_engine.economic_model import compute_cascade, global_supply_loss_bbl_day
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +57,9 @@ class PipelineState(TypedDict):
     
     critic_result: Optional[dict]
     policy_overrides: Optional[dict]
+    # Must live in the state schema: policy_critic_node replaces critic_result
+    # wholesale each pass, so a guard stored there is discarded every iteration.
+    re_solve_count: int
     
     brief: Optional[str]
     scenario_hypotheses: list
@@ -96,26 +99,12 @@ def extract_signal_node(state: PipelineState) -> dict:
         
     signal_strength = event.severity * event.confidence
     if event.event_type == "unrelated" or signal_strength < threshold:
-        # Distinct reasons for two genuinely different situations: "unrelated"
-        # means the content has nothing to do with energy supply chains at all
-        # (a cricket score, a chip-maker's earnings — the live news adapter's
-        # keyword search can surface these as false-positive matches, and the
-        # curated replay timeline deliberately includes two as test cases for
-        # this classification). "below_threshold" means it WAS a real supply
-        # chain signal, just not severe/confident enough to act on. Both used
-        # to collapse into the same "below_threshold" label, so the frontend
-        # had no way to tell "correctly filtered as irrelevant" apart from "a
-        # minor but real signal" — see the Signal Feed's ORIGIN_LABELS/filtering.
         reason = "unrelated" if event.event_type == "unrelated" else "below_threshold"
         logger.info(
             f"process_signal: event '{event.id}' {reason} "
             f"({signal_strength:.3f} < {threshold}). Logged, not recomputed."
         )
         return {
-            # mode="json" so timestamp serializes to an ISO string, not a raw
-            # datetime object — scenario_agent_node later json.dumps() this
-            # dict directly, which otherwise raises (caught, but silently
-            # drops the scenario-hypothesis step every single time).
             "event": event.model_dump(mode="json"),
             "signal_strength": signal_strength,
             "recompute_triggered": False,
@@ -132,19 +121,12 @@ def extract_signal_node(state: PipelineState) -> dict:
 
 
 def update_graph_node(state: PipelineState) -> dict:
-    """Apply event to graph (risk score update + openness cascade).
+    """Apply an event to the graph, updating risk scores and openness.
 
-    Reconstructs the Event from state["event"] (a declared TypedDict field)
-    rather than carrying the raw Pydantic object through an undeclared state
-    key — the same pattern explainer_node already uses below. An earlier
-    version threaded the object through an undeclared "_event_obj" key; with
-    this LangGraph version, a node's returned key that isn't declared in the
-    TypedDict schema has no channel to propagate through, so update_graph_node
-    silently received None here and apply_event_to_graph's `if event is None:
-    return G` no-opped the entire graph update — recompute_triggered still
-    reported True (decided earlier in this function), but the graph never
-    actually changed. Confirmed and fixed; see the exact same reconstruction
-    at explainer_node below.
+    The Event is rebuilt from ``state["event"]``, a declared field on the state
+    schema. Only declared fields have a channel to propagate through, so passing
+    the Pydantic object directly would arrive as None here and silently skip the
+    whole graph update.
     """
     event_obj = Event(**state["event"])
 
@@ -165,38 +147,26 @@ def optimize_routing_node(state: PipelineState) -> dict:
     G_updated = state["G_updated"]
     params = state["params"]
     
-    demand = {
-        nid: data.get("consumption_rate_bbl_day", 0)
-        for nid, data in G_updated.nodes(data=True)
-        if data.get("type") == "refinery_out"
-    }
-    
-    # If policy critic generated overrides in a previous iteration, use them
+    demand = refinery_demand(G_updated)
     policy_overrides = state.get("policy_overrides")
     
     pareto_routes = compute_pareto_routes(
         G_updated, demand, params, policy_overrides=policy_overrides
     )
 
-    spr_status = get_spr_status_summary(state["sim_state"], params)
+    cost_optimal_route = pareto_routes.get("cost_optimal", {})
+    spr_status = get_spr_status_summary(
+        state["sim_state"], params,
+        planned_draw=planned_draw_from_allocations(cost_optimal_route.get("path_allocations", [])),
+    )
 
     total_demand = sum(demand.values())
-    cost_optimal_route = pareto_routes.get("cost_optimal", {})
     cost_optimal_volume = cost_optimal_route.get("total_volume", 0)
     gap = max(0.0, total_demand - cost_optimal_volume)
 
-    # Cost channel: reroute premium vs. the undisrupted baseline landed cost.
-    from graph_engine.routing import avg_cost_per_bbl
-    baseline_avg = params.get("_baseline_routing_avg_cost_per_bbl", {}).get("value", 0.0)
-    premium = max(0.0, avg_cost_per_bbl(cost_optimal_route) - baseline_avg)
-
-    # Market channel: source barrels removed from the global market (sources start
-    # fully open in the baseline, so the openness deficit is the barrels lost).
-    market_supply_loss = sum(
-        (data.get("capacity_bbl_day") or 0) * (1.0 - data.get("openness", 1.0))
-        for _, data in G_updated.nodes(data=True)
-        if data.get("type") == "source"
-    )
+    from graph_engine.routing import reroute_premium_vs_baseline
+    premium = reroute_premium_vs_baseline(G_updated, params, cost_optimal_route)
+    market_supply_loss = global_supply_loss_bbl_day(G_updated, params)
 
     cascade = compute_cascade(
         gap, total_demand, 0, params,
@@ -209,11 +179,16 @@ def optimize_routing_node(state: PipelineState) -> dict:
         "pareto_routes": pareto_routes,
         "spr_status": spr_status,
         "cascade": cascade,
+        "re_solve_count": state.get("re_solve_count", 0) + (1 if policy_overrides else 0),
     }
 
 
 def policy_critic_node(state: PipelineState) -> dict:
-    """Policy critic evaluates the flow."""
+    """Policy critic evaluates the routing plan and flags violations.
+
+    A re-solve is requested at most once per pipeline invocation, guarded by
+    the counter check that precedes evaluation.
+    """
     G_updated = state["G_updated"]
     critic_result = policy_critic_agent.verify(
         routing_result=state["pareto_routes"],
@@ -223,13 +198,19 @@ def policy_critic_node(state: PipelineState) -> dict:
     )
     
     updates = {"critic_result": critic_result}
-    
-    if critic_result.get("re_solve_required", False) and not state.get("policy_overrides"):
-        # We only allow one re-solve to prevent infinite loops
-        logger.info("process_signal: critic requested re-solve. Re-running routing...")
+
+    if state.get("re_solve_count", 0) == 0 and critic_result.get("re_solve_required", False):
         overrides = policy_critic_agent.get_re_solve_overrides(critic_result)
-        updates["policy_overrides"] = overrides
-        
+        if overrides:
+            logger.info("process_signal: critic requested re-solve. Re-running routing...")
+            updates["policy_overrides"] = overrides
+        else:
+            logger.info(
+                "process_signal: critic flagged %s but proposed no actionable constraint "
+                "change; reporting the violation without re-solving.",
+                [v.get("rule_id") for v in critic_result.get("violations", [])],
+            )
+
     return updates
 
 
@@ -287,10 +268,17 @@ def route_after_extraction(state: PipelineState) -> str:
     return END
 
 def route_after_critic(state: PipelineState) -> str:
-    """Conditional edge after policy critic."""
-    # If a re-solve is required AND we haven't already applied overrides, loop back.
-    if state["critic_result"].get("re_solve_required") and state.get("policy_overrides") is not None and not state["critic_result"].get("re_solve_ran"):
-        state["critic_result"]["re_solve_ran"] = True
+    """Conditional edge after the policy critic.
+
+    Re-solves only when (a) the cap has not been reached, (b) the critic
+    requested it, and (c) the critic supplied actionable constraint overrides.
+    The counter is checked first so a malformed critic response cannot loop.
+    """
+    if (
+        state.get("re_solve_count", 0) < 1
+        and state["critic_result"].get("re_solve_required")
+        and state.get("policy_overrides")
+    ):
         return "optimize_routing"
     return "explainer"
 
@@ -356,9 +344,9 @@ def process_signal(
         "decay_as_of": decay_as_of,
         "t_start": datetime.now(timezone.utc),
         "policy_overrides": None,
+        "re_solve_count": 0,
     }
     
-    # Run the graph
     final_state = app_graph.invoke(initial_state)
     
     # Format the output to match the expected API contract
@@ -399,6 +387,7 @@ def process_signal(
                     "fulfillment": v.get("fulfillment"),
                     "routing_summary": v.get("routing_summary", []),
                     "path_allocations": v.get("path_allocations", []),
+                    "policy_breaches": v.get("policy_breaches", {}),
                 }
                 for k, v in pareto_routes.items()
                 if k not in ("pareto_comparison",)

@@ -102,6 +102,10 @@ def summarize(
             "recommended_route": "cost_optimal",
             "volume_delivered_bbl_day": comp.get("cost_optimal", {}).get("volume_delivered"),
             "avg_cost_per_bbl": comp.get("cost_optimal", {}).get("avg_cost_per_bbl"),
+            # Landed = crude + freight, the figure the cost objective minimises.
+            # Handing the explainer freight alone let the brief quote a ~$3/bbl
+            # number as the cost of a barrel that actually lands at ~$83.
+            "avg_landed_cost_per_bbl": comp.get("cost_optimal", {}).get("avg_landed_cost_per_bbl"),
             "avg_transit_days": comp.get("cost_optimal", {}).get("avg_transit_days"),
             "fastest_option_transit_days": comp.get("time_optimal", {}).get("avg_transit_days"),
             "routing_feasible": pareto.get("cost_optimal", {}).get("feasible"),
@@ -168,12 +172,38 @@ Return the full JSON brief object."""
         logger.error(f"Explainer agent: JSON parse failed: {e}")
         return _fallback_brief(event, routing_summary, economic_impact, spr_status)
 
-    # Audit: log which numbers were cited to verify no hallucination
-    numbers_used = brief.get("numbers_used", {})
+    # Enforce the instruction not to invent figures. Every value the brief claims
+    # to have used must appear in the context it was given, otherwise the brief is
+    # discarded in favour of the deterministic fallback built from module output.
+    numbers_used = brief.get("numbers_used", {}) or {}
+    invented = [
+        field for field, value in numbers_used.items()
+        if isinstance(value, (int, float)) and not _value_in_context(value, full_context)
+    ]
+    if invented:
+        logger.error(
+            "Explainer cited %d figure(s) absent from its context (%s). Discarding the "
+            "brief and using the deterministic fallback.", len(invented), ", ".join(invented),
+        )
+        return _fallback_brief(event, routing_summary, economic_impact, spr_status)
+
     if numbers_used:
         logger.info(f"Explainer cited {len(numbers_used)} data points: {list(numbers_used.keys())}")
 
     return brief
+
+
+def _value_in_context(value: float, context: str) -> bool:
+    """Whether a cited number actually appears in the data handed to the agent.
+
+    Tolerant about formatting: a model may round 4.907900621 to 4.91 or write
+    2574000 as 2,574,000, and neither is an invention.
+    """
+    candidates = {repr(value), str(value), f"{value:,}"}
+    for places in (0, 1, 2, 3):
+        rounded = round(float(value), places)
+        candidates.update({str(rounded), f"{rounded:,}", str(int(rounded)) if rounded == int(rounded) else ""})
+    return any(c and c in context for c in candidates)
 
 
 def _fallback_brief(
@@ -209,11 +239,16 @@ def _fallback_brief(
 
     volume = (routing_summary or {}).get("volume_delivered_bbl_day")
     cost_per_bbl = (routing_summary or {}).get("avg_cost_per_bbl")
+    landed_per_bbl = (routing_summary or {}).get("avg_landed_cost_per_bbl")
     transit_days = (routing_summary or {}).get("avg_transit_days")
     feasible = (routing_summary or {}).get("routing_feasible")
 
     if volume and cost_per_bbl is not None and transit_days is not None:
-        action = f"Reroute {volume/1e3:,.0f}k bbl/day at ${cost_per_bbl:.2f}/bbl, {transit_days:.0f}-day transit."
+        priced = (
+            f"${landed_per_bbl:.2f}/bbl landed (${cost_per_bbl:.2f} freight)"
+            if landed_per_bbl is not None else f"${cost_per_bbl:.2f}/bbl freight"
+        )
+        action = f"Reroute {volume/1e3:,.0f}k bbl/day at {priced}, {transit_days:.0f}-day transit."
     else:
         action = "Hold current routing — no reroute indicated at this severity."
     gap_status = "Gap remains; SPR draw required." if feasible is False else "Fully covered by the reroute."
@@ -245,6 +280,7 @@ def _fallback_brief(
             "crude_price_change_pct": price_change,
             "spr_days_remaining": spr_days,
             "avg_cost_per_bbl": cost_per_bbl,
+            "avg_landed_cost_per_bbl": landed_per_bbl,
             "total_import_cost_increase_usd_bn": total_cost_bn,
         },
         "_fallback": True,

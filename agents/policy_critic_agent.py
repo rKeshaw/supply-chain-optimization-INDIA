@@ -33,10 +33,12 @@ POLICY_RULES = [
         "check_type": "grade_ratio",
         "node_id": "ref_jamnagar_in",
         "max_sour_fraction": 1.0,  # no restriction
+        "binding": False,  # a 100% ceiling cannot be exceeded; never evaluated
         "triggered": False,
     },
     {
         "id": "rule_sour_ratio_paradip",
+        "binding": True,
         "description": (
             "Paradip (IOCL) is designed for SOUR crude. SWEET crude share must not "
             "exceed 30% of its intake — its secondary processing units are calibrated "
@@ -49,6 +51,7 @@ POLICY_RULES = [
     },
     {
         "id": "rule_spr_floor_draw",
+        "binding": True,
         "description": (
             "SPR drawdown must not reduce any single facility below 10% of its design "
             "capacity — operating below this risks cavern structural integrity and "
@@ -60,6 +63,7 @@ POLICY_RULES = [
     },
     {
         "id": "rule_cape_congestion_cap",
+        "binding": True,
         "description": (
             "Cape of Good Hope bypass routes are capped at 60% of total rerouted volume. "
             "Over-reliance on a single bypass route creates a new concentration risk. "
@@ -230,42 +234,62 @@ def _run_code_checks(
     cost_routing = routing_result.get("cost_optimal", {})
     routing_segments = cost_routing.get("routing_summary", [])
 
-    # Check SPR floor (rule_spr_floor_draw)
+    # Reserve floor, evaluated against the drawdown this plan proposes and
+    # projected forward. A reserve is breached by sustaining a draw rather than
+    # by its fill on any one morning.
+    floor_fraction = params.get("spr_structural_floor_fraction", {}).get("value", 0.10)
+    horizon_days = params.get("spr_draw_projection_days", {}).get("value", 90)
+    draw_by_facility: dict[str, float] = {}
+    for allocation in cost_routing.get("path_allocations", []):
+        if allocation.get("is_spr"):
+            fid = allocation["source_id"]
+            draw_by_facility[fid] = draw_by_facility.get(fid, 0.0) + float(allocation.get("volume_bbl_day", 0.0))
+
     for facility_id, facility_state in spr_state.get("per_facility", {}).items():
-        fill_pct = facility_state.get("fill_pct", 100)
-        if fill_pct < 10.0:
+        draw = draw_by_facility.get(facility_id, 0.0)
+        if draw <= 0:
+            continue
+        capacity = float(facility_state.get("storage_capacity_bbl") or 0.0)
+        inventory = float(facility_state.get("inventory_bbl") or 0.0)
+        floor_bbl = capacity * floor_fraction
+        days_to_floor = (inventory - floor_bbl) / draw
+        if days_to_floor < horizon_days:
             violations.append({
                 "rule_id": "rule_spr_floor_draw",
                 "violated": True,
-                "fill_pct": fill_pct,
                 "facility_id": facility_id,
-                "explanation": f"{facility_id} fill at {fill_pct:.1f}% — below 10% structural floor.",
+                "draw_bbl_day": round(draw),
+                "days_to_floor": round(days_to_floor, 1),
+                "explanation": (
+                    f"{facility_id} sustaining {draw:,.0f} bbl/day reaches its "
+                    f"{floor_fraction:.0%} structural floor in {days_to_floor:.0f} days, "
+                    f"inside the {horizon_days}-day planning horizon."
+                ),
             })
 
-    # Check Cape concentration (rule_cape_congestion_cap)
-    total_volume = sum(s.get("volume_bbl_day", 0) for s in routing_segments)
-    cape_volume = sum(
-        s.get("volume_bbl_day", 0)
-        for s in routing_segments
-        if s.get("from_id") == "chk_cog" or s.get("to_id") == "chk_cog"
-    )
-    if total_volume > 0 and (cape_volume / total_volume) > 0.60:
+    # The solver enforces diversification ceilings as priced constraints, so a
+    # breach it reports is the violation. Reading its result rather than
+    # recomputing a ratio here keeps one account of what the plan did.
+    for constraint, excess in (cost_routing.get("policy_breaches") or {}).items():
+        is_cape = constraint.startswith("cape_share")
         violations.append({
-            "rule_id": "rule_cape_congestion_cap",
+            "rule_id": "rule_cape_congestion_cap" if is_cape else "rule_diversification_ceiling",
             "violated": True,
-            "cape_fraction": round(cape_volume / total_volume, 3),
+            "constraint": constraint,
+            "excess_bbl_day": round(float(excess)),
             "explanation": (
-                f"Cape of Good Hope carries {cape_volume/total_volume*100:.1f}% of rerouted "
-                "volume — exceeds 60% concentration cap."
+                f"{constraint} exceeded by {float(excess):,.0f} bbl/day. The solver paid the breach "
+                "penalty rather than leave refineries short or draw the strategic reserve. Confirm "
+                "the concentration is acceptable, or supply a tighter ceiling to re-solve against."
             ),
         })
 
-    # Check refinery grade/blend restrictions using complete source-to-refinery
-    # allocations. Segment-level flow cannot establish which crude arrived at a
+    # Grade and blend restrictions, read from complete source-to-refinery
+    # allocations. Segment-level flow cannot establish which crude reached a
     # refinery once paths share a chokepoint.
     path_allocations = cost_routing.get("path_allocations", [])
     for rule in POLICY_RULES:
-        if rule.get("check_type") != "grade_ratio":
+        if rule.get("check_type") != "grade_ratio" or not rule.get("binding", True):
             continue
         refinery_allocations = [
             allocation for allocation in path_allocations

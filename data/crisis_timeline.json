@@ -3,204 +3,414 @@
     "id": "evt_001",
     "source": "Reuters",
     "url": "https://www.reuters.com/world/middle-east/",
-    "original_timestamp": "2025-01-13T09:00:00Z",
+    "original_timestamp": "2026-02-28T05:00:00Z",
     "replay_order": 1,
-    "headline": "US imposes sweeping new sanctions on Russian oil exports, targets tanker fleet and energy companies",
-    "body_excerpt": "The United States on Monday announced its most sweeping sanctions yet on Russian oil, targeting Gazprom Neft, Surgutneftegas and over 180 vessels that Washington says form a shadow fleet used to circumvent existing restrictions. The measures mark a significant escalation ahead of the U.S. presidential transition.",
-    "known_market_impact": "Brent crude +2.8% intraday; Indian rupee weakened 0.4% on import cost concerns",
+    "headline": "US and Israel launch coordinated airstrikes on Iran; Tehran warns Gulf shipping",
+    "body_excerpt": "The United States and Israel carried out coordinated airstrikes on Iranian military and nuclear sites early Saturday. Iran's Supreme National Security Council warned that it would treat the Strait of Hormuz as a zone of active conflict and that vessels linked to the attacking states transited at their own risk. Tanker owners immediately began pausing Gulf fixtures.",
+    "known_market_impact": "Brent opened sharply higher; war risk insurance for Gulf transits repriced within hours.",
     "expected_extraction": {
-      "entity": "Russia",
-      "event_type": "sanction",
-      "affected_graph_element": "src_russia_espo",
-      "severity_range": [0.4, 0.75],
-      "confidence_range": [0.7, 1.0]
+      "entity": "Strait of Hormuz",
+      "event_type": "capacity_reduction",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [
+        0.5,
+        0.8
+      ],
+      "confidence_range": [
+        0.85,
+        1.0
+      ]
     }
   },
   {
     "id": "evt_002",
     "source": "Bloomberg",
     "url": "https://www.bloomberg.com/energy",
-    "original_timestamp": "2025-01-18T06:30:00Z",
+    "original_timestamp": "2026-03-02T11:00:00Z",
     "replay_order": 2,
-    "headline": "Houthi forces announce resumed attacks on Red Sea shipping, warn vessels sailing to Israel-linked ports",
-    "body_excerpt": "Yemen's Houthi movement said on Saturday it had resumed military operations against shipping in the Red Sea following a brief ceasefire, announcing it would target vessels with any link to Israeli interests. The declaration raised fresh concerns among shipping companies about the safety of the Bab-el-Mandeb Strait, through which roughly a quarter of global seaborne trade passes.",
-    "known_market_impact": "Red Sea-linked shipping stocks fell 3-4%; insurance war-risk premiums rose 0.5% of hull value",
+    "headline": "Iran declares Strait of Hormuz closed; tanker traffic collapses",
+    "body_excerpt": "Iran formally declared the Strait of Hormuz closed to commercial traffic on Monday, days after US and Israeli strikes. Tanker transits through the strait fell to almost nothing within 48 hours. Roughly a fifth of global oil supply normally passes through the waterway.",
+    "known_market_impact": "Largest single-session move in Brent since 2022.",
     "expected_extraction": {
-      "entity": "Red Sea",
-      "event_type": "capacity_reduction",
-      "affected_graph_element": "chk_bab",
-      "severity_range": [0.4, 0.7],
-      "confidence_range": [0.6, 0.9]
+      "entity": "Strait of Hormuz",
+      "event_type": "closure",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [
+        0.85,
+        1.0
+      ],
+      "confidence_range": [
+        0.8,
+        0.95
+      ]
     }
   },
   {
     "id": "evt_003",
-    "source": "Reuters",
-    "url": "https://www.reuters.com/world/middle-east/",
-    "original_timestamp": "2025-04-10T14:00:00Z",
+    "source": "Financial Times",
+    "url": "https://www.ft.com/commodities",
+    "original_timestamp": "2026-03-08T16:00:00Z",
     "replay_order": 3,
-    "headline": "US warns Iran over nuclear programme, threatens secondary sanctions on Iranian oil buyers",
-    "body_excerpt": "The United States on Thursday issued a stark warning to Iran, threatening to impose secondary sanctions on any country or entity that continues to purchase Iranian crude oil if Tehran does not agree to new nuclear talks within 30 days. Senior U.S. officials said the measures could effectively close off Iranian oil export routes and crimp global supply.",
-    "known_market_impact": "Brent crude +3.5% on day",
+    "headline": "Brent crude passes $100 a barrel as Hormuz closure holds",
+    "body_excerpt": "Brent crude passed $100 a barrel on Sunday, the first time since 2022, as the closure of the Strait of Hormuz entered its second week with no sign of resolution. Analysts warned that a sustained closure would push prices substantially higher.",
+    "known_market_impact": "Brent above $100; March 2026 went on to record the largest-ever monthly increase in oil prices, peaking at $126.",
     "expected_extraction": {
-      "entity": "Iran",
-      "event_type": "sanction",
-      "affected_graph_element": "src_iran",
-      "severity_range": [0.45, 0.8],
-      "confidence_range": [0.7, 1.0]
+      "entity": "Strait of Hormuz",
+      "event_type": "price_shock",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [
+        0.5,
+        0.8
+      ],
+      "confidence_range": [
+        0.95,
+        1.0
+      ]
     }
   },
   {
     "id": "evt_004",
-    "source": "Reuters",
-    "url": "https://www.reuters.com/markets/commodities/",
-    "original_timestamp": "2025-04-14T08:30:00Z",
+    "source": "Press Information Bureau",
+    "url": "https://pib.gov.in/",
+    "original_timestamp": "2026-03-14T07:00:00Z",
     "replay_order": 4,
-    "headline": "Iran warns US military vessels in Gulf; IRGC conducts naval exercises near Strait of Hormuz",
-    "body_excerpt": "Iran's Islamic Revolutionary Guard Corps launched a series of naval exercises near the Strait of Hormuz on Monday, warning U.S. carrier strike groups operating in the region. Iranian officials said the exercises, which included fast-boat swarm drills, were a response to what they called 'provocative' American naval deployments. The Strait of Hormuz, through which about 20% of global oil supply flows, saw shipping insurance rates spike immediately following the announcement.",
-    "known_market_impact": "Brent crude rose over 8% in single session — the key event cited in the hackathon problem statement. WTI +7.9%. Indian refiners moved to spot market procurement.",
+    "headline": "India launches Operation Sankalp to escort Indian-flagged vessels out of the Gulf",
+    "body_excerpt": "The Indian Navy has begun escorting Indian-flagged merchant vessels out of the Persian Gulf under Operation Sankalp. Five India-flagged LPG carriers are being evacuated. The Ministry of Petroleum and Natural Gas said refiners had been directed to accelerate non-Gulf procurement.",
+    "known_market_impact": "Indian refiners shifted heavily to Atlantic-basin and Russian barrels.",
     "expected_extraction": {
       "entity": "Strait of Hormuz",
       "event_type": "capacity_reduction",
       "affected_graph_element": "chk_hormuz",
-      "severity_range": [0.6, 0.9],
-      "confidence_range": [0.5, 0.8]
+      "severity_range": [
+        0.6,
+        0.85
+      ],
+      "confidence_range": [
+        0.9,
+        1.0
+      ]
     }
   },
   {
     "id": "evt_005",
     "source": "Reuters",
-    "url": "https://www.reuters.com/world/middle-east/",
-    "original_timestamp": "2025-04-16T10:00:00Z",
+    "url": "https://www.reuters.com/markets/commodities/",
+    "original_timestamp": "2026-03-27T09:30:00Z",
     "replay_order": 5,
-    "headline": "Iran threatens to close Strait of Hormuz if attacked; tanker diversions reported near Gulf",
-    "body_excerpt": "Iran threatened on Wednesday to close the Strait of Hormuz to international navigation if its territory or economic interests are attacked, repeating a longstanding warning that energy markets took more seriously this week given rising regional tensions. Several VLCCs were reported to have altered course away from the Gulf anchorage areas, according to maritime tracking data. Two major shipping firms said they were temporarily rerouting vessels around the Cape of Good Hope.",
-    "known_market_impact": "Brent crude held above 8% gain from prior session; Indian refiners confirmed emergency procurement enquiries to Nigerian and US suppliers",
+    "headline": "Iran bars vessels of US, Israel and allied states from Strait of Hormuz",
+    "body_excerpt": "Iran announced that the Strait of Hormuz would remain closed specifically to vessels flagged or operated by the United States, Israel and their allies, while signalling that other traffic might be permitted case by case. Shipowners described the guidance as unworkable in practice.",
+    "known_market_impact": "Freight rates for Gulf loadings reached multi-year highs.",
     "expected_extraction": {
       "entity": "Strait of Hormuz",
       "event_type": "closure",
       "affected_graph_element": "chk_hormuz",
-      "severity_range": [0.65, 0.95],
-      "confidence_range": [0.5, 0.8]
+      "severity_range": [
+        0.75,
+        0.95
+      ],
+      "confidence_range": [
+        0.85,
+        1.0
+      ]
     }
   },
   {
     "id": "evt_006",
-    "source": "Financial Times",
-    "url": "https://www.ft.com/energy",
-    "original_timestamp": "2025-04-20T07:00:00Z",
+    "source": "Associated Press",
+    "url": "https://apnews.com/",
+    "original_timestamp": "2026-04-13T06:00:00Z",
     "replay_order": 6,
-    "headline": "US-Iran diplomatic backchannel talks resume; Hormuz threat eases slightly",
-    "body_excerpt": "Officials from the United States and Iran have resumed indirect diplomatic talks through Omani intermediaries, raising cautious hopes that the standoff that sent oil markets spiralling last week could be de-escalated, people familiar with the discussions told the Financial Times. Iranian officials privately signalled they would not immediately act on the Hormuz closure threat while negotiations continue.",
-    "known_market_impact": "Brent crude fell 2.1% on the news — partial reversal of the spike. Risk scores should decay.",
+    "headline": "US Navy begins blockade of Iranian oil export terminals",
+    "body_excerpt": "The United States began a naval blockade of Iranian oil export terminals, including Kharg Island, in an effort to halt Iranian crude exports entirely. Iran condemned the action as an act of war.",
+    "known_market_impact": "Iranian exports, already under sanctions, fell close to zero.",
     "expected_extraction": {
-      "entity": "Strait of Hormuz",
-      "event_type": "reopening",
-      "affected_graph_element": "chk_hormuz",
-      "severity_range": [0.0, 0.3],
-      "confidence_range": [0.3, 0.6]
+      "entity": "Iran",
+      "event_type": "sanction",
+      "affected_graph_element": "src_iran",
+      "severity_range": [
+        0.7,
+        0.95
+      ],
+      "confidence_range": [
+        0.9,
+        1.0
+      ]
     }
   },
   {
     "id": "evt_007",
-    "source": "Reuters",
-    "url": "https://www.reuters.com/business/energy/",
-    "original_timestamp": "2025-11-30T12:00:00Z",
+    "source": "Lloyd's List",
+    "url": "https://www.lloydslist.com/",
+    "original_timestamp": "2026-05-04T08:00:00Z",
     "replay_order": 7,
-    "headline": "OPEC+ agrees 500,000 bpd emergency production cut citing global demand concerns",
-    "body_excerpt": "OPEC+ members agreed on Sunday to an additional voluntary production cut of 500,000 barrels per day starting January 2026, as the group cited weaker-than-expected demand growth in China and elevated non-OPEC supply. Saudi Arabia said it would implement its share of the cut immediately. The decision adds to a cumulative reduction of over 5 million bpd since 2022.",
-    "known_market_impact": "Brent crude +4.2% following the announcement. Impact: reduction in supply from Saudi, Iraq, Kuwait, UAE source nodes.",
+    "headline": "Operation Project Freedom begins escorting merchant ships through Hormuz",
+    "body_excerpt": "A multinational naval escort operation began convoying merchant vessels through the Strait of Hormuz. Transit volumes recovered partially, though well below pre-crisis levels, and only convoyed vessels were moving.",
+    "known_market_impact": "Partial restoration of Gulf liftings; freight remained elevated.",
     "expected_extraction": {
-      "entity": "OPEC",
-      "event_type": "capacity_reduction",
-      "affected_graph_element": "src_saudi",
-      "severity_range": [0.2, 0.5],
-      "confidence_range": [0.85, 1.0]
+      "entity": "Strait of Hormuz",
+      "event_type": "reopening",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [
+        0.25,
+        0.5
+      ],
+      "confidence_range": [
+        0.8,
+        0.95
+      ]
     }
   },
   {
     "id": "evt_008",
     "source": "Reuters",
     "url": "https://www.reuters.com/world/middle-east/",
-    "original_timestamp": "2026-01-15T05:00:00Z",
+    "original_timestamp": "2026-05-29T12:00:00Z",
     "replay_order": 8,
-    "headline": "Houthi missile damages Saudi-chartered VLCC in Gulf of Aden; crew evacuated",
-    "body_excerpt": "A ballistic missile fired by Yemen's Houthi movement struck and severely damaged a Saudi Arabia-chartered Very Large Crude Carrier on Wednesday while the vessel was transiting the Gulf of Aden bound for Jamnagar refinery in India, maritime officials said. The crew of 26 was evacuated by a Royal Navy vessel. The attack marked one of the most serious strikes on a crude tanker since Houthi attacks resumed earlier this year.",
-    "known_market_impact": "War-risk insurance premiums spiked; Baltic Dirty Tanker Index rose 12%; multiple tankers diverted to Cape of Good Hope route",
+    "headline": "US lifts naval blockade of Iranian ports as talks progress",
+    "body_excerpt": "The United States ended its naval blockade of Iranian oil terminals as indirect talks with Tehran progressed. Iranian officials described the move as a precondition for any wider de-escalation.",
+    "known_market_impact": "Iranian export capacity nominally restored, though sanctions remain in force.",
     "expected_extraction": {
-      "entity": "Bab-el-Mandeb",
-      "event_type": "capacity_reduction",
-      "affected_graph_element": "chk_bab",
-      "severity_range": [0.55, 0.85],
-      "confidence_range": [0.85, 1.0]
+      "entity": "Iran",
+      "event_type": "reopening",
+      "affected_graph_element": "src_iran",
+      "severity_range": [
+        0.5,
+        0.8
+      ],
+      "confidence_range": [
+        0.85,
+        1.0
+      ]
     }
   },
   {
     "id": "evt_009",
-    "source": "Platts",
-    "url": "https://www.spglobal.com/commodity-insights/",
-    "original_timestamp": "2026-02-05T08:00:00Z",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/business/aerospace-defense/",
+    "original_timestamp": "2026-06-08T14:00:00Z",
     "replay_order": 9,
-    "headline": "Iraq Basrah crude export terminal declared force majeure following pipeline sabotage",
-    "body_excerpt": "Iraq's State Oil Marketing Organisation declared force majeure on Basrah crude oil exports after an explosives attack severed a key pipeline segment connecting southern oilfields to the Fao offshore loading terminal, industry sources said. Repairs are expected to take 7-10 days. Daily exports from Basrah — estimated at approximately 3.3 million barrels per day — have been halted.",
-    "known_market_impact": "Immediate halt to Iraq's Basrah exports — affects ~950,000 bbl/day flowing to India",
+    "headline": "Houthi missiles strike two commercial vessels in Gulf of Aden",
+    "body_excerpt": "Houthi forces struck the M/V Tavvishi and the M/V Norderney with missiles in the Gulf of Aden, saying both operators had called at Israeli ports. The group threatened to resume systematic targeting of shipping linked to Israel in the Red Sea.",
+    "known_market_impact": "Red Sea transits fell again; more tonnage diverted around the Cape of Good Hope.",
     "expected_extraction": {
-      "entity": "Iraq",
+      "entity": "Bab-el-Mandeb",
       "event_type": "capacity_reduction",
-      "affected_graph_element": "src_iraq",
-      "severity_range": [0.7, 1.0],
-      "confidence_range": [0.8, 1.0]
+      "affected_graph_element": "chk_bab",
+      "severity_range": [
+        0.55,
+        0.8
+      ],
+      "confidence_range": [
+        0.85,
+        1.0
+      ]
     }
   },
   {
     "id": "evt_010",
-    "source": "Reuters",
-    "url": "https://www.reuters.com/world/middle-east/",
-    "original_timestamp": "2026-02-14T10:00:00Z",
+    "source": "Associated Press",
+    "url": "https://apnews.com/",
+    "original_timestamp": "2026-06-17T10:00:00Z",
     "replay_order": 10,
-    "headline": "Iraq Basrah export terminal resumes operations after pipeline repairs completed",
-    "body_excerpt": "Iraq's State Oil Marketing Organisation said on Friday that full crude export operations had resumed at the Fao offshore loading terminal after engineers completed emergency repairs to the sabotaged pipeline section. First loadings resumed at 07:00 GMT. Iraq said it would prioritize fulfilling backlogged export contracts in coming weeks.",
-    "known_market_impact": "Brent crude fell 1.8% on reopening news; Iraq supply normalises",
+    "headline": "US and Iran sign memorandum to end blockades and reopen Hormuz",
+    "body_excerpt": "The United States and Iran signed a memorandum committing both sides to end blockades and restore normal transit through the Strait of Hormuz. Shipping bodies welcomed the agreement while cautioning that implementation would determine whether traffic genuinely returned.",
+    "known_market_impact": "Brent fell back sharply from its March peak.",
     "expected_extraction": {
-      "entity": "Iraq",
+      "entity": "Strait of Hormuz",
       "event_type": "reopening",
-      "affected_graph_element": "src_iraq",
-      "severity_range": [0.0, 0.2],
-      "confidence_range": [0.85, 1.0]
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [
+        0.55,
+        0.85
+      ],
+      "confidence_range": [
+        0.8,
+        0.95
+      ]
     }
   },
   {
     "id": "evt_011",
-    "source": "Times of India",
-    "url": "https://timesofindia.indiatimes.com/",
-    "original_timestamp": "2026-03-10T09:00:00Z",
+    "source": "US Maritime Administration",
+    "url": "https://www.maritime.dot.gov/msci/",
+    "original_timestamp": "2026-06-19T09:00:00Z",
     "replay_order": 11,
-    "headline": "India cricket team wins ICC World Cup Final against Australia in dramatic last-over finish",
-    "body_excerpt": "India won the ICC Cricket World Cup for the fourth time on Sunday, defeating Australia by three wickets in a dramatic last-over finish at the Narendra Modi Stadium in Ahmedabad. Captain Rohit Sharma said it was the proudest moment of his career. The victory was celebrated across the country.",
-    "known_market_impact": "None — unrelated to energy markets",
+    "headline": "MARAD issues advisory 2026-006 for Red Sea, Bab el-Mandeb and Gulf of Aden",
+    "body_excerpt": "The US Maritime Administration issued advisory 2026-006 covering the Red Sea, Bab el-Mandeb Strait, Gulf of Aden, Arabian Sea and Somali Basin, superseding 2025-012 and running to 22 September 2026. US-flagged vessels were advised that transmitting AIS increases targeting risk and were strongly advised to switch transponders off.",
+    "known_market_impact": "Insurance rates for Red Sea transits rose; AIS coverage of the corridor degraded.",
     "expected_extraction": {
-      "entity": "India",
-      "event_type": "unrelated",
-      "affected_graph_element": null,
-      "severity_range": [0.0, 0.05],
-      "confidence_range": [0.0, 0.1]
+      "entity": "Bab-el-Mandeb",
+      "event_type": "capacity_reduction",
+      "affected_graph_element": "chk_bab",
+      "severity_range": [
+        0.4,
+        0.65
+      ],
+      "confidence_range": [
+        0.9,
+        1.0
+      ]
     }
   },
   {
     "id": "evt_012",
-    "source": "Bloomberg",
-    "url": "https://www.bloomberg.com/technology",
-    "original_timestamp": "2026-04-01T14:00:00Z",
+    "source": "Times of India",
+    "url": "https://timesofindia.indiatimes.com/",
+    "original_timestamp": "2026-06-25T11:00:00Z",
     "replay_order": 12,
-    "headline": "Nvidia announces new AI chip architecture; tech stocks rally on strong quarterly results",
-    "body_excerpt": "Nvidia unveiled its next-generation Blackwell Ultra GPU architecture at its annual GTC conference, sending the company's shares up 8% in after-hours trading. The new chips are designed to accelerate AI training workloads by up to 40% over the prior generation. Major cloud providers Amazon, Microsoft and Google announced plans to deploy the new chips.",
-    "known_market_impact": "None — unrelated to energy supply chain",
+    "headline": "India beat England by seven wickets to take the T20 series at Eden Gardens",
+    "body_excerpt": "India sealed the T20 series with a seven-wicket win over England at Eden Gardens on Thursday, chasing down 189 with eleven balls to spare. The captain praised the middle order's composure.",
+    "known_market_impact": "None - unrelated to energy markets.",
     "expected_extraction": {
-      "entity": "Nvidia",
+      "entity": "India cricket team",
       "event_type": "unrelated",
       "affected_graph_element": null,
-      "severity_range": [0.0, 0.05],
-      "confidence_range": [0.0, 0.1]
+      "severity_range": [
+        0.0,
+        0.05
+      ],
+      "confidence_range": [
+        0.0,
+        0.1
+      ]
+    }
+  },
+  {
+    "id": "evt_013",
+    "source": "Press Information Bureau",
+    "url": "https://pib.gov.in/",
+    "original_timestamp": "2026-07-02T13:00:00Z",
+    "replay_order": 13,
+    "headline": "Petroleum Minister says India holds 60 days of crude stocks",
+    "body_excerpt": "Union Petroleum and Natural Gas Minister Hardeep Singh Puri said India held crude oil stocks sufficient for 60 days, LNG inventories for 60 days and LPG inventories for 45 days. He added that about 70 per cent of India's crude imports were now routed outside the Strait of Hormuz, against roughly 55 per cent earlier.",
+    "known_market_impact": "Reassurance statement; no supply disruption implied.",
+    "expected_extraction": {
+      "entity": "India",
+      "event_type": "capacity_reduction",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [
+        0.05,
+        0.15
+      ],
+      "confidence_range": [
+        0.9,
+        1.0
+      ]
+    }
+  },
+  {
+    "id": "evt_014",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/world/middle-east/",
+    "original_timestamp": "2026-07-08T18:00:00Z",
+    "replay_order": 14,
+    "headline": "Interim US-Iran agreement collapses after fresh Iranian attacks",
+    "body_excerpt": "The interim agreement reached in June collapsed after fresh Iranian attacks on shipping. Both sides accused the other of violating the memorandum. Naval escort operations were suspended pending review.",
+    "known_market_impact": "Brent reversed most of its June decline within two sessions.",
+    "expected_extraction": {
+      "entity": "Strait of Hormuz",
+      "event_type": "capacity_reduction",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [
+        0.6,
+        0.85
+      ],
+      "confidence_range": [
+        0.85,
+        1.0
+      ]
+    }
+  },
+  {
+    "id": "evt_015",
+    "source": "Bloomberg",
+    "url": "https://www.bloomberg.com/energy",
+    "original_timestamp": "2026-07-11T04:00:00Z",
+    "replay_order": 15,
+    "headline": "Iran closes Strait of Hormuz again after attack on transiting vessel",
+    "body_excerpt": "Iran closed the Strait of Hormuz for a second time on Saturday after attacking a vessel it said had transited an unauthorised route. The US and Iran exchanged strikes overnight. Tanker owners again suspended Gulf fixtures.",
+    "known_market_impact": "India's refiners were reported to have secured crude supplies through August.",
+    "expected_extraction": {
+      "entity": "Strait of Hormuz",
+      "event_type": "closure",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [
+        0.9,
+        1.0
+      ],
+      "confidence_range": [
+        0.9,
+        1.0
+      ]
+    }
+  },
+  {
+    "id": "evt_016",
+    "source": "Financial Times",
+    "url": "https://www.ft.com/commodities",
+    "original_timestamp": "2026-07-14T15:00:00Z",
+    "replay_order": 16,
+    "headline": "Brent breaches $84 as US-Iran tensions escalate again",
+    "body_excerpt": "Brent crude rose above $84 a barrel on Tuesday, its highest in nearly a month, as renewed US-Iran hostilities raised fears of sustained supply disruption. Analysts put the risk premium at $10 to $15 a barrel.",
+    "known_market_impact": "Brent above $84; risk premium estimated at $10-15/bbl.",
+    "expected_extraction": {
+      "entity": "Strait of Hormuz",
+      "event_type": "price_shock",
+      "affected_graph_element": "chk_hormuz",
+      "severity_range": [
+        0.45,
+        0.7
+      ],
+      "confidence_range": [
+        0.95,
+        1.0
+      ]
+    }
+  },
+  {
+    "id": "evt_017",
+    "source": "Economic Times",
+    "url": "https://economictimes.indiatimes.com/tech",
+    "original_timestamp": "2026-07-18T10:00:00Z",
+    "replay_order": 17,
+    "headline": "Indian IT services firms report stronger-than-expected June quarter earnings",
+    "body_excerpt": "India's largest IT services companies reported stronger-than-expected earnings for the June quarter, citing a recovery in discretionary technology spending among North American clients. Shares rose in early trade.",
+    "known_market_impact": "None - unrelated to energy markets.",
+    "expected_extraction": {
+      "entity": "Indian IT services",
+      "event_type": "unrelated",
+      "affected_graph_element": null,
+      "severity_range": [
+        0.0,
+        0.05
+      ],
+      "confidence_range": [
+        0.0,
+        0.1
+      ]
+    }
+  },
+  {
+    "id": "evt_018",
+    "source": "Reuters",
+    "url": "https://www.reuters.com/business/energy/",
+    "original_timestamp": "2026-07-20T08:00:00Z",
+    "replay_order": 18,
+    "headline": "Houthis declare maritime blockade of Saudi shipping at Bab el-Mandeb",
+    "body_excerpt": "Yemen's Houthis declared an immediate maritime blockade of Saudi-linked shipping at the Bab el-Mandeb gateway to the Red Sea. The declaration widens the group's targeting beyond Israeli-linked vessels and raises the prospect of simultaneous disruption at both of the region's chokepoints.",
+    "known_market_impact": "Compounding risk: Hormuz closed and Bab el-Mandeb under blockade at the same time.",
+    "expected_extraction": {
+      "entity": "Bab-el-Mandeb",
+      "event_type": "closure",
+      "affected_graph_element": "chk_bab",
+      "severity_range": [
+        0.7,
+        0.95
+      ],
+      "confidence_range": [
+        0.85,
+        1.0
+      ]
     }
   }
 ]

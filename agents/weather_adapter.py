@@ -19,6 +19,16 @@ SPM_LOCATIONS = {
 WAVE_HEIGHT_WARNING = 2.5
 WAVE_HEIGHT_CRITICAL = 3.5
 
+# Severity caps. A berth closed by weather reopens when the swell drops, so even
+# a critical reading is a temporary berthing suspension rather than the loss of a
+# refinery. Combined with event_type_capacity_impact's 0.5 weather coefficient,
+# a critical reading removes at most ~30% of that terminal's throughput.
+SEVERITY_CRITICAL = 0.6
+SEVERITY_WARNING = 0.3
+# A terminal is only marked down after this many consecutive breaching polls.
+REQUIRED_CONSECUTIVE_READINGS = 2
+_CONSECUTIVE_BREACHES: dict[str, int] = {}
+
 # Network timeout for the live marine API. Keeps the digital twin from
 # hanging when the demo host is offline or the API is slow.
 WEATHER_FETCH_TIMEOUT_S = 4.0
@@ -55,12 +65,25 @@ def check_weather_disruptions() -> list[Event]:
         logger.info(f"Weather for {loc['name']} ({node_id}): wave_height = {wave_height}m")
         
         if wave_height >= WAVE_HEIGHT_CRITICAL:
-            severity = 1.0  # Full SPM closure
+            severity = SEVERITY_CRITICAL
             justification = f"CRITICAL: Wave height at {loc['name']} is {wave_height}m, exceeding safe SPM operational limits of {WAVE_HEIGHT_CRITICAL}m."
         elif wave_height >= WAVE_HEIGHT_WARNING:
-            severity = 0.5  # Partial capacity reduction / delayed berthing
+            severity = SEVERITY_WARNING
             justification = f"WARNING: Wave height at {loc['name']} is {wave_height}m. Partial delays expected."
         else:
+            _CONSECUTIVE_BREACHES.pop(node_id, None)
+            continue
+
+        # Heavy seas suspend berthing; they do not shut a refinery. Requiring two
+        # consecutive readings stops a single spike closing a terminal, which
+        # matters most during the June-September monsoon when both thresholds are
+        # routinely exceeded off the west coast.
+        _CONSECUTIVE_BREACHES[node_id] = _CONSECUTIVE_BREACHES.get(node_id, 0) + 1
+        if _CONSECUTIVE_BREACHES[node_id] < REQUIRED_CONSECUTIVE_READINGS:
+            logger.info(
+                "Weather at %s breached threshold (%sm) on reading %d of %d; holding.",
+                loc["name"], wave_height, _CONSECUTIVE_BREACHES[node_id], REQUIRED_CONSECUTIVE_READINGS,
+            )
             continue
             
         event = Event(
@@ -71,7 +94,7 @@ def check_weather_disruptions() -> list[Event]:
             location=loc["name"],
             event_type="weather_disruption",
             severity=severity,
-            confidence=1.0,  # Highly confident in live telemetry
+            confidence=0.9,  # Live telemetry, but a forecast point is not a berth closure notice
             affected_graph_element=node_id,
             justification=justification
         )

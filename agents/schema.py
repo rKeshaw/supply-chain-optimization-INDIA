@@ -54,7 +54,9 @@ class Node(BaseModel):
     """
     id: str
     type: Literal[
-        "source", "chokepoint", "bypass", "refinery_in", "refinery_out",
+        # "port": marine crude terminal feeding inland refineries by pipeline.
+        # A coastal refinery's own berth stays folded into its refinery_in node.
+        "source", "chokepoint", "bypass", "port", "refinery_in", "refinery_out",
         "spr", "super_source", "super_sink"
     ]
     name: str
@@ -65,8 +67,19 @@ class Node(BaseModel):
     grade_compatibility: list[str] = []
     inventory_bbl: Optional[float] = None
     consumption_rate_bbl_day: Optional[float] = None
+    # Effective availability, DERIVED: structural_openness * (1 - risk_score).
+    # Everything downstream reads this one field.
     openness: float = 1.0
+    # Known physical or policy state (a closed strait, a quota, an outage). Set
+    # by scenarios, persists until explicitly changed.
+    structural_openness: float = 1.0
+    # Decaying news-driven risk. Fades without reinforcement; a structural state
+    # does not.
     risk_score: float = 0.0
+    # Procurement eligibility, not physical: the barrels still count toward
+    # global supply, but the routing LP will not allocate them unless
+    # routing_policy.allow_sanctions_restricted_sources is set.
+    sanctions_restricted: bool = False
     confidence: float = 1.0
     last_updated: datetime
 
@@ -90,7 +103,6 @@ class Edge(BaseModel):
       - "internal": a virtual/structural link — the refinery in->out processing
                     edge (capacity = throughput limit) and the super_source/sink
                     connectors.
-    ("port_link" was previously declared here but never used on any edge; removed.)
     """
     id: str
     from_id: str
@@ -100,7 +112,6 @@ class Edge(BaseModel):
     cost_per_bbl: float
     transit_time_days: float
     openness: float = 1.0
-    risk_multiplier: float = 1.0
     grade: Optional[str] = None  # crude grade this edge carries (None = grade-agnostic)
     path: Optional[list[list[float]]] = None  # pre-calculated geographical path
     @field_validator("openness")
@@ -115,14 +126,10 @@ class Edge(BaseModel):
 # ---------------------------------------------------------------------------
 # Alias Table — DATA-DRIVEN.
 #
-# Adding a node to data/nodes.json (a new supplier, a new refinery) is now
-# SUFFICIENT to make it resolvable by the sensing layer: its name is segmented
-# into aliases automatically, and any node-authored "aliases" list in its JSON
-# entry is merged in. No code file needs hand-editing — this is what the old
-# hardcoded dict got wrong: Iran and the Russia/ESPO split each required manually
-# patching three separate files (this table, extraction_agent.py's _KNOWN_IDS,
-# and its prompt text) to stay in sync, which is exactly the kind of drift that
-# blocks "track any and all such events" for nodes not yet on anyone's radar.
+# Adding a node to data/nodes.json is enough to make it resolvable by the sensing
+# layer. Its name is segmented into aliases automatically and any "aliases" list
+# in its JSON entry is merged in, so no code file needs hand-editing and the
+# table cannot drift away from the node set it describes.
 #
 # A small SUPPLEMENTAL_ALIASES layer remains in code ONLY for terms that are
 # genuinely not one node's identity: regional umbrella terms that span multiple
@@ -178,10 +185,19 @@ def _derive_segments(name: str) -> list[str]:
     for ch in "—()/,":
         normalized = normalized.replace(ch, "-")
     segments = [s.strip() for s in normalized.split("-")]
-    return [
+    kept = [
         s for s in segments
         if len(s) > 2 and s not in _GENERIC_SEGMENT_BLACKLIST
     ]
+
+    # Keep the whole name flattened to one phrase as well. Splitting on hyphens
+    # suits a structural name such as "Russia - Urals (Novorossiysk)" but shreds
+    # a hyphenated proper noun like "Bab-el-Mandeb", leaving the strait without
+    # its own name among the aliases.
+    flattened = " ".join(normalized.replace("-", " ").split())
+    if len(flattened) > 2 and flattened not in kept:
+        kept.append(flattened)
+    return kept
 
 
 def _build_alias_table() -> dict[str, str]:
@@ -224,6 +240,14 @@ def resolve_entity(mention: str) -> Optional[str]:
        superset), not partial overlap, to keep false positives rare; ties prefer
        the longer (more specific) alias.
 
+       The two directions carry different weights of evidence. A mention
+       contained by an alias is safe, since a short mention matching a longer
+       canonical name is a genuine abbreviation. An alias contained by a longer
+       mention is where a one-word alias becomes a liability, because it fires on
+       any sentence containing that word: a bare "gulf" would otherwise resolve
+       "Gulf of Mexico" and "the gulf war" to the Strait of Hormuz. A one-token
+       alias therefore matches only by exact match or by the safe direction.
+
     Args:
         mention: Raw entity string from the extraction agent output.
 
@@ -245,7 +269,13 @@ def resolve_entity(mention: str) -> Optional[str]:
     for alias, tokens in _ALIAS_TOKENS.items():
         if not tokens:
             continue
-        if (mention_tokens <= tokens or tokens <= mention_tokens) and len(tokens) > best_len:
+        # Safe direction: the mention is an abbreviation of a longer alias.
+        matched = mention_tokens <= tokens
+        # Risky direction: the alias appears inside a longer mention. Requires at
+        # least two tokens of evidence — see this function's docstring.
+        if not matched and len(tokens) >= 2:
+            matched = tokens <= mention_tokens
+        if matched and len(tokens) > best_len:
             best_alias, best_len = alias, len(tokens)
     return ALIAS_TABLE[best_alias] if best_alias else None
 
@@ -262,9 +292,8 @@ def known_element_ids() -> set[str]:
 def render_known_elements_prompt_block() -> str:
     """Render the current node set as prompt text, grouped by type.
 
-    Used to build the extraction agent's system instruction dynamically, so the
-    LLM is always told about the actual current node set instead of a hardcoded
-    list that silently goes stale as nodes are added.
+    Builds the extraction agent's system instruction from the live node set, so
+    the model is always told about the nodes that actually exist.
     """
     groups: dict[str, list[str]] = {}
     for node in _load_raw_nodes():

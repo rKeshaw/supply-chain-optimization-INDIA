@@ -1,8 +1,7 @@
 {
   "_description": "Economic and model parameters for the India Energy Supply Chain Resilience system. Every parameter is named, sourced, and overridable. This file directly satisfies the 'assumptions must be explicit and testable' evaluation criterion.",
-
   "short_run_price_elasticity_abs": {
-    "value": 0.30,
+    "value": 0.3,
     "low": 0.24,
     "high": 0.36,
     "unit": "absolute_short_run_price_elasticity_of_demand",
@@ -10,17 +9,18 @@
     "_source": "EIA STEO hurricane disruption analysis (2023) used a temporary-disruption demand elasticity range of -0.24 to -0.36, centered on -0.30.",
     "_status": "SCENARIO_RANGE — explicitly uncertain; risk premium is reported separately, not inferred from physical shortfall."
   },
-
   "passthrough_coefficient": {
     "value": 0.72,
     "unit": "fraction_of_crude_price_change_passed_to_retail",
     "_description": "Fraction of crude oil price change that is passed through to Indian retail fuel prices (petrol/diesel). 1.0 = full pass-through, 0 = government absorbs all. India's system is partially managed — OMCs and GOI act as buffers. 0.72 reflects partial pass-through observed historically.",
     "_source": "PPAC retail pricing formula (GOI); asymmetric pass-through documented: upward pass-through ~0.75-0.85, downward ~0.50-0.70. Using 0.72 as upward pass-through estimate for supply-shock scenario.",
-    "_search_queries_used": ["PPAC India retail fuel price passthrough crude oil", "India petrol price passthrough elasticity"],
+    "_search_queries_used": [
+      "PPAC India retail fuel price passthrough crude oil",
+      "India petrol price passthrough elasticity"
+    ],
     "_status": "VERIFIED_RANGE — directionally confirmed from PPAC formula; exact value [ESTIMATED] within documented range",
     "_note": "India formally deregulated petrol prices in 2010 and diesel in 2014, but effective pass-through remains below 1.0 due to state subsidies, excise duty adjustments, and OMC under-recovery mechanisms."
   },
-
   "lag_days": {
     "value": 14,
     "unit": "days",
@@ -29,7 +29,6 @@
     "_status": "VERIFIED",
     "_note": "Model applies retail price impact only after lag_days days. For pre-election periods, this value should be increased to 30-60 days."
   },
-
   "gdp_sensitivity_param": {
     "value": 0.2,
     "unit": "percentage_points_GDP_growth_reduction_per_10pct_crude_price_increase",
@@ -37,7 +36,6 @@
     "_source": "IMF India 2024 Article IV Staff Report (published 2025): historically, a 10% higher oil price reduced real GDP growth by about 20 basis points.",
     "_status": "HISTORICAL_REFERENCE — not a causal forecast for a specific event."
   },
-
   "max_modelled_crude_price_change_pct": {
     "value": 75.0,
     "unit": "percent",
@@ -45,7 +43,6 @@
     "_source": "Model governance guardrail; not an observed market limit.",
     "_status": "DESIGN_DEFAULT"
   },
-
   "baseline_annual_crude_import_bill_usd_bn": {
     "value": 140.0,
     "unit": "USD_billion_per_year",
@@ -53,7 +50,6 @@
     "_source": "Public 2024 India crude import-bill reporting; refresh before any production use.",
     "_status": "ILLUSTRATIVE"
   },
-
   "assumed_landed_crude_cost_usd_per_bbl": {
     "value": 86.0,
     "unit": "usd_per_bbl",
@@ -61,7 +57,6 @@
     "_source": "Approximate Brent ~$80 (2025-26 range) plus modelled average sea-freight ~$6/bbl from the routing solver. [ESTIMATED] — refresh crude benchmark before production use.",
     "_status": "DESIGN_DEFAULT — scenario baseline, not a live price"
   },
-
   "baseline_petrol_price_delhi_inr_per_liter": {
     "value": 102.12,
     "unit": "inr_per_liter",
@@ -69,15 +64,13 @@
     "_source": "Live retail snapshot, 2026-07-19, cross-checked against PPAC-tracked aggregators (Goodreturns, CarDekho, BusinessToday).",
     "_status": "SNAPSHOT — petrol/diesel prices revise daily at 6am IST under PPAC's dynamic pricing formula; refresh before any production use."
   },
-
   "baseline_diesel_price_delhi_inr_per_liter": {
-    "value": 95.20,
+    "value": 95.2,
     "unit": "inr_per_liter",
     "_description": "Baseline Delhi retail diesel price that retail_price_change_pct is applied to. Same scope caveat as the petrol baseline above: Delhi reference city, not a national average, and the model applies ONE retail_price_change_pct to both fuels since passthrough_coefficient is not separately calibrated for petrol vs. diesel (in reality diesel has historically carried a lower excise-duty share than petrol — this model does not capture that asymmetry).",
     "_source": "Live retail snapshot, 2026-07-19, cross-checked against PPAC-tracked aggregators (Goodreturns, CarDekho, BusinessToday).",
     "_status": "SNAPSHOT — refresh before any production use."
   },
-
   "spr_safety_floor_days": {
     "value": 3,
     "unit": "days",
@@ -85,7 +78,6 @@
     "_source": "plan.md design specification (policy-configurable default). IEA recommends 90 days national reserve; 3-day refinery floor is an operational buffer, not the national target.",
     "_status": "DESIGN_DEFAULT — adjust based on operator feedback"
   },
-
   "spr_refill_threshold_risk": {
     "value": 0.25,
     "unit": "dimensionless_risk_score",
@@ -93,7 +85,6 @@
     "_source": "plan.md design specification. 0.25 means the corridor's risk is at 25% of maximum — roughly equivalent to 'low-level background tension, no active threat'.",
     "_status": "DESIGN_DEFAULT"
   },
-
   "spr_target_days": {
     "value": 9.5,
     "unit": "days_of_national_consumption",
@@ -102,7 +93,6 @@
     "_status": "VERIFIED — publicly stated figure",
     "_note": "The discrepancy: 39.2 Mb / 5.0 Mb/d = 7.8 days actual; 39.2 Mb / 4.12 Mb/d = 9.5 days (uses domestic consumption, not import volume). Both are correct under different denominators."
   },
-
   "risk_decay_factor": {
     "value": 0.92,
     "unit": "dimensionless_daily_decay_multiplier",
@@ -110,16 +100,46 @@
     "_source": "plan.md design. Calibrated so that: a single unconfirmed rumor fades in ~2 weeks, a confirmed event fades in ~4 weeks without reinforcement. Formula: days_to_baseline = log(0.1/initial_risk) / log(0.92).",
     "_status": "DESIGN_DEFAULT — tune based on observed geopolitical signal persistence"
   },
-
+  "assumed_brent_benchmark_usd_per_bbl": {
+    "value": 84.0,
+    "unit": "usd_per_bbl",
+    "_description": "Brent benchmark that each source's crude_differential_usd_per_bbl is quoted against. Landed cost of a barrel = this benchmark + the source differential + the freight along its route, and that total is what the cost-optimal routing objective minimises.",
+    "_source": "Brent breached $84/bbl on 14 July 2026 as US-Iran hostilities resumed; analysts put the risk premium in the price at $10-15/bbl. Brent passed $100 on 8 March 2026 and peaked at $126 during the Hormuz closure.",
+    "_status": "SNAPSHOT — 2026-07-21. Refresh alongside the source differentials; the two are only meaningful together."
+  },
+  "crude_differential_scarcity_usd_per_pct_global_loss": {
+    "value": 1.0,
+    "unit": "usd_per_bbl_per_percent_of_global_supply_removed",
+    "_description": "Scenario response of crude differentials to physical scarcity. Every source still able to deliver has its differential widened by this much per 1% of global supply removed, on the basis that a shortage lets sellers who can still deliver capture scarcity rent. Strategic reserve barrels are priced at the flat benchmark and carry no scarcity premium, so a severe disruption makes reserve draw progressively cheaper relative to imports — which is the intended decision effect.",
+    "_source": "Calibrated on Saudi Arab Light's Asia OSP through the 2026 Hormuz crisis: +$19.50/bbl over Oman/Dubai in May at the height of the closure against -$1.50 in August once Gulf and Iranian exports were restored, a swing of $21/bbl. The strait normally carries roughly 20% of global seaborne oil, giving about $1/bbl per 1% of global supply removed.",
+    "_status": "ESTIMATED — single-event calibration from one grade. Directionally evidenced but not a fitted elasticity.",
+    "_note": "Applied uniformly across available sources, so it shifts landed cost and the economic channel without re-ordering supplier preference. Real differentials did NOT move uniformly during the crisis — Gulf grades firmed by more than Russian ones — so relative procurement ranking under a disruption is not captured."
+  },
   "routing_policy": {
     "value": {
-      "max_cape_fraction_of_total": 0.6
+      "max_cape_fraction_of_total": 0.6,
+      "allow_sanctions_restricted_sources": false,
+      "max_supplier_group_fraction_of_total": 0.35,
+      "max_chokepoint_fraction_of_total": 0.4
     },
-    "_description": "Hard operational constraints applied directly by the path allocator. The Cape of Good Hope may carry no more than 60% of the modelled daily demand, preventing the optimizer from replacing one corridor concentration with another.",
-    "_source": "plan.md Module 16 policy rule rule_cape_congestion_cap.",
+    "_description": "Hard operational constraints applied directly by the path allocator. (1) max_cape_fraction_of_total: the Cape of Good Hope may carry no more than 60% of the modelled daily demand, preventing the optimizer from replacing one corridor concentration with another. (2) allow_sanctions_restricted_sources: when false (the default), source nodes flagged sanctions_restricted in nodes.json are given a zero export ceiling by the LP, so the recommended plan is one an Indian refiner could actually execute. Setting it true models sanctions relief without editing any data. (3) max_supplier_group_fraction_of_total: no single supplier may exceed 35% of modelled demand. Sources sharing a supplier_group are counted together, so Russia's two export streams (Urals from Novorossiysk and ESPO from Kozmino) are capped as one counterparty rather than two — without which the cheapest-landed-cost objective would concentrate over a third of national supply on a single sovereign. (4) max_chokepoint_fraction_of_total: no single strait may carry more than 40% of modelled demand. Landed-cost optimisation alone will concentrate supply behind whichever chokepoint has the cheapest crude behind it; real procurement deliberately diversifies away from a corridor whose closure it could not absorb. 40% is set as an upper bound consistent with the 40-45% Hormuz exposure the problem statement describes — India had in fact pushed roughly 70% of its imports outside Hormuz by July 2026, so the cap is a ceiling, not a target.",
+    "_source": "plan.md Module 16 policy rule rule_cape_congestion_cap. Sanctions gate added alongside src_iran's connection to the network: India has lifted no Iranian crude since the US secondary-sanctions waiver expired in May 2019.",
     "_status": "DESIGN_DEFAULT — operator-configurable"
   },
-
+  "freight_cost_model": {
+    "value": {
+      "fixed_usd_per_bbl_per_voyage": 1.2214,
+      "rate_usd_per_bbl_per_1000km": 0.1341,
+      "suez_canal_toll_usd_per_bbl": 0.6,
+      "laden_speed_knots": 13.0,
+      "suez_canal_transit_days": 1.0
+    },
+    "unit": "usd_per_bbl and knots",
+    "_description": "Calibration used by scripts/build_network.py to derive cost_per_bbl and transit_time_days for every sea lane from its real searoute distance. Tanker freight is a fixed port/terminal component charged once per voyage plus a distance component — it is not proportional to distance, which is why the sourced anchors below imply rates spanning $0.218–$0.673 per 1000 km. The fixed term is applied only on the leg leaving the source node, so a multi-leg path reconstructs the end-to-end anchor it was fitted to.",
+    "_source": "Least-squares fit over the three route anchors in freight_cost_estimates below, evaluated against real searoute distances: Ras Tanura→Jamnagar 2,229 km/$1.50; Nigeria→India via Cape 13,768 km/$3.00; Kozmino→India via Malacca 11,108 km/$2.80. Residuals +1.4%, +2.3%, −3.2%. None of the three transits Suez, so the Suez Canal Authority toll is added separately on the canal leg (value carried over unchanged from the previous hand-authored edges.json, where it was already sourced to SCA published tariffs for Suezmax class). 13 kn is standard laden VLCC service speed.",
+    "_status": "FITTED — derived from the VERIFIED_RANGE anchors in freight_cost_estimates; refresh the anchors from Baltic Dirty Tanker Index before production use and re-run the generator.",
+    "_note": "Port loading/discharge time is deliberately excluded from transit_time_days: the digital twin treats arrival at the refinery as availability, so discharge time would be double-counted."
+  },
   "recompute_significance_threshold": {
     "value": 0.12,
     "unit": "dimensionless_severity_x_confidence",
@@ -127,7 +147,6 @@
     "_source": "plan.md design. 0.12 filters out: low-confidence rumors (confidence=0.2, severity=0.5 → 0.10, filtered) while passing confirmed moderate events (confidence=0.7, severity=0.3 → 0.21, passes). Adjusted from plan.md's 0.15 to 0.12 to avoid over-filtering.",
     "_status": "DESIGN_DEFAULT"
   },
-
   "power_sector_stress_threshold": {
     "value": 0.15,
     "unit": "fraction_of_refinery_output_reduction",
@@ -135,7 +154,6 @@
     "_source": "plan.md design. Diesel is used for DG sets; naphtha for some gas-fired plants. 15% shortfall proxy for grid stress.",
     "_status": "DESIGN_DEFAULT"
   },
-
   "national_consumption_bbl_day": {
     "value": 5000000,
     "unit": "bbl_per_day",
@@ -143,7 +161,6 @@
     "_source": "Multiple sources: EIA India country data; PPAC monthly reports 2024-25. Range across sources: 4.8-5.2 Mb/d. Using 5.0 Mb/d as round midpoint.",
     "_status": "VERIFIED_RANGE"
   },
-
   "global_oil_supply_bbl_day": {
     "value": 102000000,
     "unit": "bbl_per_day",
@@ -151,28 +168,76 @@
     "_source": "EIA/IEA 2024-25 world liquid fuels supply ~102 Mb/d.",
     "_status": "VERIFIED_RANGE"
   },
-
   "modeled_refinery_capacity_bbl_day": {
-    "value": 2574000,
+    "value": 5010000,
     "unit": "bbl_per_day",
-    "_description": "Combined throughput capacity of the 5 named refineries modeled in the graph: Jamnagar (1,364k) + Paradip (300k) + Vizag (300k) + Mangalore (300k) + Kochi (310k). This is the binding flow constraint in the model, NOT India's total refining capacity (~250 Mb/day across 23 refineries).",
-    "_source": "Sum of PPAC-verified individual capacities. These 5 refineries represent ~51.5% of India's total refining capacity.",
-    "_note": "The baseline max-flow test should expect ~2.574 Mb/d, not 5.0 Mb/d. The remaining 48.5% of India's refining capacity is not modeled but is documented here for context."
+    "_description": "Combined crude throughput of the 16 import-fed refineries modelled in the graph, 250.5 MMTPA at 20,000 bbl/day per MMTPA. This is the binding flow constraint. India's total installed refining capacity is about 258 MMTPA (~5.15 Mb/day) across 23 refineries; the difference is 18.0 MMTPA that runs on domestic crude (Barmer on Rajasthan, the Assam group, Tatipaka on KG-basin) or is shut (Nagapattinam), and so places no demand on the import corridors this model exists to analyse.",
+    "_source": "Sum of PPAC/MoPNG installed capacities for the modelled refineries."
   },
-
   "freight_cost_estimates": {
     "_description": "Reference freight cost ranges used for edge cost calibration. All values [ESTIMATED] from Baltic Dirty Tanker Index and Platts freight data unless noted.",
-    "persian_gulf_india_west_vlcc": {"value": 1.5, "unit": "usd_per_bbl", "_note": "Ras Tanura to Jamnagar, VLCC"},
-    "west_africa_india_aframax": {"value": 3.0, "unit": "usd_per_bbl", "_note": "Nigeria to India, Aframax"},
-    "cape_bypass_premium": {"value": 1.5, "unit": "usd_per_bbl", "_note": "Additional cost vs. Red Sea route"},
-    "russia_espo_india_aframax": {"value": 2.8, "unit": "usd_per_bbl", "_note": "Kozmino to India, Pacific route"}
+    "persian_gulf_india_west_vlcc": {
+      "value": 1.5,
+      "unit": "usd_per_bbl",
+      "_note": "Ras Tanura to Jamnagar, VLCC"
+    },
+    "west_africa_india_aframax": {
+      "value": 3.0,
+      "unit": "usd_per_bbl",
+      "_note": "Nigeria to India, Aframax"
+    },
+    "cape_bypass_premium": {
+      "value": 1.5,
+      "unit": "usd_per_bbl",
+      "_note": "Additional cost vs. Red Sea route"
+    },
+    "russia_espo_india_aframax": {
+      "value": 2.8,
+      "unit": "usd_per_bbl",
+      "_note": "Kozmino to India, Pacific route"
+    }
   },
-
   "hormuz_india_exposure_pct": {
-    "value": 0.42,
+    "value": 0.3,
     "unit": "fraction",
-    "_description": "Fraction of India's total crude imports that transit the Strait of Hormuz (Middle Eastern sources: Iraq + Saudi + UAE + Kuwait). Used for sanity-checking the baseline min-cut.",
-    "_source": "PS document: 40-45%. PPAC shares: Iraq(19%) + Saudi(16%) + UAE(11%) + Kuwait(5%) = 51%, but not all UAE crude goes through Hormuz. Conservative estimate: 42%.",
-    "_status": "VERIFIED_RANGE"
+    "_description": "Share of India's crude imports transiting the Strait of Hormuz. Used as a startup sanity check against what the routing solver actually produces.",
+    "_source": "India routed roughly 70% of its crude outside Hormuz by July 2026, against about 55% earlier, per the Petroleum Ministry. The problem statement's 40-45% describes the pre-2026 position.",
+    "_status": "SNAPSHOT — 2026-07-21."
+  },
+  "hormuz_bypass_pipeline_capacity_bbl_day": {
+    "value": 4500000,
+    "unit": "bbl_per_day",
+    "_description": "Spare pipeline capacity able to move Persian Gulf crude to water OUTSIDE the Strait of Hormuz. Subtracted from Hormuz transit when computing how much supply a closure actually removes from the world market.",
+    "_source": "Saudi Arabia's East-West (Petroline) pipeline has ~7 Mb/d design capacity with roughly 2 Mb/d already in use as of early 2026, leaving 3-5 Mb/d spare; the UAE's ADCOP line from Habshan to Fujairah adds 1.5-1.8 Mb/d. Combined maximum theoretical throughput is reported at 3.5-5.5 Mb/d; the 4.5 Mb/d midpoint is used. Iraq, Kuwait, Qatar, Bahrain and Iran have no meaningful bypass infrastructure at all.",
+    "_status": "VERIFIED_RANGE — 3.5-5.5 Mb/d reported; midpoint used.",
+    "_note": "Against ~20 Mb/d of Hormuz transit, a full closure therefore strands ~15.5 Mb/d — about 15% of world supply."
+  },
+  "spr_structural_floor_fraction": {
+    "value": 0.1,
+    "unit": "fraction_of_facility_storage_capacity",
+    "_description": "Minimum fill any single ISPRL cavern may be drawn down to. Below this, cavern integrity and future refill both become problematic.",
+    "_source": "ISPRL operational guidance as cited by the policy critic's rule_spr_floor_draw.",
+    "_status": "DESIGN_DEFAULT"
+  },
+  "spr_draw_projection_days": {
+    "value": 90,
+    "unit": "days",
+    "_description": "Horizon over which a proposed SPR drawdown is projected when checking it against the structural floor. The critic flags a plan whose sustained draw would breach the floor inside this window, rather than waiting for the breach to happen.",
+    "_source": "IEA member reserve standard is 90 days of net imports; used here as the planning horizon a sustained disruption should be survivable over.",
+    "_status": "DESIGN_DEFAULT"
+  },
+  "event_type_capacity_impact": {
+    "value": {
+      "closure": 1.0,
+      "capacity_reduction": 1.0,
+      "weather_disruption": 0.5,
+      "sanction": 0.3,
+      "price_shock": 0.0,
+      "reopening": 1.0
+    },
+    "unit": "fraction_of_signal_strength_realised_as_throughput_loss",
+    "_description": "Converts a signal's strength (severity x confidence) into a physical throughput impact. Without this the two are identical, so any confidently-reported event cuts capacity by its full severity — which is wrong for most event types. A price shock moves cost, not barrels (0.0). A single new sanctions listing names one entity, not a country's whole export programme (0.3). Rough weather delays berthing rather than closing a terminal outright (0.5). A confirmed closure or an explicit capacity cut do mean what they say (1.0).",
+    "_source": "DESIGN_DEFAULT. The 0.3 sanctions coefficient is anchored on observed behaviour: repeated OFAC designations against Russian and Iranian shipping through 2024-2026 reduced flows materially but never proportionally to the number or severity of listings.",
+    "_status": "DESIGN_DEFAULT — operator-configurable; the sanctions and weather coefficients are the least evidenced."
   }
 }
