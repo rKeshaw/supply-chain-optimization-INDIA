@@ -214,9 +214,51 @@ Validate the routing against these rules. Return the full JSON critic response."
             "re_solve_required": True,
             "corrected_constraints": {},
         }
+    else:
+        response = _merge_with_code_violations(response, code_violations)
 
     response["critic_response"] = raw
     return response
+
+
+def _merge_with_code_violations(llm_response: dict, code_violations: list[dict]) -> dict:
+    """Reconcile the LLM's critique against the deterministic code-path findings.
+
+    code_violations are ground truth: each is computed directly from the
+    solver's own reported numbers (SPR floor draw, policy_breaches, grade
+    ratios), not the LLM's judgment. The LLM may add colour — an explanation,
+    a suggested correction — but this function is what stops it from making a
+    real violation disappear. Without it, a single hallucinated
+    ``"all_clear": true`` silently suppressed every deterministically-detected
+    breach, since verify() only reaches this point when code_violations is
+    already non-empty, so all_clear is a known-false claim if the LLM makes it.
+    """
+    llm_by_rule: dict[str, dict] = {}
+    for v in llm_response.get("violations", []) or []:
+        rule_id = v.get("rule_id")
+        if rule_id:
+            llm_by_rule[rule_id] = v
+
+    merged = []
+    for cv in code_violations:
+        rule_id = cv.get("rule_id")
+        llm_v = llm_by_rule.get(rule_id)
+        entry = dict(cv)
+        # Keep the code-computed numeric fields (draw_bbl_day, excess_bbl_day,
+        # sweet_fraction, ...) regardless of what the LLM says — only accept
+        # its added narrative, never let it override or drop the finding.
+        if llm_v and llm_v.get("suggested_correction"):
+            entry["suggested_correction"] = llm_v["suggested_correction"]
+        if llm_v and llm_v.get("explanation") and not entry.get("llm_explanation"):
+            entry["llm_explanation"] = llm_v["explanation"]
+        merged.append(entry)
+
+    llm_response = dict(llm_response)
+    llm_response["violations"] = merged
+    llm_response["all_clear"] = False
+    llm_response.setdefault("re_solve_required", False)
+    llm_response.setdefault("corrected_constraints", {})
+    return llm_response
 
 
 def _run_code_checks(
@@ -237,22 +279,23 @@ def _run_code_checks(
     # Reserve floor, evaluated against the drawdown this plan proposes and
     # projected forward. A reserve is breached by sustaining a draw rather than
     # by its fill on any one morning.
+    #
+    # draw_bbl_day and days_to_floor are read from spr_state rather than
+    # re-derived from path_allocations here: reserve_optimizer.get_spr_status_summary
+    # already computes exactly this (same floor_fraction, same headroom/draw
+    # division) to build the SPR panel the UI shows, and re-deriving it a
+    # second time risked the two silently disagreeing after a future change to
+    # either formula. Reading it keeps one account of the reserve's state, the
+    # same reasoning the diversification-ceiling check below already applies
+    # to policy_breaches.
     floor_fraction = params.get("spr_structural_floor_fraction", {}).get("value", 0.10)
     horizon_days = params.get("spr_draw_projection_days", {}).get("value", 90)
-    draw_by_facility: dict[str, float] = {}
-    for allocation in cost_routing.get("path_allocations", []):
-        if allocation.get("is_spr"):
-            fid = allocation["source_id"]
-            draw_by_facility[fid] = draw_by_facility.get(fid, 0.0) + float(allocation.get("volume_bbl_day", 0.0))
 
     for facility_id, facility_state in spr_state.get("per_facility", {}).items():
-        draw = draw_by_facility.get(facility_id, 0.0)
-        if draw <= 0:
+        draw = float(facility_state.get("planned_draw_bbl_day") or 0.0)
+        days_to_floor = facility_state.get("days_to_floor")
+        if draw <= 0 or days_to_floor is None:
             continue
-        capacity = float(facility_state.get("storage_capacity_bbl") or 0.0)
-        inventory = float(facility_state.get("inventory_bbl") or 0.0)
-        floor_bbl = capacity * floor_fraction
-        days_to_floor = (inventory - floor_bbl) / draw
         if days_to_floor < horizon_days:
             violations.append({
                 "rule_id": "rule_spr_floor_draw",

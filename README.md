@@ -174,7 +174,7 @@ ratios, so there is one account of what a plan did.
 | `api/` | FastAPI application, REST (representational state transfer) endpoints and a `/ws/live` push channel |
 | `frontend/` | single page interface, map view and network graph view of the same state |
 | `data/` | network definition, parameters, replay timeline |
-| `scripts/` | generators that produce the data files; `scripts/legacy/` is superseded and can be ignored |
+| `scripts/` | generators that produce the data files |
 
 ## What the solver determines, and what it does not
 
@@ -252,4 +252,4 @@ retail supply and demand response all fall outside scope.
 
 National figures are reported as lower bound exposure rather than extrapolated
 forecasts, and market risk premia are kept separate from modelled physical
-shortfall throughout.
+shortfall throughout.

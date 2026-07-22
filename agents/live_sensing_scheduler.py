@@ -51,7 +51,13 @@ async def _poll_news(app_state: dict) -> list[dict]:
     results = []
     for sig in signals:
         try:
-            result = process_signal(
+            # Off the event loop: process_signal is a blocking call (LLM
+            # network round trips, a retry sleep in extraction_agent), unlike
+            # every REST handler's asyncio.to_thread(process_signal, ...) —
+            # called directly here it would freeze /ws/live and every
+            # concurrent request for the length of the pipeline.
+            result = await asyncio.to_thread(
+                process_signal,
                 raw_text=sig["raw_text"],
                 G_current=app_state.get("G_current", app_state["G_baseline"]),
                 sim_state=app_state["sim_state"],
@@ -84,7 +90,8 @@ async def _poll_weather(app_state: dict) -> list[dict]:
 async def _run_event_through_pipeline(app_state: dict, event, origin: str) -> dict:
     from agents.orchestration import process_signal
 
-    result = process_signal(
+    result = await asyncio.to_thread(
+        process_signal,
         raw_text=event.justification,
         G_current=app_state.get("G_current", app_state["G_baseline"]),
         sim_state=app_state["sim_state"],
@@ -98,7 +105,20 @@ async def _run_event_through_pipeline(app_state: dict, event, origin: str) -> di
 async def _apply_pipeline_result(app_state: dict, result: dict, origin: str, label: str) -> None:
     updated_graph = result.pop("_updated_graph", None)
     if result.get("recompute_triggered") and updated_graph is not None:
-        app_state["G_current"] = updated_graph
+        # Same lock and cache-invalidation every REST write path takes (see
+        # api/main.py's apply_scenario_endpoint / process_signal_endpoint /
+        # run_replay) — without it, a live-sensed update could race a
+        # concurrent request's read-modify-write of G_current, and the N-1
+        # vulnerability ranking would keep serving the pre-event topology
+        # indefinitely, since it is only recomputed when the cache is cleared.
+        state_lock = app_state.get("state_lock")
+        if state_lock is not None:
+            async with state_lock:
+                app_state["G_current"] = updated_graph
+                app_state["n1_ranking"] = None
+        else:
+            app_state["G_current"] = updated_graph
+            app_state["n1_ranking"] = None
 
     app_state.setdefault("live_signal_log", []).append({
         "origin": origin,

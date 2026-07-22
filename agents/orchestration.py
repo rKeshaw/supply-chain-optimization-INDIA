@@ -36,7 +36,12 @@ class PipelineState(TypedDict):
     significance_threshold: Optional[float]
     event_override: Optional[Event]
     decay_as_of: Optional[datetime]
-    
+    # Prior events (as Event.model_dump() dicts) the caller has processed
+    # recently, oldest first — feeds scenario_agent's "recent events" context.
+    # See scenario_agent_node: without it, that agent only ever saw the single
+    # event just processed, never an actual developing pattern.
+    recent_events: Optional[list]
+
     # Timestamps for latency tracking
     t_start: datetime
     t_graph_updated: Optional[datetime]
@@ -242,12 +247,19 @@ def explainer_node(state: PipelineState) -> dict:
 
 
 def scenario_agent_node(state: PipelineState) -> dict:
-    """Scenario agent generates hypothetical secondary shocks."""
+    """Scenario agent generates hypothetical secondary shocks.
+
+    recent_events is the caller's rolling history (see process_signal's own
+    docstring) with the just-processed event appended, so the agent actually
+    sees a developing pattern rather than only ever the single latest event —
+    generate_hypotheses itself keeps only the last 10.
+    """
     hypotheses = []
     try:
+        history = (state.get("recent_events") or []) + [state["event"]]
         hypotheses = scenario_agent.generate_hypotheses(
             graph_state=state["graph_state"],
-            recent_events=[state["event"]],
+            recent_events=history,
             params=state["params"],
         )
     except Exception as e:
@@ -314,6 +326,109 @@ workflow.add_edge("scenario_agent", END)
 app_graph = workflow.compile()
 
 
+def _synthetic_scenario_event(
+    G_disrupted: nx.DiGraph, scenario_dict: Optional[dict], label: Optional[str]
+) -> Optional[Event]:
+    """Build a schema-valid Event describing a directly-applied scenario, so the
+    explainer's brief can name it instead of falling back to generic language.
+
+    Not extracted from text — deliberately applied by a user via the scenario
+    library or the map inspector, so confidence is 1.0. Severity is the average
+    openness reduction across affected elements, and event_type follows the
+    affected elements' own node types (a closed chokepoint reads differently
+    from a curtailed source).
+    """
+    if not scenario_dict:
+        return None
+    affected = sorted(scenario_dict.keys())
+    types = {G_disrupted.nodes[e].get("type") for e in affected if e in G_disrupted}
+    event_type = "closure" if types & {"chokepoint", "bypass"} else "capacity_reduction"
+    severity = sum(max(0.0, 1.0 - float(v)) for v in scenario_dict.values()) / len(scenario_dict)
+    return Event(
+        id=f"scenario_{affected[0]}_{int(datetime.now(timezone.utc).timestamp())}",
+        source="scenario_library",
+        timestamp=datetime.now(timezone.utc),
+        entity=label or affected[0],
+        event_type=event_type,
+        severity=severity,
+        confidence=1.0,
+        affected_graph_element=affected[0] if len(affected) == 1 else None,
+        justification=(
+            f"Scenario '{label or affected[0]}' applied directly "
+            f"({len(affected)} graph element(s) affected)."
+        ),
+    )
+
+
+def evaluate_disruption(
+    G_disrupted: nx.DiGraph,
+    sim_state: dict,
+    params: dict,
+    label: Optional[str] = None,
+    scenario_dict: Optional[dict] = None,
+) -> dict:
+    """
+    Run policy-critic review and the AI decision brief against an
+    already-disrupted graph (scenario apply / map-driven disruption), without
+    a news-extracted Event to drive it.
+
+    Reuses optimize_routing_node and policy_critic_node exactly as
+    process_signal's graph invokes them (including the same one-time
+    re-solve-on-violation guard via route_after_critic), so a scenario-applied
+    plan gets the same review a signal-triggered one does. explainer_agent and
+    scenario_agent are called directly rather than through their node wrappers,
+    since those wrappers require a parsed Event and this path instead builds
+    one synthetically from the applied scenario (see _synthetic_scenario_event).
+    """
+    t_start = datetime.now(timezone.utc)
+    state: dict = {
+        "G_updated": G_disrupted,
+        "sim_state": sim_state,
+        "params": params,
+        "policy_overrides": None,
+        "re_solve_count": 0,
+    }
+    state.update(optimize_routing_node(state))
+    state.update(policy_critic_node(state))
+    if route_after_critic(state) == "optimize_routing":
+        state.update(optimize_routing_node(state))
+        state.update(policy_critic_node(state))
+
+    pareto_routes = state["pareto_routes"]
+    graph_state = get_graph_state_json(
+        G_disrupted, pareto_routes.get("cost_optimal", {}).get("flow_dict")
+    )
+
+    event_obj = _synthetic_scenario_event(G_disrupted, scenario_dict, label)
+    brief = explainer_agent.summarize(
+        event=event_obj,
+        validated_routing={"pareto_routes": pareto_routes},
+        economic_impact=state["cascade"],
+        spr_status=state["spr_status"],
+        critic_result=state["critic_result"],
+        graph_state=graph_state,
+    )
+
+    hypotheses = []
+    try:
+        hypotheses = scenario_agent.generate_hypotheses(
+            graph_state=graph_state, recent_events=[], params=params,
+        )
+    except Exception as e:
+        logger.warning(f"Scenario agent failed (non-critical): {e}")
+
+    return {
+        "pareto_routes": pareto_routes,
+        "spr": state["spr_status"],
+        "cascade": state["cascade"],
+        "policy_check": state["critic_result"],
+        "brief": brief,
+        "scenario_hypotheses": hypotheses,
+        "graph_state": graph_state,
+        "latency_ms": _elapsed_ms(t_start),
+    }
+
+
 def process_signal(
     raw_text: str,
     G_current: nx.DiGraph,
@@ -324,6 +439,7 @@ def process_signal(
     significance_threshold: Optional[float] = None,
     event_override: Optional[Event] = None,
     decay_as_of: Optional[datetime] = None,
+    recent_events: Optional[list] = None,
 ) -> dict:
     """
     Entry point for the API to invoke the LangGraph pipeline.
@@ -331,6 +447,12 @@ def process_signal(
     decay_as_of: see apply_event_to_graph's docstring. Only the curated replay
     passes this (a compressed narrative clock); live/custom signals leave it
     None and decay uses the event's own real timestamp.
+
+    recent_events: prior processed events (Event.model_dump() dicts, oldest
+    first) the caller is tracking, handed to scenario_agent alongside this
+    call's own event so it can reason about a developing pattern rather than
+    only ever the single latest signal. Optional — omitting it just means the
+    scenario agent sees this one event, as before.
     """
     initial_state = {
         "raw_text": raw_text,
@@ -342,6 +464,7 @@ def process_signal(
         "significance_threshold": significance_threshold,
         "event_override": event_override,
         "decay_as_of": decay_as_of,
+        "recent_events": recent_events,
         "t_start": datetime.now(timezone.utc),
         "policy_overrides": None,
         "re_solve_count": 0,

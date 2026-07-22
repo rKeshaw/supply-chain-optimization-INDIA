@@ -2,4 +2,3 @@
 pytest*
 __pytest__
 venv
-tests/

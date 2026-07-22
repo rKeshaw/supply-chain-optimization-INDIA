@@ -1064,20 +1064,26 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Step Replay
           </button>
-          <button class="btn btn-secondary" onclick="resetReplay()">
+          <button class="btn btn-secondary" id="btn-reset-twin" onclick="resetReplay()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18v3"/></svg>
             Reset Twin
           </button>
         </div>
-        
+
         <div class="timeline-progress">
           <span>Replay Progress</span>
           <span id="replay-step-label">0 / 0</span>
         </div>
+        <div style="margin: 0.4rem 0 0.6rem;">
+          <span class="status-badge neutral" id="state-badge" style="display:none;"
+                title="The dashboard's default view is the undisrupted network — a reference point to measure disruptions against, not a claim about today. This system replays a real, still-unfolding 2026 Strait of Hormuz crisis (see crisis_timeline.json); Step Replay or a scenario moves off this baseline.">
+            ● PRE-CRISIS BASELINE — reference state, not current
+          </span>
+        </div>
 
         <div class="signal-input-container">
           <textarea class="signal-textarea" id="custom-signal-text" placeholder="Paste a news headline or report to process through the pipeline..."></textarea>
-          <button class="btn btn-primary" style="width: 100%;" onclick="submitCustomSignal()">Submit Custom Signal</button>
+          <button class="btn btn-primary" style="width: 100%;" id="btn-submit-signal" onclick="submitCustomSignal()">Submit Custom Signal</button>
         </div>
 
         <h3 style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase;">Signal Feed</h3>
@@ -1152,7 +1158,7 @@
           <div class="inspector-hint">Drag to set partial capacity. 0% is a full closure.</div>
           <div class="inspector-actions">
             <button class="btn btn-secondary" onclick="closeInspector()">Cancel</button>
-            <button class="btn btn-primary" onclick="applyInspectorDisruption()">Apply</button>
+            <button class="btn btn-primary" id="btn-inspector-apply" onclick="applyInspectorDisruption()">Apply</button>
           </div>
         </div>
       </div>
@@ -1167,8 +1173,8 @@
           <div class="metric-label" id="metric-price-label">Crude Benchmark</div>
           <div class="metric-value amber" id="metric-price-spike">+0.0%</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Landed Cost</div>
+        <div class="metric-card" title="The extra freight and grade-mix cost of the CURRENT reroute versus baseline routing, holding crude prices constant — not the same figure as the 'Landed: $/bbl' shown per route in Routing Options, which is priced at today's actual (scarcity-inflated) crude cost. This tile can read +0.0% even while that per-route figure has risen, when a disruption's cheaper surviving source mix offsets the extra freight; the Crude Benchmark tile above already carries the price-level move.">
+          <div class="metric-label">Reroute Premium</div>
           <div class="metric-value amber" id="metric-landed-cost">+0.0%</div>
         </div>
         <div class="metric-card">
@@ -1299,9 +1305,43 @@
     // ----------------------------------------------------
     // API Integration & Dashboard State
     // ----------------------------------------------------
-    const API_URL = ""; 
+    const API_URL = "";
     let activeNodeId = null;
     const APP_STATE = { currentScenario: {}, graph: null };
+
+    // Fetch wrapper for user-initiated actions (scenario apply, replay step,
+    // signal submit, reset). A FastAPI HTTPException (bad scenario id,
+    // unresolved graph element, invalid timestamp) returns a non-200 with a
+    // JSON {detail: ...} body; a plain `fetch(...).then(r => r.json())` does
+    // NOT throw on that, so the malformed body used to flow straight into the
+    // render functions and fail silently (caught only by the outer try/catch,
+    // logged to console, with no on-screen indication anything went wrong).
+    async function apiFetch(url, options) {
+      const res = await fetch(url, options);
+      if (!res.ok) {
+        let detail = res.statusText;
+        try {
+          const body = await res.json();
+          detail = body.detail || detail;
+        } catch (_) { /* body wasn't JSON — keep statusText */ }
+        throw new Error(`${res.status}: ${detail}`);
+      }
+      return res;
+    }
+
+    // Disables the triggering control for the duration of an in-flight
+    // action, so a second click (or a scenario apply landing while a replay
+    // step is still running) can't have two solves race on the same
+    // server-side graph state and silently discard one of them.
+    async function withGuard(el, fn) {
+      if (el && el.disabled) return; // already in flight
+      if (el) el.disabled = true;
+      try {
+        return await fn();
+      } finally {
+        if (el) el.disabled = false;
+      }
+    }
 
     // Load baseline data on page load
     window.addEventListener("DOMContentLoaded", () => {
@@ -1635,6 +1675,16 @@
     function updateTimelineStatus(status, liveStatus) {
       document.getElementById("replay-step-label").innerText = `${status.current_index} / ${status.total_events}`;
       setLiveIngestionBadge(!!(liveStatus && liveStatus.enabled));
+
+      // Shown only at the exact undisrupted state (no replay steps taken, no
+      // scenario or map disruption applied) — the one moment a viewer could
+      // otherwise mistake the dashboard's default view for "today," when the
+      // real crisis this replays is already most of the way through its
+      // timeline. Disappears the instant anything moves off baseline, so it
+      // never has to compete with the metric strip for attention.
+      const atBaseline = status.current_index === 0 &&
+        (!APP_STATE.currentScenario || Object.keys(APP_STATE.currentScenario).length === 0);
+      document.getElementById("state-badge").style.display = atBaseline ? "flex" : "none";
 
       // Merge the curated replay log and the live sensing log into one
       // chronological feed, each entry labelled with its origin.
@@ -2182,69 +2232,86 @@
       if (!INSPECTOR.targetId) return;
       const pct = parseInt(document.getElementById("inspector-slider").value, 10);
       const openness = pct / 100;
-      try {
-        const res = await fetch(`${API_URL}/api/scenario/apply`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ custom: { [INSPECTOR.targetId]: openness } })
-        });
-        updateDashboardFromDisruption(await res.json());
-      } catch (err) {
-        console.error("Disruption run failed:", err);
-      } finally {
-        closeInspector();
-      }
+      await withGuard(document.getElementById("btn-inspector-apply"), async () => {
+        try {
+          const res = await apiFetch(`${API_URL}/api/scenario/apply`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ custom: { [INSPECTOR.targetId]: openness } })
+          });
+          updateDashboardFromDisruption(await res.json());
+        } catch (err) {
+          console.error("Disruption run failed:", err);
+          alert(`Could not apply disruption: ${err.message}`);
+        } finally {
+          closeInspector();
+        }
+      });
     }
 
     async function applyNamedScenario(scenarioId) {
-      try {
-        const res = await fetch(`${API_URL}/api/scenario/apply`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ scenario_id: scenarioId })
-        });
-        updateDashboardFromDisruption(await res.json());
-      } catch (err) {
-        console.error("Named scenario failed:", err);
-      }
+      const select = document.getElementById("scenario-select");
+      await withGuard(select, async () => {
+        try {
+          const res = await apiFetch(`${API_URL}/api/scenario/apply`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ scenario_id: scenarioId })
+          });
+          updateDashboardFromDisruption(await res.json());
+        } catch (err) {
+          console.error("Named scenario failed:", err);
+          alert(`Could not apply scenario: ${err.message}`);
+        }
+      });
     }
 
     function clearSelection() {
+      // Deselects the clicked node/edge and closes the inspector — this must
+      // stay purely local UI state. It previously called resetReplay(), which
+      // wipes the whole session (replay position, applied scenarios, the
+      // graph itself) via POST /api/replay/reset — a "Clear Selection" button
+      // silently doing the same thing as "Reset Twin" is not what it says on
+      // the label.
       activeNodeId = null;
-      resetReplay();
+      closeInspector();
     }
 
     async function stepReplay() {
-      try {
-        const res = await fetch(`${API_URL}/api/replay/run`, { method: "POST" });
-        const data = await res.json();
-        
-        if (data.status === "complete") {
-          alert("Timeline complete! Resetting...");
-          resetReplay();
-          return;
-        }
+      await withGuard(document.getElementById("btn-replay"), async () => {
+        try {
+          const res = await apiFetch(`${API_URL}/api/replay/run`, { method: "POST" });
+          const data = await res.json();
 
-        const [repStatus, liveStatus] = await Promise.all([
-          (await fetch(`${API_URL}/api/replay/status`)).json(),
-          (await fetch(`${API_URL}/api/live/status`)).json(),
-        ]);
-        updateTimelineStatus(repStatus, liveStatus);
-        
-        if (data.pipeline_result && data.pipeline_result.recompute_triggered) {
-          updateDashboardFromPipeline(data.pipeline_result);
-        } else {
-          // just refresh graph/metrics
-          refreshData();
+          if (data.status === "complete") {
+            alert("Timeline complete! Resetting...");
+            await resetReplay();
+            return;
+          }
+
+          const [repStatus, liveStatus] = await Promise.all([
+            (await apiFetch(`${API_URL}/api/replay/status`)).json(),
+            (await apiFetch(`${API_URL}/api/live/status`)).json(),
+          ]);
+          updateTimelineStatus(repStatus, liveStatus);
+
+          if (data.pipeline_result && data.pipeline_result.recompute_triggered) {
+            updateDashboardFromPipeline(data.pipeline_result);
+          } else {
+            // just refresh graph/metrics
+            refreshData();
+          }
+        } catch (err) {
+          console.error("Replay step error:", err);
+          alert(`Replay step failed: ${err.message}`);
         }
-      } catch (err) {
-        console.error("Replay step error:", err);
-      }
+      });
     }
 
     async function resetReplay() {
+      await withGuard(document.getElementById("btn-reset-twin"), async () => {
       try {
-        await fetch(`${API_URL}/api/replay/reset`, { method: "POST" });
+        await apiFetch(`${API_URL}/api/replay/reset`, { method: "POST" });
         APP_STATE.currentScenario = {};
         // Reset is a clean slate rather than a change to diff against, so clear
         // the before and after tracking.
@@ -2268,31 +2335,44 @@
         document.getElementById("latency-stats-log").innerText = "Pipeline Latency Stats: idle.";
       } catch (err) {
         console.error("Reset error:", err);
+        alert(`Reset failed: ${err.message}`);
       }
+      });
     }
 
     async function submitCustomSignal() {
       const txt = document.getElementById("custom-signal-text").value.trim();
       if (!txt) return;
 
-      try {
-        const res = await fetch(`${API_URL}/api/signal`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: txt })
-        });
-        const data = await res.json();
-        
-        if (data.recompute_triggered) {
-          updateDashboardFromPipeline(data);
-        } else {
-          alert(`Signal parsed but below significance threshold (strength: ${data.signal_strength ? data.signal_strength.toFixed(3) : 0}). No graph update.`);
+      await withGuard(document.getElementById("btn-submit-signal"), async () => {
+        try {
+          const res = await apiFetch(`${API_URL}/api/signal`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: txt })
+          });
+          const data = await res.json();
+
+          if (data.recompute_triggered) {
+            updateDashboardFromPipeline(data);
+          } else if (data.reason === "extraction_failed") {
+            // Distinct from "parsed but below threshold": the extraction agent
+            // never produced an event at all, almost always because the LLM
+            // call itself failed (no GROQ_API_KEYS configured, or the provider
+            // is unreachable) — not a judgment call about relevance.
+            alert("Could not extract a structured event from this text — the extraction model is unavailable (check GROQ_API_KEYS in .env). No graph update.");
+          } else if (data.reason === "unrelated") {
+            alert("Classified as unrelated to the energy supply chain. No graph update.");
+          } else {
+            alert(`Signal parsed but below significance threshold (strength: ${data.signal_strength ? data.signal_strength.toFixed(3) : 0}). No graph update.`);
+          }
+
+          document.getElementById("custom-signal-text").value = "";
+        } catch (err) {
+          console.error("Custom signal failed:", err);
+          alert(`Signal submission failed: ${err.message}`);
         }
-        
-        document.getElementById("custom-signal-text").value = "";
-      } catch (err) {
-        console.error("Custom signal failed:", err);
-      }
+      });
     }
 
     // ----------------------------------------------------
@@ -2345,6 +2425,18 @@
     function extractCostAllocations(routing) {
       return (routing && routing.pareto_routes && routing.pareto_routes.cost_optimal &&
         routing.pareto_routes.cost_optimal.path_allocations) || [];
+    }
+
+    // Cached once: the undisrupted procurement plan, fetched lazily on first
+    // use. "Procurement Change" always diffs the CURRENT plan against this,
+    // never against whatever was last on screen — see getBaselineAllocations's
+    // callers for why that distinction matters.
+    async function getBaselineAllocations() {
+      if (!APP_STATE.baselineAllocations) {
+        const data = await (await fetch(`${API_URL}/api/routes/baseline`)).json();
+        APP_STATE.baselineAllocations = data.path_allocations || [];
+      }
+      return APP_STATE.baselineAllocations;
     }
 
     function labelNode(id) {
@@ -2532,8 +2624,16 @@
       el.innerHTML = blocks.length ? blocks.join("") : "No constraint violations. No corridors on watch.";
     }
 
-    function updateDashboardFromPipeline(res) {
-      const prevAllocations = APP_STATE.lastCostAllocations || [];
+    async function updateDashboardFromPipeline(res) {
+      // Always diffs against the undisrupted baseline, not against whatever
+      // was last rendered — "Procurement Change" is a decision-support panel
+      // ("what should I actually buy differently right now"), not a log of
+      // the last click. Diffing against lastCostAllocations meant a sequence
+      // like close-Hormuz-then-reopen-it never showed the network settling
+      // back to normal: each step showed a fresh, large "change" versus the
+      // previous disrupted state instead of the true (zero) change from
+      // baseline, reading as the disruption compounding rather than reverting.
+      const prevAllocations = await getBaselineAllocations();
       APP_STATE.currentScenario = {};
       // Update Graph SVG
       renderGraph(res.graph_state);
@@ -2567,8 +2667,10 @@
       refreshData({ skipTwin: true, skipEconomics: true, skipRoutes: true });
     }
 
-    function updateDashboardFromDisruption(res) {
-      const prevAllocations = APP_STATE.lastCostAllocations || [];
+    async function updateDashboardFromDisruption(res) {
+      // See updateDashboardFromPipeline's comment: always vs baseline, never
+      // vs the last rendered state.
+      const prevAllocations = await getBaselineAllocations();
       APP_STATE.currentScenario = res.scenario_dict || {};
       renderGraph(res.graph_state);
       refreshGraphViewIfActive(res.graph_state);
@@ -2591,10 +2693,13 @@
       refreshData({ skipTwin: true, skipEconomics: true, skipRoutes: true });
     }
 
-    // Map clicks and named scenarios do not call the explainer model, which is
-    // reserved for the signal and replay pipeline so an interactive click never
-    // waits on a network round trip. This builds the brief from the same response
-    // already driving the map, routes and economics.
+    // Named scenarios and map-driven disruptions now run the same policy-critic
+    // review the signal/replay pipeline does (see
+    // agents/orchestration.py:evaluate_disruption), so res.policy_check and
+    // res.scenario_hypotheses are real. This still builds its own headline/
+    // situation/impact/recommendation text from the response fields directly,
+    // rather than the LLM-authored res.brief, since those numbers are already
+    // on screen and a hand-built sentence needs no network round trip.
     function renderScenarioBrief(res) {
       const c = res.economic_cascade || {};
       const hasImpact = (res.flow_loss_pct || 0) > 0.5 || (c.landed_cost_change_pct || 0) > 0.5;
@@ -2622,7 +2727,8 @@
         `${((res.disrupted_flow_bbl_day || 0)/1e3).toFixed(0)}k bpd (${(res.flow_loss_pct || 0).toFixed(1)}% loss).`;
 
       document.getElementById("brief-impact").innerText =
-        `Crude +${(c.crude_price_change_pct || 0).toFixed(1)}%. Landed cost +${(c.landed_cost_change_pct || 0).toFixed(1)}%. ` +
+        `Crude +${(c.crude_price_change_pct || 0).toFixed(1)}%. Reroute premium +${(c.landed_cost_change_pct || 0).toFixed(1)}% ` +
+        `(extra freight/grade-mix cost versus baseline routing, at constant crude price). ` +
         `GDP drag ${(c.gdp_drag_pct || 0).toFixed(2)}pp if sustained beyond the retail pass-through lag. ` +
         `Power sector: ${c.power_sector_stress || "NORMAL"}.`;
 

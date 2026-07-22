@@ -67,6 +67,17 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 APP_STATE: dict = {}
 
 
+def _remember_event(event: Optional[dict]) -> None:
+    """Append a processed event to the rolling recent_events window (see
+    lifespan's APP_STATE.update), capped at 10 — scenario_agent's own prompt
+    already keeps only the last 10, so the cap here just bounds memory."""
+    if not event:
+        return
+    history = APP_STATE.setdefault("recent_events", [])
+    history.append(event)
+    APP_STATE["recent_events"] = history[-10:]
+
+
 async def broadcast_update(payload: dict) -> None:
     """Push a compact event summary to every connected /ws/live client.
 
@@ -183,6 +194,10 @@ async def lifespan(app: FastAPI):
         "sim_state": sim_state,
         "replay_index": 0,
         "replay_log": [],
+        # Rolling window of recent processed events (oldest first, capped at
+        # 10), fed to scenario_agent so it can reason about a developing
+        # pattern rather than only ever the single latest signal.
+        "recent_events": [],
         "live_signal_log": [],
         "live_last_poll_at": None,
         "current_scenario": None,
@@ -609,14 +624,20 @@ async def apply_scenario_endpoint(req: ScenarioRequest):
         )
     params = APP_STATE["params"]
 
-    demand = refinery_demand(G_disrupted)
-    total_demand = sum(demand.values())
-
-    # Canonical disrupted state + the three Pareto routes come from the SAME LP solve
-    # family, so the flow-loss shown and the routing panel can never disagree.
-    pareto_routes = compute_pareto_routes(G_disrupted, demand, params)
+    # Canonical disrupted state, the three Pareto routes, the policy-critic
+    # review and the AI decision brief all come from ONE call so the flow-loss
+    # shown, the routing panel and the brief can never disagree — and so a
+    # scenario applied from the dropdown or the map gets the same agent review
+    # a news signal does (see agents/orchestration.py:evaluate_disruption).
+    from agents.orchestration import evaluate_disruption
+    evaluation = await asyncio.to_thread(
+        evaluate_disruption, G_disrupted, APP_STATE["sim_state"], params,
+        label=scenario_name, scenario_dict=scenario_dict,
+    )
+    pareto_routes = evaluation["pareto_routes"]
     disrupted_cost_route = pareto_routes.get("cost_optimal", {})
     disrupted_flow = disrupted_cost_route.get("total_volume", 0.0)
+    cascade = evaluation["cascade"]
 
     per_ref_disrupted: dict[str, float] = {}
     for a in disrupted_cost_route.get("path_allocations", []):
@@ -636,22 +657,6 @@ async def apply_scenario_endpoint(req: ScenarioRequest):
             "loss": base_flow - dis_flow,
             "loss_pct": (base_flow - dis_flow) / max(base_flow, 1) * 100,
         }
-
-    # Cost channel: how much more the disrupted routing costs vs. baseline routing,
-    # at constant crude prices (see reroute_premium_vs_baseline).
-    premium = reroute_premium_vs_baseline(G_disrupted, params, disrupted_cost_route)
-
-    # Market channel: source barrels removed from the global market by this scenario
-    # (e.g. OPEC+ cut) — moves the crude benchmark even if India reroutes to cover.
-    market_supply_loss = global_supply_loss_bbl_day(G_disrupted, params)
-
-    gap = max(0.0, total_demand - disrupted_flow)
-    cascade = compute_cascade(
-        gap, total_demand, 0, params,
-        reroute_cost_premium_usd_per_bbl=premium,
-        delivered_volume_bbl_day=disrupted_flow,
-        market_supply_loss_bbl_day=market_supply_loss,
-    )
 
     # Persist the disrupted graph state and invalidate the N-1 cache so
     # the vulnerability ranking reflects the updated network topology.
@@ -695,9 +700,11 @@ async def apply_scenario_endpoint(req: ScenarioRequest):
             },
             "pareto_comparison": pareto_routes.get("pareto_comparison", {}),
         },
-        "graph_state": get_graph_state_json(
-            G_disrupted, pareto_routes.get("cost_optimal", {}).get("flow_dict")
-        ),
+        "graph_state": evaluation["graph_state"],
+        "spr": evaluation["spr"],
+        "policy_check": evaluation["policy_check"],
+        "brief": evaluation["brief"],
+        "scenario_hypotheses": evaluation["scenario_hypotheses"],
     }
     APP_STATE["last_brief"] = {"kind": "disruption", "res": payload}
     return payload
@@ -730,6 +737,7 @@ async def process_signal_endpoint(req: SignalRequest):
         params=params,
         source_override=req.source,
         timestamp_override=timestamp_dt,
+        recent_events=APP_STATE.get("recent_events"),
     )
 
     updated_graph = result.pop("_updated_graph", None)
@@ -737,6 +745,7 @@ async def process_signal_endpoint(req: SignalRequest):
         async with APP_STATE["state_lock"]:
             APP_STATE["G_current"] = updated_graph
             APP_STATE["n1_ranking"] = None
+    _remember_event(result.get("event"))
 
     await broadcast_update({
         "kind": "custom_signal", "origin": "custom",
@@ -786,9 +795,11 @@ async def run_replay():
         source_override=event_data.get("source"),
         timestamp_override=timestamp_dt,
         event_override=curated_event,
+        recent_events=APP_STATE.get("recent_events"),
     )
 
     updated_graph = result.pop("_updated_graph", None)
+    _remember_event(result.get("event"))
 
     APP_STATE["replay_log"].append({
         "replay_step": idx + 1,
@@ -849,6 +860,7 @@ async def reset_replay():
         APP_STATE["n1_ranking"] = None
     APP_STATE["replay_index"] = 0
     APP_STATE["replay_log"] = []
+    APP_STATE["recent_events"] = []
     APP_STATE["live_signal_log"] = []
     APP_STATE["current_scenario"] = None
     APP_STATE["scenario_result"] = None
