@@ -154,12 +154,19 @@ Return only the corrected JSON object."""
 
 
 def event_from_curated_timeline(item: dict) -> Event:
-    """Build a deterministic Event from a reviewed replay-timeline record.
+    """Build a deterministic Event from a timeline record's labelled
+    expected_extraction block.
 
-    Replay data is curated before the demo, so asking an external LLM to
-    re-extract it only adds failure modes and makes latency unreproducible.
-    The resulting event is still validated against the same Event contract as
-    live extraction.
+    NOT used by the replay endpoint. /api/replay/run sends each record's
+    headline and body through parse() above, exactly as a live signal, so the
+    severity, confidence, event type and affected corridor are the model's
+    own output rather than values read from a file.
+
+    This remains as the reference implementation of the timeline's ground
+    truth: tests/test_extraction_accuracy.py scores real model output against
+    these labels, and scripts/build_crisis_timeline.py documents the ranges
+    against it. Anything calling this is asserting what SHOULD be extracted,
+    never producing what WAS.
     """
     expected = item.get("expected_extraction", {})
     severity_range = expected.get("severity_range", [0.0, 0.0])

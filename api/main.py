@@ -764,7 +764,6 @@ async def run_replay():
     Call repeatedly to walk through the 2025-2026 crisis timeline.
     """
     from agents.orchestration import process_signal
-    from agents.extraction_agent import event_from_curated_timeline
 
     timeline = json.loads((DATA_DIR / "crisis_timeline.json").read_text(encoding="utf-8"))
     idx = APP_STATE.get("replay_index", 0)
@@ -784,8 +783,16 @@ async def run_replay():
     params = APP_STATE["params"]
 
     timestamp_dt = datetime.fromisoformat(event_data["original_timestamp"])
-    curated_event = event_from_curated_timeline(event_data)
 
+    # The replay ships the headline and body text through the SAME live
+    # extraction the custom-signal endpoint uses — no event_override. The
+    # timeline file supplies the article text and its real publication date;
+    # severity, confidence, event type and the affected corridor are all
+    # decided by the model at replay time.
+    #
+    # The expected_extraction block still in crisis_timeline.json is no longer
+    # an input. It is retained only as the labelled ground truth that
+    # tests/test_extraction_accuracy.py scores the model against.
     result = await asyncio.to_thread(
         process_signal,
         raw_text=f"{event_data['headline']}\n\n{event_data['body_excerpt']}",
@@ -794,7 +801,6 @@ async def run_replay():
         params=params,
         source_override=event_data.get("source"),
         timestamp_override=timestamp_dt,
-        event_override=curated_event,
         recent_events=APP_STATE.get("recent_events"),
     )
 
@@ -810,7 +816,9 @@ async def run_replay():
             "recompute_triggered": result.get("recompute_triggered"),
             "reason": result.get("reason", "relevant" if result.get("recompute_triggered") else "below_threshold"),
             "latency_ms": result.get("latency_ms") or result.get("latency", {}).get("total_pipeline_ms"),
-            "ingestion_mode": "curated_replay",
+            # Archived article text, live model extraction. The timeline
+            # supplies only the headline, body and publication date now.
+            "ingestion_mode": "live_extraction_replay",
         },
     })
 

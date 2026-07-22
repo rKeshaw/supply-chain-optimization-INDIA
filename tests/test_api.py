@@ -2,10 +2,12 @@
 
 import asyncio
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
+from agents.schema import Event
 from api import main
 from graph_engine.build_graph import compute_baseline, load_graph
 from graph_engine.digital_twin import build_initial_state
@@ -152,8 +154,43 @@ def test_api_twin_uses_current_graph_when_requested():
     assert data["scenario"]["chk_hormuz"] == 0.4
 
 
-def test_replay_uses_curated_event_without_llm_extraction():
+def test_replay_runs_headlines_through_live_extraction(monkeypatch):
+    """Replay must send the article text through the real extraction agent.
+
+    It previously passed a pre-built Event from the timeline's
+    expected_extraction block, which short-circuited extraction_agent.parse
+    entirely (orchestration.py's `event_override or parse(...)`), so the
+    severity, confidence and affected corridor a viewer saw were read from a
+    file rather than decided by the model. This asserts the bypass is gone:
+    parse() is called, and its output is what reaches the graph.
+
+    The LLM itself is stubbed so the suite stays hermetic and offline —
+    tests/test_extraction_accuracy.py is where real model output is scored
+    against the timeline's labels.
+    """
+    captured = {}
+
+    def fake_parse(raw_text, source_override=None, timestamp_override=None):
+        captured["raw_text"] = raw_text
+        return Event(
+            id="evt-live-parse",
+            source=source_override or "TEST",
+            timestamp=timestamp_override or datetime.now(timezone.utc),
+            entity="Strait of Hormuz",
+            event_type="closure",
+            severity=0.9,
+            confidence=0.9,
+            affected_graph_element="chk_hormuz",
+            justification="stubbed extraction",
+        )
+
+    monkeypatch.setattr("agents.extraction_agent.parse", fake_parse)
+
     result = asyncio.run(main.run_replay())
+
     assert result["replay_step"] == 1
-    assert result["pipeline_result"]["event"]["id"] == "evt_001"
-    assert main.APP_STATE["replay_log"][0]["result_summary"]["ingestion_mode"] == "curated_replay"
+    # The event carries the model's id, not the timeline record's "evt_001".
+    assert result["pipeline_result"]["event"]["id"] == "evt-live-parse"
+    # The real headline and body text were what got parsed.
+    assert "airstrikes on Iran" in captured["raw_text"]
+    assert main.APP_STATE["replay_log"][0]["result_summary"]["ingestion_mode"] == "live_extraction_replay"
